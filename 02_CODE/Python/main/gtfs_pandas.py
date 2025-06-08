@@ -1,6 +1,7 @@
 import pandas as pd
 from datetime import datetime
 import os
+import time
 
 FILE_PATH = r"C:\Users\Jachym\OneDrive - České vysoké učení technické v Praze\Bakalářská_práce\02_CODE\PID_GTFS"
 
@@ -22,11 +23,10 @@ def read_textfiles_for_timetable():
         "routes": "routes.txt",
         "calendar": "calendar.txt"
     }
-
     stop_times = pd.read_csv(os.path.join(FILE_PATH, files["stop_times"]), low_memory=False)
     trips = pd.read_csv(os.path.join(FILE_PATH, files["trips"]), low_memory=False)
     routes = pd.read_csv(os.path.join(FILE_PATH, files["routes"]))
-    calendar = pd.read_csv(os.path.join(FILE_PATH, files["calendar"]))
+    calendar = pd.read_csv(os.path.join(FILE_PATH, files["calendar"]), dtype={'start_date': int, 'end_date': int})
 
     return stop_times, trips, routes, calendar
 
@@ -37,15 +37,44 @@ def get_timetable_df():
     stop_times_trips = stop_times.merge(trips_calendar, on='trip_id', how='inner')
     stop_times_routes = stop_times_trips.merge(routes, on='route_id', how='inner')
 
-    result = stop_times_routes[
+    timetable = stop_times_routes[
         ['trip_id', 'stop_id', 'departure_time', 'arrival_time',
         'stop_sequence', 'route_short_name', 'start_date', 'end_date', 'service_id'
         ]
     ].sort_values(by=['trip_id', 'stop_sequence'])
 
-    return result
+    return timetable
+
+def get_trip_service_dict():
+
+    stop_times, trips, routes, calendar = read_textfiles_for_timetable()
+    
+    # Merge trips with calendar to get service days
+    trips_with_service = trips.merge(calendar, on='service_id', how='inner')
+    
+    # Create dictionary to store trip service information
+    trip_service_dict = {}
+
+    # Iterate through each trip
+    for _, row in trips_with_service.iterrows():
+        service_days = []
+        if row['monday']: service_days.append(0)
+        if row['tuesday']: service_days.append(1)
+        if row['wednesday']: service_days.append(2)
+        if row['thursday']: service_days.append(3)
+        if row['friday']: service_days.append(4)
+        if row['saturday']: service_days.append(5)
+        if row['sunday']: service_days.append(6)
+        
+        trip_service_dict[row['trip_id']] = {
+            'service_days': service_days,
+            'start_date': int(row['start_date']),
+            'end_date': int(row['end_date'])
+        }
+
+    return trip_service_dict
 
 if __name__ == "__main__":
-    get_timetable_df()
-
+    #get_timetable_df()
+    get_trip_service_dict()
     

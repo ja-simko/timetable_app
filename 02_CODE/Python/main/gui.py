@@ -3,7 +3,7 @@ from tkinter import ttk, messagebox
 from datetime import datetime, timedelta  # Ensure datetime is imported
 import joblib
 import time
-from pareto_before_deleting_queries_SQL import run_algorithm, get_departure_and_arrival_id_from_name
+from pareto_main import run_algorithm, get_default_station_names
 import threading
 import re
 import random
@@ -24,12 +24,14 @@ except locale.Error:
 
 # Define the cache as global or part of a class if you refactor
 cache = None
+edges = None
 display_all_stops_var = None 
 
 def load_cache_async():
     global cache
+
     try:
-        cache = joblib.load(CACHE_FILE)
+        cache = joblib.load(CACHE_FILE)        
         print("Cache loaded.")
         submit_button.config(bg="#DE3163")  # Change to green when cache is loaded
     except Exception as e:
@@ -38,31 +40,25 @@ def load_cache_async():
 
 def on_submit():
     start_time = time.time()
-    departure = departure_combo.get()
-    arrival = arrival_combo.get()
-    
-    if departure == '':
-        departure = 'albertov'
-        arrival = 'ricany'
-    time_str = time_entry.get()
-    date = date_entry.get()
-
-    stop_name_to_id = cache['stop_name_to_station_id']
-
-    departure_station_id, arrival_station_id = get_departure_and_arrival_id_from_name(departure, arrival, stop_name_to_id)
+    departure_station_name = departure_combo.get() or get_default_station_names()[0]
+    arrival_station_name = arrival_combo.get() or get_default_station_names()[1]
+    departure_time_str = time_entry.get() or get_default_station_names()[2]
+    departure_day = date_entry.get() or get_default_station_names()[3]
 
     try:
-        dep_time = datetime.strptime(time_str, "%H:%M") if time_str != '' else datetime.now()
-        time_str = dep_time.strftime("%H:%M:%S")
-        time_str = str(int(time_str[:2]) + int(date)*24) + time_str[2:] 
-
+        if re.match(r"^\d{2}:\d{2}:\d{2}$", departure_time_str):
+            pass
+        elif re.match(r"^\d{2}:\d{2}$", departure_time_str):
+            departure_time_str = departure_time_str + ":00"
+        else:
+            raise ValueError("Invalid time format")
 
     except ValueError:
         messagebox.showerror("Chyba", "Zadej čas ve formátu HH:MM")
         return
 
     try:
-        route_exists, all_paths = run_algorithm(departure_station_id, arrival_station_id, time_str, cache)
+        route_exists, all_paths = run_algorithm(departure_station_name, arrival_station_name, departure_time_str, departure_day, cache['stop_id_to_stop_name'])
         if not route_exists:
             output_area.insert(tk.END, "Žádná trasa nenalezena.")
         else:

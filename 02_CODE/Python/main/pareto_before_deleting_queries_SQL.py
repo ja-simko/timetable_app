@@ -67,7 +67,6 @@ def create_cache(engine) -> dict:
 
     # Store them in the cache
     cache['timetable'] = timetable
-    cache['edges'] = edges
     cache['dataframe_stops'] = dataframe_stops
     cache['stop_name_to_station_id'] = stop_name_to_station_id
     cache['stop_id_to_stop_name'] = stop_id_to_stop_name

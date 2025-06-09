@@ -1,7 +1,9 @@
 import pandas as pd
-from datetime import datetime
+import datetime as dt
+from datetime import datetime, timedelta
 import os
 import time
+import joblib
 
 FILE_PATH = r"C:\Users\Jachym\OneDrive - České vysoké učení technické v Praze\Bakalářská_práce\02_CODE\PID_GTFS"
 
@@ -33,6 +35,15 @@ def read_textfiles_for_timetable():
 def get_timetable_df():
     stop_times, trips, routes, calendar = read_textfiles_for_timetable()
 
+    # Convert times like "25:30:30" to proper datetime representation
+    def convert_time(time_str):
+        hours, minutes, seconds = map(int, time_str.split(':'))
+        time = dt.timedelta(hours=hours, minutes=minutes, seconds=seconds)
+        return time
+
+    #stop_times['departure_time'] = stop_times['departure_time'].apply(convert_time)
+    #stop_times['arrival_time'] = stop_times['arrival_time'].apply(convert_time)
+
     trips_calendar = trips.merge(calendar, on='service_id', how='inner')
     stop_times_trips = stop_times.merge(trips_calendar, on='trip_id', how='inner')
     stop_times_routes = stop_times_trips.merge(routes, on='route_id', how='inner')
@@ -42,6 +53,8 @@ def get_timetable_df():
         'stop_sequence', 'route_short_name', 'start_date', 'end_date', 'service_id'
         ]
     ].sort_values(by=['trip_id', 'stop_sequence'])
+
+    #joblib.dump(timetable,r"C:\Users\Jachym\OneDrive - České vysoké učení technické v Praze\Bakalářská_práce\02_CODE\cache\timetable_cache_str.pkl")
 
     return timetable
 
@@ -75,6 +88,6 @@ def get_trip_service_dict():
     return trip_service_dict
 
 if __name__ == "__main__":
-    #get_timetable_df()
+    get_timetable_df()
     get_trip_service_dict()
     

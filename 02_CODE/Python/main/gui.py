@@ -3,11 +3,12 @@ from tkinter import ttk, messagebox
 from datetime import datetime, timedelta  # Ensure datetime is imported
 import joblib
 import time
-from pareto_main import run_algorithm, get_default_station_names
+from pareto_main import run_algorithm, get_default_station_names, convert_edge_times_to_timedelta, format_timedelta
 import threading
 import re
 import random
 from unidecode import unidecode
+import os
 
 import locale
 
@@ -27,12 +28,16 @@ cache = None
 edges = None
 display_all_stops_var = None 
 
+CACHE_EDGES_DIR = r"C:\Users\Jachym\OneDrive - České vysoké učení technické v Praze\Bakalářská_práce\02_CODE\cache\edges"
+
 def load_cache_async():
     global cache
-
+    global edges
     try:
-        cache = joblib.load(CACHE_FILE)        
-        print("Cache loaded.")
+        cache = joblib.load(CACHE_FILE)   
+        edges = joblib.load(os.path.join(CACHE_EDGES_DIR,'edges_all_str_no_comp'))
+        edges = convert_edge_times_to_timedelta(edges)
+        print("Cache & edges loaded.")
         submit_button.config(bg="#DE3163")  # Change to green when cache is loaded
     except Exception as e:
         print(f"Failed to load cache: {e}")
@@ -46,20 +51,26 @@ def on_submit():
     departure_day = date_entry.get() or get_default_station_names()[3]
 
     try:
-        if re.match(r"^\d{2}:\d{2}:\d{2}$", departure_time_str):
-            pass
-        elif re.match(r"^\d{2}:\d{2}$", departure_time_str):
-            departure_time_str = departure_time_str + ":00"
+        seconds = 0
+        if not isinstance(departure_time_str, timedelta):
+            if re.match(r"^\d{2}:\d{2}:\d{2}$", departure_time_str):
+                hours, minutes, seconds = map(int, departure_time_str.split(':'))
+            elif re.match(r"^\d{2}:\d{2}$", departure_time_str):
+                hours, minutes = map(int, departure_time_str.split(':'))
+            else:
+                raise ValueError("Invalid time format")
+            
+            departure_time_timedelta = timedelta(hours=hours, minutes=minutes, seconds=seconds) 
         else:
-            raise ValueError("Invalid time format")
-
+            departure_time_timedelta = departure_time_str
     except ValueError:
         messagebox.showerror("Chyba", "Zadej čas ve formátu HH:MM")
         return
 
     try:
-        route_exists, all_paths = run_algorithm(departure_station_name, arrival_station_name, departure_time_str, departure_day, cache['stop_id_to_stop_name'])
+        route_exists, all_paths = run_algorithm(departure_station_name, arrival_station_name, departure_time_timedelta, departure_day, cache['stop_id_to_stop_name'], edges)
         if not route_exists:
+            output_area.delete('1.0', tk.END)
             output_area.insert(tk.END, "Žádná trasa nenalezena.")
         else:
             full_results_bool = bool(display_all_stops_var.get()) 
@@ -70,6 +81,7 @@ def on_submit():
     
     print(time.time() - start_time)
 
+# Modify the insert_results function
 def insert_results(all_paths, full_results_bool):
     output_area.delete('1.0', tk.END)
     header = f"{'Stop':<25}{'Dep. Time':<15}{'Line':<10}{'Platform':<10}\n"
@@ -81,15 +93,16 @@ def insert_results(all_paths, full_results_bool):
         for connection_counter, connection in enumerate(complete_path):
             for stop_counter, stop in enumerate(connection):
                 if full_results_bool or stop_counter == 0 or stop_counter == len(connection) - 1:
-                    stop_name, dep_time, line, platform = stop  
-                    output_area.insert(tk.END, f"{stop_name:<25}{dep_time:<15}{line:<10}{platform:<10}\n")
+                    stop_name, dep_time, line, platform = stop
+                    # Format the timedelta before displaying
+                    formatted_time = format_timedelta(dep_time)
+                    output_area.insert(tk.END, f"{stop_name:<25}{formatted_time:<15}{line:<10}{platform:<10}\n")
 
             if connection_counter < len(complete_path) - 1: 
-                print(type(complete_path[connection_counter][-1][1]))
+                current_time = complete_path[connection_counter][-1][1]
+                next_time = complete_path[connection_counter + 1][0][1]
+                transit_time = (next_time - current_time).total_seconds() // 60  # Convert to minutes
 
-                current_time = datetime.strptime(complete_path[connection_counter][-1][1], "%H:%M:%S") #incorporate 24h, so that 24:30 shows as 0:30
-                next_time = datetime.strptime(complete_path[connection_counter + 1][0][1], "%H:%M:%S")
-                transit_time = (next_time - current_time).total_seconds() / 60  # Convert to minutes
                 output_area.insert(tk.END, f"{'-' * 22} Transit ({int(transit_time)} min){'-' * 22}\n")
 
         output_area.insert(tk.END, "=" * 60 + "\n\n")

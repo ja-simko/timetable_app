@@ -1,14 +1,15 @@
 import heapq
 import joblib
 import pandas as pd
-import time
 import bisect
 import random
 import re
+import time
 import string
 import math
 import os
 
+import datetime as dt
 from datetime import timedelta, datetime
 from collections import defaultdict
 from rapidfuzz import process, fuzz
@@ -255,7 +256,7 @@ def modified_dijkstra_pareto(start_station, target_station, start_time, edges, i
             is_start_station = current_station == start_station
 
             for next_station, connections in edges[current_station].items():
-                dep_time, arr_time, transfer = binary_search_next_edge(connections, current_time, is_start_station, current_transfers, max_transfers, trip_service_days, checked_trips)
+                dep_time, arr_time, transfer = binary_search_next_edge(connections, current_time, is_start_station, current_transfers, max_transfers, trip_service_days, checked_trips, next_station)
 
                 if arr_time is None or arr_time > start_time + TIME_WINDOW:
                     continue
@@ -316,8 +317,8 @@ def binary_search_next_edge(edges, current_time, zero_transfer_cost, num_of_tran
             return (None, None, 0)
         
         trip_id = edges[index][-1]
-        
-        if trip_id in checked_trips or (6 in trip_service_days[trip_id]['service_days'] and trip_service_days[trip_id]['start_date'] <= 20250608):
+
+        if trip_id in checked_trips or (0 in trip_service_days[trip_id]['service_days'] and trip_service_days[trip_id]['start_date'] <= 20250609):
             checked_trips.add(trip_id)
             return (edges[index][0], edges[index][1], 0)
         index += 1
@@ -418,16 +419,16 @@ def select_random_stations():
     stop_name_to_id = joblib.load(CACHE_STOP_NAME_ID)
     return random.choice(list(stop_name_to_id.values())), random.choice(list(stop_name_to_id.values()))
 
-def run_algorithm(departure_station_name, arrival_station_name, adjusted_departure_time_seconds, departure_day, stop_id_to_name):
+def run_algorithm(departure_station_name, arrival_station_name, departure_time_str, departure_day, stop_id_to_name):
 
     st = time.time()
     edges = joblib.load(os.path.join(CACHE_EDGES_DIR, f'edges_all'))
     print(round(time.time() - st, 3))
 
     departure_station_id, arrival_station_id = get_departure_and_arrival_id_from_name(departure_station_name, arrival_station_name)
-    adjusted_departure_time_seconds = convert_date_and_time_to_total_seconds(departure_day, adjusted_departure_time_seconds)
+    departure_time_seconds = convert_str_to_sec(departure_time_str)#convert_date_and_time_to_total_seconds(departure_day, departure_time_str)
 
-    route_exists, all_found_connections = not_main(departure_station_id, arrival_station_id, adjusted_departure_time_seconds, stop_id_to_name, edges)
+    route_exists, all_found_connections = not_main(departure_station_id, arrival_station_id, departure_time_seconds, stop_id_to_name, edges)
 
     #print('One Run Time:', round((time.time() - start_time_alg)*1000, 2), 'ms')
 
@@ -452,17 +453,17 @@ def get_default_station_names():
         departure_time_str = f"{random.randint(0,24)}:{random.randint(0,60)}:{random.randint(0,60)}"
 
     else:
-        departure_station_name = "kolbenova"
-        arrival_station_name = "Vrdy-Koudelov"
-        departure_time_str = '10:55:00'
+        departure_station_name = "k juliane"
+        arrival_station_name = "dedinova"
+        departure_time_str = '22:55:00'
 
-    departure_day = '20250608'
+    departure_day = '20250609'
 
     return departure_station_name, arrival_station_name, departure_time_str, departure_day
 
 def convert_date_and_time_to_total_seconds(day: str, time: str):
     departure_date = datetime.strptime(str(day), '%Y%m%d').date()
-    today = datetime.today().date()
+    today = departure_date#datetime.today().date()
     days_difference = (departure_date - today).days
 
     return int(convert_str_to_sec(time) + timedelta(days=days_difference).total_seconds())
@@ -545,7 +546,16 @@ if __name__ == "__main__":
     LOAD_FROM_MEMORY = False
     LOAD_FROM_MEMORY = True
 
-    main()
+    #main()
+
+    gtfs = '25:23:20'
+    hours, minutes, seconds = (int(t) for t in gtfs.split(':'))
+    days = hours // 24
+    hours = hours % 24
+
+    one = dt.timedelta(days=days,minutes=minutes,seconds=seconds,hours=hours)
+    print(one)
+
     # get_14_days_from_today()
     #edges_between_stations()
     #build_edges_2()

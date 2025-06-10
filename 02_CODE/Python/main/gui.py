@@ -3,7 +3,8 @@ from tkinter import ttk, messagebox
 from datetime import datetime, timedelta  # Ensure datetime is imported
 import joblib
 import time
-from pareto_main import run_algorithm, get_default_station_names, convert_edge_times_to_timedelta, format_timedelta
+from pareto_main import *
+
 import threading
 import re
 import random
@@ -23,7 +24,6 @@ except locale.Error:
         # Optional fallback or custom sort
 
 # Define the cache as global or part of a class if you refactor
-cache = None
 edges = None
 trip_service_days = None
 display_all_stops_var = None 
@@ -32,16 +32,13 @@ CACHE_EDGES_DIR = r"C:\Users\Jachym\OneDrive - České vysoké učení technick�
 CACHE_PATH = r"C:\Users\Jachym\OneDrive - České vysoké učení technické v Praze\Bakalářská_práce\02_CODE\cache"
 
 def load_cache_async():
-    global cache
     global edges
     global trip_service_days
     try:
-        cache = joblib.load(CACHE_FILE)   
-        edges = joblib.load(os.path.join(CACHE_EDGES_DIR,'edges_all_str_no_comp'))
-        trip_service_days = joblib.load(os.path.join(CACHE_PATH, 'trip_service_days'))
+        edges = get_edges()
+        trip_service_days = get_trip_service_days()
 
-        edges = convert_edge_times_to_timedelta(edges)
-        print("Cache & edges loaded.")
+        print("Edges loaded.")
 
         submit_button.config(bg="#DE3163")  # Change to green when cache is loaded
     except Exception as e:
@@ -57,23 +54,23 @@ def on_submit():
 
     try:
         seconds = 0
-        if not isinstance(departure_time_str, timedelta):
-            if re.match(r"^\d{2}:\d{2}:\d{2}$", departure_time_str):
-                hours, minutes, seconds = map(int, departure_time_str.split(':'))
-            elif re.match(r"^\d{2}:\d{2}$", departure_time_str):
-                hours, minutes = map(int, departure_time_str.split(':'))
-            else:
+        if not isinstance(departure_time_str, int):
+            if re.match(r"^\d{2}:\d{2}$", departure_time_str):
+                departure_time_str += ":00"
+            elif re.match(r"^\d{1}:\d{2}$", departure_time_str):
+                departure_time_str = "0" + departure_time_str + ":00"
+            elif not re.match(r"^\d{2}:\d{2}:\d{2}$", departure_time_str):
                 raise ValueError("Invalid time format")
             
-            departure_time_timedelta = timedelta(hours=hours, minutes=minutes, seconds=seconds) 
+            departure_time_seconds = convert_str_to_sec(departure_time_str) 
         else:
-            departure_time_timedelta = departure_time_str
+            departure_time_seconds = departure_time_str
     except ValueError:
         messagebox.showerror("Chyba", "Zadej čas ve formátu HH:MM")
         return
 
     try:
-        route_exists, all_paths = run_algorithm(departure_station_name, arrival_station_name, departure_time_timedelta, departure_day, cache['stop_id_to_stop_name'], edges, trip_service_days)
+        route_exists, all_paths = run_algorithm(departure_station_name, arrival_station_name, departure_time_seconds, departure_day, edges, trip_service_days)
         if not route_exists:
             output_area.delete('1.0', tk.END)
             output_area.insert(tk.END, "Žádná trasa nenalezena.")
@@ -91,6 +88,7 @@ def insert_results(all_paths, full_results_bool):
     output_area.delete('1.0', tk.END)
     header = f"{'Stop':<25}{'Dep. Time':<15}{'Line':<10}{'Platform':<10}\n"
 
+    print('inse')
     for complete_path in all_paths:
         output_area.insert(tk.END, header)
         output_area.insert(tk.END, "-" * 60 + "\n")
@@ -100,13 +98,13 @@ def insert_results(all_paths, full_results_bool):
                 if full_results_bool or stop_counter == 0 or stop_counter == len(connection) - 1:
                     stop_name, dep_time, line, platform = stop
                     # Format the timedelta before displaying
-                    formatted_time = format_timedelta(dep_time)
+                    formatted_time = convert_sec_to_hh_mm_ss(dep_time)
                     output_area.insert(tk.END, f"{stop_name:<25}{formatted_time:<15}{line:<10}{platform:<10}\n")
 
             if connection_counter < len(complete_path) - 1: 
                 current_time = complete_path[connection_counter][-1][1]
                 next_time = complete_path[connection_counter + 1][0][1]
-                transit_time = (next_time - current_time).total_seconds() // 60  # Convert to minutes
+                transit_time = (next_time - current_time) // 60  # Convert to minutes
 
                 output_area.insert(tk.END, f"{'-' * 22} Transit ({int(transit_time)} min){'-' * 22}\n")
 
@@ -187,7 +185,7 @@ start_time = time.time()
 CACHE_FILE = r"C:\Users\Jachym\OneDrive - České vysoké učení technické v Praze\Bakalářská_práce\02_CODE\cache\timetable_cache.pkl"
 CACHE_FILE_STOP_NAME_ID = r"C:\Users\Jachym\OneDrive - České vysoké učení technické v Praze\Bakalářská_práce\02_CODE\cache\stop_name_id.pkl"
 
-stop_name_id_dict = joblib.load(CACHE_FILE_STOP_NAME_ID)
+stop_name_id_dict = get_stop_name_to_id()
 
 station_names = sorted(stop_name_id_dict.keys(), key=locale.strxfrm)  # Unique, sorted station names
 

@@ -23,7 +23,7 @@ from gtfs_pandas import *
 def convert_str_to_sec(timestamp: str) -> int:
     return sum(int(t) * 60 ** i for i, t in enumerate(reversed(timestamp.split(":"))))
 
-def convert_to_hh_mm_ss(time: int) -> str:
+def convert_sec_to_hh_mm_ss(time: int) -> str:
     return str(timedelta(seconds=time % (24*60*60)))
 
 def match_stop_name_and_id(key: str, stop_name_id_dict: dict) -> str:
@@ -87,25 +87,6 @@ def load_timetable():
     return timetable
 
 
-
-def create_stop_name_to_station_id(timetable):
-    df_mapped = timetable.copy()
-    df_mapped['station_id'] = 'U' + df_mapped['asw_node_id'].astype(str)
-
-    # Group and check for duplicates
-    grouped = df_mapped.groupby('stop_name')['station_id'].apply(set)
-
-    # Create the final mapping
-    stop_name_to_station_id = {}
-    for stop_name, station_ids in grouped.items():
-        if len(station_ids) == 1:
-            stop_name_to_station_id[stop_name] = next(iter(station_ids))
-        else:
-            for station_id in station_ids:
-                stop_name_to_station_id[f"{stop_name} ({station_id})"] = station_id
-    
-    return stop_name_to_station_id
-
 def load_stop_name_id_dicts() -> tuple[dict, dict, pd.DataFrame]:
     # Construct the dictionary for stop_name to stop_id
     dataframe = get_stops_df()
@@ -163,7 +144,6 @@ def modified_dijkstra_pareto(start_station, target_station, start_time, edges, i
     while max_transfers >= 0:  # Run until we reach -1 transfers
         while pq:
             current_time, current_transfers, current_station = heapq.heappop(pq)
-
             if current_station == target_station:
                 max_transfers = -1 if ONLY_FASTEST_TRIP else current_transfers
                 break
@@ -175,7 +155,7 @@ def modified_dijkstra_pareto(start_station, target_station, start_time, edges, i
                 continue
          
             line_num = current_station.split('_')[-1] if '_' in current_station else None
-        
+
             is_start_station = current_station == start_station
 
             for next_station, connections in edges[current_station].items():
@@ -190,14 +170,14 @@ def modified_dijkstra_pareto(start_station, target_station, start_time, edges, i
                 if next_station not in labels:
                     labels[next_station] = []
 
-                is_dominated = False
+                dominated = False  # Initialize the variable before use
 
                 for prev_time, prev_transfers in labels[next_station]:
                     if prev_time <= arr_time and prev_transfers <= new_transfers:
-                        is_dominated = True
+                        dominated = True
                         break  # The new label is dominated, discard it
 
-                if is_dominated:
+                if dominated:
                     continue
                 
                 labels[next_station] = [(t, tr) for (t, tr) in labels[next_station] if not (t >= arr_time and tr >= new_transfers)] #prolly a bit faster without this step (40ms per run?)
@@ -223,18 +203,6 @@ def modified_dijkstra_pareto(start_station, target_station, start_time, edges, i
     print('dijkstra',round(time.time() - start,3)*1000,'ms')
     return evaluated_nodes
 
-def get_time_within_day(td: timedelta) -> timedelta:
-    """Get time part of timedelta (modulo 24 hours)"""
-    days = td.days
-    seconds = td.seconds
-    return timedelta(seconds=seconds)
-
-# Alternative using total_seconds()
-def get_time_within_day_alt(td: timedelta) -> timedelta:
-    """Get time part of timedelta (modulo 24 hours)"""
-    total_seconds = int(td.total_seconds())
-    return timedelta(seconds=total_seconds % (24*3600))
-
 def binary_search_next_edge(edges, current_time, zero_transfer_cost, num_of_transfers, current_transfer_limit, trip_service_days, checked_trips) -> tuple[float, float, int]:
     """Return next edge departure time, arrival time and transfer 0 or 1 
     Finds the next train connection using binary search 
@@ -256,11 +224,16 @@ def binary_search_next_edge(edges, current_time, zero_transfer_cost, num_of_tran
         trip_id = edges[index][2]
         service_day_shift = edges[index][3]
 
-        departure_day_shifted = departure_day_dt + service_day_shift
-        trip_start_date = convert_str_date_to_datetime(str(trip_service_days[trip_id]['start_date']))
-        trip_end_date = convert_str_date_to_datetime(str(trip_service_days[trip_id]['end_date']))
-        service_days = trip_service_days[trip_id]['service_days']
+        departure_day_shifted = departure_day_dt if service_day_shift == 0 else departure_day_dt + timedelta(days = service_day_shift)
 
+        trip_start_date = trip_service_days[trip_id]['start_date']
+        trip_end_date = trip_service_days[trip_id]['end_date']#trip_start_date = convert_str_to_datetime(str(trip_service_days[trip_id]['start_date']))
+        #trip_start_date = convert_str_to_datetime(str(trip_service_days[trip_id]['start_date']))
+
+        #trip_end_date = convert_str_to_datetime(str(trip_service_days[trip_id]['end_date']))
+        service_days = trip_service_days[trip_id]['service_days']
+        ##takes alot of time to convert
+    
         if (trip_id in checked_trips or
         (departure_day_shifted.weekday() in service_days and (trip_end_date >= departure_day_shifted >= trip_start_date))):
             checked_trips.add(trip_id)
@@ -344,9 +317,12 @@ def not_main(departure_station_id, arrival_station_id, departure_time_seconds, e
     if not (arrival_station_id and departure_station_id) or arrival_station_id not in evaluated_nodes:
         print('No Route Found')
         return False, None
+    print('fad2')
+    print('fad2')
 
     least_transfers_for_EA = min(evaluated_nodes[arrival_station_id].keys(), key=lambda t: evaluated_nodes[arrival_station_id][t]['arrival_time'])
 
+    print('fad3')
     for num_of_transfers in range(least_transfers_for_EA, -1, -1): #fastest paths with fewer transfers
         path = find_path_pareto(departure_station_id, arrival_station_id, evaluated_nodes, num_of_transfers)
 
@@ -359,11 +335,11 @@ def not_main(departure_station_id, arrival_station_id, departure_time_seconds, e
                 for connection_counter, connection in enumerate(connections):
                     for stop_counter, stop in enumerate(connection):
                         if full_results_bool or stop_counter == 0 or stop_counter == len(connection) - 1:
-                            print(stop[0], format_timedelta(stop[1]),stop[2],stop[3] )
+                            print(stop[0], convert_sec_to_hh_mm_ss(stop[1]),stop[2],stop[3] )
 
                     print('')
                 print('')
-                print('Travel time', int((path[-1]['arrival_time'] - path[0]['departure_time']).total_seconds()//60),'min')
+                print('Travel time', (path[-1]['arrival_time'] - path[0]['departure_time'])//60,'min')
             else:
                 print("ROUTE EXISTS")
     
@@ -372,13 +348,14 @@ def not_main(departure_station_id, arrival_station_id, departure_time_seconds, e
     return True, all_found_connections
 
 def select_random_stations():
-    stop_name_to_id = joblib.load(CACHE_STOP_NAME_ID)
+    stop_name_to_id = get_stop_name_to_id()
     return random.choice(list(stop_name_to_id.values())), random.choice(list(stop_name_to_id.values()))
 
 def run_algorithm(departure_station_name, arrival_station_name, departure_time_timedelta, departure_day, edges, trip_service_days):
     global departure_day_dt
 
-    departure_day_dt = convert_str_date_to_datetime(departure_day)
+    print(departure_station_name, arrival_station_name)
+    departure_day_dt = convert_str_to_datetime(departure_day)
     departure_station_id, arrival_station_id = get_departure_and_arrival_id_from_name(departure_station_name, arrival_station_name)
     departure_time_seconds = departure_time_timedelta# datetime #convert_str_to_sec(departure_time_str)#convert_date_and_time_to_total_seconds(departure_day, departure_time_str)
     route_exists, all_found_connections = not_main(departure_station_id, arrival_station_id, departure_time_seconds, edges, trip_service_days)
@@ -392,7 +369,7 @@ def run_algorithm(departure_station_name, arrival_station_name, departure_time_t
     return route_exists, all_found_connections
 
 def get_departure_and_arrival_id_from_name(departure_station_name, arrival_station_name):
-    stop_name_to_id = joblib.load(CACHE_STOP_NAME_ID)
+    stop_name_to_id = get_stop_name_to_id()
 
     stop_ascii_dict = {unidecode(k).lower(): v for k, v in stop_name_to_id.items()}
 
@@ -408,19 +385,19 @@ def get_default_station_names():
 
     else:
         departure_station_name = "k juliane"
-        arrival_station_name = "dedina"
+        arrival_station_name = "kotorska"
         departure_time_str = '10:30:00'
 
     departure_day = '20250610'
 
     hours, minutes, seconds = map(int, departure_time_str.split(':'))
-    departure_time_dt = dt.timedelta(hours=hours, minutes=minutes, seconds=seconds)
+    departure_time_dt = convert_str_to_sec(departure_time_str)#dt.timedelta(hours=hours, minutes=minutes, seconds=seconds)
 
     return departure_station_name, arrival_station_name, departure_time_dt, departure_day
 
-def convert_str_date_to_datetime(day: str):
-    departure_date = datetime.strptime(str(day), '%Y%m%d').date()
-    return departure_date
+def convert_str_to_datetime(day: str):
+    day = datetime.strptime(day, '%Y%m%d')
+    return day
 
 def main():
     departure_station_name, arrival_station_name, departure_time_dt, departure_day = get_default_station_names()
@@ -443,8 +420,8 @@ def main():
 ### experiment with multpiple runs, the next run stars second after the fastest or something 
 
 # Define constants
-MIN_TRANSFER_TIME = dt.timedelta(seconds = 120)#120
-TIME_WINDOW = dt.timedelta(hours = 12)#12*60*60
+MIN_TRANSFER_TIME = 120
+TIME_WINDOW = 12*60*60
 TRANSFER_BOUND = 10
 ONLY_FASTEST_TRIP = False
 NUMBER_OF_DAYS_IN_ADVANCE = 14
@@ -506,10 +483,9 @@ def edges_between_stations():
             print(f"Distance: {distance} meters, Platform: {platform}, ID: {stop_id}", transit_time)
 
 if __name__ == "__main__":
-    LOAD_FROM_MEMORY = False
-    LOAD_FROM_MEMORY = True
-
     main()
+    import cProfile
+    cProfile.run('main()', sort='cumtime')
     #build_stop_id_to_name()
     #create_stop_name_to_station_id(None)
 

@@ -8,6 +8,7 @@ import time
 import string
 import math
 import os
+import timeit
 
 import datetime as dt
 from datetime import timedelta, datetime
@@ -15,7 +16,7 @@ from collections import defaultdict
 from rapidfuzz import process, fuzz
 from unidecode import unidecode
 from sqlalchemy import create_engine, text
-from gtfs_pandas import get_timetable_df, get_stops_df, get_trip_service_dict
+from gtfs_pandas import *
 
 #Helper Functions
 
@@ -76,7 +77,7 @@ def create_cache() -> dict:
 def load_timetable():
     print('start query for timetable')
     st = time.time()
-    timetable = get_timetable_df()
+    timetable = build_timetable_df()
     print('timetable',time.time() - st)
     # Convert 'departure_time' and 'arrival_time' to seconds
     #timetable['departure_time'] = timetable['departure_time'].apply(lambda timestamp: convert_str_to_sec(timestamp))
@@ -85,6 +86,26 @@ def load_timetable():
     print('end timetable')
     return timetable
 
+
+
+def create_stop_name_to_station_id(timetable):
+    df_mapped = timetable.copy()
+    df_mapped['station_id'] = 'U' + df_mapped['asw_node_id'].astype(str)
+
+    # Group and check for duplicates
+    grouped = df_mapped.groupby('stop_name')['station_id'].apply(set)
+
+    # Create the final mapping
+    stop_name_to_station_id = {}
+    for stop_name, station_ids in grouped.items():
+        if len(station_ids) == 1:
+            stop_name_to_station_id[stop_name] = next(iter(station_ids))
+        else:
+            for station_id in station_ids:
+                stop_name_to_station_id[f"{stop_name} ({station_id})"] = station_id
+    
+    return stop_name_to_station_id
+
 def load_stop_name_id_dicts() -> tuple[dict, dict, pd.DataFrame]:
     # Construct the dictionary for stop_name to stop_id
     dataframe = get_stops_df()
@@ -92,12 +113,14 @@ def load_stop_name_id_dicts() -> tuple[dict, dict, pd.DataFrame]:
     stop_name_to_stations = defaultdict(set)
     stop_id_to_stop_name = {}
 
+    BothTh = defaultdict(set)
+
     for _, row in dataframe.iterrows():
         stop_name = row['stop_name']
         station_id = 'U' + str(row['asw_node_id'])
         stop_name_to_stations[stop_name].add(station_id)
         stop_id_to_stop_name[row['stop_id']] = stop_name
-
+    
     stop_name_to_station_id = {}
 
     for stop_name, station_ids in stop_name_to_stations.items():
@@ -111,99 +134,6 @@ def load_stop_name_id_dicts() -> tuple[dict, dict, pd.DataFrame]:
     dataframe['station_id'] = dataframe['stop_name'].map(lambda name: stop_name_to_station_id.get(name, None))
 
     return stop_name_to_station_id, stop_id_to_stop_name, dataframe
-
-def generate_route_ids(df):
-    """ Assigns a unique route ID to each unique stop sequence. """
-    route_map = {}  # {stop_sequence_tuple: route_id}
-    route_counter = 1  # Unique route ID counter
-
-    # Group trips by their ordered sequence of stops
-    trip_sequences = defaultdict(list)
-
-    for row in df.itertuples(index=False):
-        trip_sequences[row.trip_id].append(row.stop_id)
-
-    for trip_id, stop_sequence in trip_sequences.items():
-        sequence_tuple = tuple(stop_sequence)
-
-        if sequence_tuple not in route_map:
-            route_map[sequence_tuple] = f"R{route_counter}"
-            route_counter += 1
-
-    return route_map, trip_sequences  # {stop_sequence_tuple: route_id}
-
-def build_edges(timetable):
-    print('start building edges')
-    """ Builds the graph edges based on computed route IDs. """
-    prev_row = None
-
-    # Generate route IDs based on stop sequences
-    route_map, trip_sequences = generate_route_ids(timetable)
-
-    edges = defaultdict(lambda: defaultdict(list))
-
-    station_re = re.compile(r"^(U\d+)[ZS]")
-
-    last_trip_id = None
-
-    for row in timetable.itertuples(index=False):
-        #if prev_row and row.trip_id == prev_row.trip_id and row.stop_sequence == prev_row.stop_sequence + 1:
-        if row.trip_id != last_trip_id:
-            line_num = row.route_short_name
-            last_trip_id = row.trip_id
-            route_id = route_map[tuple(trip_sequences[last_trip_id])]
-            prev_row = row
-            continue
-        
-        out_node_stop_id, in_node_stop_id = prev_row.stop_id, row.stop_id
-
-        try:
-            out_main_station = station_re.match(out_node_stop_id).group(1)
-            in_main_station = station_re.match(in_node_stop_id).group(1)
-        except:
-            continue
-        
-        out_node = f"{out_node_stop_id}_{route_id}_{line_num}"
-        in_node = f"{in_node_stop_id}_{route_id}_{line_num}"
-
-        dep_time = prev_row.departure_time #+ time_adjustment
-        arr_time = row.arrival_time #+ time_adjustment
-
-        if dep_time >= 24*3600:
-            edges[out_node][in_node].append((dep_time - 24*3600, arr_time - 24*3600, row.trip_id, -1))
-        elif dep_time < 6*3600:
-            edges[out_node][in_node].append((dep_time + 24*3600, arr_time + 24*3600, row.trip_id, 1))
-        edges[out_node][in_node].append((dep_time, arr_time, row.trip_id, 0))
-
-        #edges[out_node][in_node].append((dep_time.total_seconds(), arr_time.total_seconds(), row.trip_id))
-
-        # Edge from main station node to route-specific node (transfer time)
-        if out_node not in edges[out_main_station]:
-            edges[out_main_station][out_node].append(('T', MIN_TRANSFER_TIME, None))
-
-        # Edge from route-specific node to main station node (zero cost)
-        if in_main_station not in edges[in_node]:
-            edges[in_node][in_main_station].append(('P', 0, None))
-
-        prev_row = row
-
-    for out_node in edges:
-        for in_node in edges[out_node]:
-            edges[out_node][in_node].sort()
-
-    edges = convert_nested_defaultdict(edges)
-
-    file_path = os.path.join(CACHE_EDGES_DIR, f"edges_all_str_no_comp")
-
-    joblib.dump(edges, file_path, compress=0)
-
-    #print('One day done,', day)
-    
-    print('end building edges')
-    return edges
-
-def convert_nested_defaultdict(d):
-    return {k: convert_nested_defaultdict(v) for k, v in d.items()} if isinstance(d, defaultdict) else d
 
 def get_trip_id_to_line_num_dict(timetable):
     """ Assigns a unique route ID to each unique stop sequence. """
@@ -364,8 +294,10 @@ def find_path_pareto(source_node, end_node, evaluated_nodes, num_of_transfers):
 
     return path[::-1] #Return reversed path
 
-def construct_final_path_table(path, stop_id_to_stop_name):
+def construct_final_path_table(path):
     connections = []
+
+    stop_id_to_name = get_stop_id_to_name()
 
     for edge in path:
         node = edge['prev_node'].split('_')[0]
@@ -376,7 +308,7 @@ def construct_final_path_table(path, stop_id_to_stop_name):
         platform = get_platform_letter_from_stop_id(node)
         
         stop_time = edge['departure_time']
-        stop_name = match_stop_name_and_id(node, stop_id_to_stop_name)
+        stop_name = match_stop_name_and_id(node, stop_id_to_name)
 
         if edge['line_num'] != None:
             connections[-1].append([stop_name, stop_time, edge['line_num'], platform])
@@ -402,7 +334,7 @@ def format_timedelta(td):
     minutes, seconds = divmod(remainder, 60)
     return f"{hours:02}:{minutes:02}:{seconds:02}"
 
-def not_main(departure_station_id, arrival_station_id, departure_time_seconds, stop_id_to_stop_name, edges, trip_service_days) -> str:
+def not_main(departure_station_id, arrival_station_id, departure_time_seconds, edges, trip_service_days) -> str:
     all_found_connections = []
 
     print(departure_station_id)
@@ -419,7 +351,7 @@ def not_main(departure_station_id, arrival_station_id, departure_time_seconds, s
         path = find_path_pareto(departure_station_id, arrival_station_id, evaluated_nodes, num_of_transfers)
 
         if path:
-            connections = construct_final_path_table(path, stop_id_to_stop_name)
+            connections = construct_final_path_table(path)
             all_found_connections.append(connections)
             full_results_bool = False
             if TO_PRINT_IN_TERMINAL:
@@ -443,13 +375,13 @@ def select_random_stations():
     stop_name_to_id = joblib.load(CACHE_STOP_NAME_ID)
     return random.choice(list(stop_name_to_id.values())), random.choice(list(stop_name_to_id.values()))
 
-def run_algorithm(departure_station_name, arrival_station_name, departure_time_timedelta, departure_day, stop_id_to_name, edges, trip_service_days):
+def run_algorithm(departure_station_name, arrival_station_name, departure_time_timedelta, departure_day, edges, trip_service_days):
     global departure_day_dt
 
     departure_day_dt = convert_str_date_to_datetime(departure_day)
     departure_station_id, arrival_station_id = get_departure_and_arrival_id_from_name(departure_station_name, arrival_station_name)
     departure_time_seconds = departure_time_timedelta# datetime #convert_str_to_sec(departure_time_str)#convert_date_and_time_to_total_seconds(departure_day, departure_time_str)
-    route_exists, all_found_connections = not_main(departure_station_id, arrival_station_id, departure_time_seconds, stop_id_to_name, edges, trip_service_days)
+    route_exists, all_found_connections = not_main(departure_station_id, arrival_station_id, departure_time_seconds, edges, trip_service_days)
 
     #print('One Run Time:', round((time.time() - start_time_alg)*1000, 2), 'ms')
 
@@ -461,6 +393,7 @@ def run_algorithm(departure_station_name, arrival_station_name, departure_time_t
 
 def get_departure_and_arrival_id_from_name(departure_station_name, arrival_station_name):
     stop_name_to_id = joblib.load(CACHE_STOP_NAME_ID)
+
     stop_ascii_dict = {unidecode(k).lower(): v for k, v in stop_name_to_id.items()}
 
     departure_station_id = get_id_from_best_name_match(stop_ascii_dict, unidecode(departure_station_name).lower())
@@ -489,64 +422,25 @@ def convert_str_date_to_datetime(day: str):
     departure_date = datetime.strptime(str(day), '%Y%m%d').date()
     return departure_date
 
-def convert_edge_times_to_timedelta(edges):
-    start_time = time.time()
-    for out_node in edges:
-        for in_node in edges[out_node]:
-            new_edge_list = []
-            for edge in edges[out_node][in_node]:
-                if len(edge) == 4:
-                    dep_seconds, arr_seconds, trip_id, shifted_day = edge
-                else:
-                    dep_seconds, arr_seconds, trip_id = edge
-                    shifted_day = 0
-                service_day_shift = timedelta(days = shifted_day)
-
-                if isinstance(dep_seconds, (int, float)) and isinstance(arr_seconds, (int, float)):
-                    dep_time = timedelta(seconds = dep_seconds)
-                    arr_time = timedelta(seconds = arr_seconds)
-                else:
-                    dep_time = dep_seconds
-                    arr_time = arr_seconds
-
-                new_edge_list.append((dep_time, arr_time, trip_id, service_day_shift))
-
-            edges[out_node][in_node] = new_edge_list
-
-    for out_node in edges:
-        for in_node in edges[out_node]:
-            edges[out_node][in_node].sort()
-    
-    print(time.time() - start_time,'Converting edges to td')
-    return edges
-
 def main():
     departure_station_name, arrival_station_name, departure_time_dt, departure_day = get_default_station_names()
+    
+    st = time.time()
+    edges = get_edges()
+    print('Download edges',round(time.time() - st, 3))
 
     st = time.time()
-    cache = get_timetable_data(LOAD_FROM_MEMORY)
-    print('timetable loaded',time.time() - st)
-
-    if not LOAD_FROM_MEMORY:
-       edges = build_edges(cache['timetable'])
-    else:
-        st = time.time()
-        edges = joblib.load(os.path.join(CACHE_EDGES_DIR, f'edges_all_str_no_comp'))
-        print('Download edges',round(time.time() - st, 3))
-
-    trip_service_days = joblib.load(os.path.join(CACHE_PATH, 'trip_service_days'))
-
-    edges = convert_edge_times_to_timedelta(edges)
+    trip_service_days = get_trip_service_days()
+    print('Download tripsserivce',round(time.time() - st, 3))
 
     for i in range(NUM_OF_SEARCHES):
         departure_station_name, arrival_station_name, departure_time_dt, departure_day = get_default_station_names()
         start_time = time.time()
-        run_algorithm(departure_station_name, arrival_station_name, departure_time_dt, departure_day, cache['stop_id_to_stop_name'], edges, trip_service_days)
+        run_algorithm(departure_station_name, arrival_station_name, departure_time_dt, departure_day, edges, trip_service_days)
         print('One Run Time:', round((time.time() - start_time)*1000, 2), 'ms')
 
 
 ### experiment with multpiple runs, the next run stars second after the fastest or something 
-
 
 # Define constants
 MIN_TRANSFER_TIME = dt.timedelta(seconds = 120)#120
@@ -560,9 +454,12 @@ TO_PRINT_IN_TERMINAL = False if NUM_OF_SEARCHES > 1 else True
 
 RANDOM_STATIONS = False
 
-ENGINE = "mysql+mysqlconnector://root:password@localhost/timetables2"
+abspath = os.path.abspath(__file__)
+dirpath = os.path.dirname(abspath)
+CACHE_FOLDER_PATH = os.path.join(dirpath, "cache")
 
-CACHE_PATH = r"C:\Users\Jachym\OneDrive - České vysoké učení technické v Praze\Bakalářská_práce\02_CODE\cache"
+
+CACHE_FOLDER_PATH = r"C:\Users\Jachym\OneDrive - České vysoké učení technické v Praze\Bakalářská_práce\02_CODE\cache"
 CACHE_TIMETABLE = r"C:\Users\Jachym\OneDrive - České vysoké učení technické v Praze\Bakalářská_práce\02_CODE\cache\timetable_cache.pkl"
 CACHE_EDGES_DIR = r"C:\Users\Jachym\OneDrive - České vysoké učení technické v Praze\Bakalářská_práce\02_CODE\cache\edges"
 CACHE_STOP_NAME_ID = r"C:\Users\Jachym\OneDrive - České vysoké učení technické v Praze\Bakalářská_práce\02_CODE\cache\stop_name_id.pkl"
@@ -609,10 +506,12 @@ def edges_between_stations():
             print(f"Distance: {distance} meters, Platform: {platform}, ID: {stop_id}", transit_time)
 
 if __name__ == "__main__":
-    LOAD_FROM_MEMORY = True
     LOAD_FROM_MEMORY = False
+    LOAD_FROM_MEMORY = True
 
     main()
+    #build_stop_id_to_name()
+    #create_stop_name_to_station_id(None)
 
     # get_14_days_from_today()
     #edges_between_stations()

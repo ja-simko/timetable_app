@@ -15,7 +15,7 @@ from collections import defaultdict
 from rapidfuzz import process, fuzz
 from unidecode import unidecode
 from sqlalchemy import create_engine, text
-from gtfs_pandas import get_timetable_df, get_stops_df, get_trip_service_dict
+from gtfs_pandas import build_timetable_df, get_stops_df, build_trip_service_days
 
 #Helper Functions
 
@@ -76,7 +76,7 @@ def create_cache() -> dict:
 def load_timetable():
     print('start query for timetable')
     st = time.time()
-    timetable = get_timetable_df()
+    timetable = build_timetable_df()
     print('timetable',time.time() - st)
     # Convert 'departure_time' and 'arrival_time' to seconds
     #timetable['departure_time'] = timetable['departure_time'].apply(lambda timestamp: convert_str_to_sec(timestamp))

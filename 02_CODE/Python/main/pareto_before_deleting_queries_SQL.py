@@ -13,7 +13,7 @@ from collections import defaultdict
 from rapidfuzz import process, fuzz
 from unidecode import unidecode
 from sqlalchemy import create_engine, text
-from gtfs_pandas import get_timetable_df, get_stops_df
+from gtfs_pandas import build_timetable_df, get_stops_df
 
 #Helper Functions
 
@@ -82,7 +82,7 @@ def load_timetable(engine):
     print('start query for timetable')
     #timetable = query_for_timetable(engine)
     print('start via text files')
-    timetable = get_timetable_df()
+    timetable = build_timetable_df()
     print('end files')
 
     # Convert 'departure_time' and 'arrival_time' to seconds

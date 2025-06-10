@@ -22,7 +22,6 @@ except locale.Error:
         print("Czech locale not available on your system.")
         # Optional fallback or custom sort
 
-
 # Define the cache as global or part of a class if you refactor
 cache = None
 edges = None

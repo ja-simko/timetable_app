@@ -26,18 +26,24 @@ except locale.Error:
 # Define the cache as global or part of a class if you refactor
 cache = None
 edges = None
+trip_service_days = None
 display_all_stops_var = None 
 
 CACHE_EDGES_DIR = r"C:\Users\Jachym\OneDrive - České vysoké učení technické v Praze\Bakalářská_práce\02_CODE\cache\edges"
+CACHE_PATH = r"C:\Users\Jachym\OneDrive - České vysoké učení technické v Praze\Bakalářská_práce\02_CODE\cache"
 
 def load_cache_async():
     global cache
     global edges
+    global trip_service_days
     try:
         cache = joblib.load(CACHE_FILE)   
         edges = joblib.load(os.path.join(CACHE_EDGES_DIR,'edges_all_str_no_comp'))
+        trip_service_days = joblib.load(os.path.join(CACHE_PATH, 'trip_service_days'))
+
         edges = convert_edge_times_to_timedelta(edges)
         print("Cache & edges loaded.")
+
         submit_button.config(bg="#DE3163")  # Change to green when cache is loaded
     except Exception as e:
         print(f"Failed to load cache: {e}")
@@ -68,7 +74,7 @@ def on_submit():
         return
 
     try:
-        route_exists, all_paths = run_algorithm(departure_station_name, arrival_station_name, departure_time_timedelta, departure_day, cache['stop_id_to_stop_name'], edges)
+        route_exists, all_paths = run_algorithm(departure_station_name, arrival_station_name, departure_time_timedelta, departure_day, cache['stop_id_to_stop_name'], edges, trip_service_days)
         if not route_exists:
             output_area.delete('1.0', tk.END)
             output_area.insert(tk.END, "Žádná trasa nenalezena.")

@@ -56,6 +56,7 @@ def get_timetable_df():
 
     #joblib.dump(timetable,r"C:\Users\Jachym\OneDrive - České vysoké učení technické v Praze\Bakalářská_práce\02_CODE\cache\timetable_cache_str.pkl")
 
+    print(timetable[timetable['route_short_name'] == '98'])
     return timetable
 
 def get_trip_service_dict():

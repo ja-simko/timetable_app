@@ -8,6 +8,7 @@ from collections import defaultdict
 import re
 import timeit
 import joblib
+from unidecode import unidecode
 
 
 def convert_str_to_datetime(day):
@@ -74,7 +75,8 @@ def build_stop_name_to_id_ZONE(zone = None):
     stops_df = get_stops_df()
     if zone:
         stops_df = stops_df[(stops_df['zone_id'] == zone)]
-    return dict(zip(stops_df['unique_name'], stops_df['main_station_id']))
+
+    return dict(zip(stops_df['unique_name'].str.lower(), stops_df['main_station_id']))
 
 def build_stop_id_to_name_and_platform():
     stops = get_stops_df()
@@ -102,6 +104,8 @@ def build_stops_df():
 
     gtfs_stops['main_station_id'] = gtfs_stops['stop_id'].apply(lambda x: x.split('Z')[0])
 
+    gtfs_stops['unique_name'] = gtfs_stops['unique_name'].apply(lambda x: unidecode(x))
+
     return gtfs_stops[['stop_id', 'main_station_id', 'stop_name', 'unique_name', 'zone_id', 'stop_lat', 'stop_lon', 'asw_node_id', 'platform_code']]
 
 def build_trip_service_days():
@@ -116,6 +120,7 @@ def build_trip_service_days():
     day_columns = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday']
     day_values = trips_with_service[day_columns].values
 
+    
     # Create a structured array/dictionary in one pass
     trip_service_dict = {
         trip_id: {
@@ -130,6 +135,7 @@ def build_trip_service_days():
             trips_with_service['end_date']
         )
     }
+
     return trip_service_dict
 
 def build_edges():
@@ -325,13 +331,21 @@ if __name__ == "__main__":
     # build_timetable_df()
     # gg = get_stops_df()
     # build_stop_name_to_id()
-    get_trip_service_days()
-    fce = build_trip_service_days
 
-    test_functions(fce)
+    # build_trip_service_days()
+
+    # fce = build_trip_service_days
+
+    # test_functions(fce)
+
+    print(load_cached_data('only_dates'))
 
     fce = load_cached_data
     att = 'trip_service_days'
+    test_functions(fce, att)
+
+    fce = load_cached_data
+    att = 'only_dates'
     test_functions(fce, att)
 
     fce = build_stop_id_to_name_and_platform
@@ -365,7 +379,6 @@ if __name__ == "__main__":
     test_functions(fce, stops, 'U4161Z1', n=2)
 
     print(get_from_df(stops, 'U4161Z1'))
-
 
 
     '''

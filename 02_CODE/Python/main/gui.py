@@ -96,6 +96,7 @@ def process_route(iteration, departure_station_name, arrival_station_name, depar
         messagebox.showerror("Chyba při hledání trasy", str(e))
 
 def on_submit():
+    start_time = time.time()
     departure_station_name = departure_combo.get() or get_default_station_names()[0]
     arrival_station_name = arrival_combo.get() or get_default_station_names()[1]
     departure_time_str = time_entry.get() or get_default_station_names()[2]
@@ -113,6 +114,8 @@ def on_submit():
     for output_area in output_areas:
         output_area.delete('1.0', tk.END)
     process_route(0, departure_station_name, arrival_station_name, departure_time_str, departure_day)
+    print('One Run Time:', round((time.time() - start_time)*1000, 2), 'ms')
+
 
 # Modify the insert_results function
 def insert_results(all_paths, full_results_bool, output_area):

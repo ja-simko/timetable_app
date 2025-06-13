@@ -1,10 +1,13 @@
 from pareto_main import *
 from gtfs_pandas import get_edges, get_trip_service_days
 import cProfile
-import pstats
+from pstats import *
 import time
 import json
 import statistics
+import line_profiler
+import io
+
 
 def load_real_data():
     edges = get_edges()
@@ -14,13 +17,12 @@ def load_real_data():
 def test_modified_dijkstra_pareto():
     # Load real data
     edges, trip_service_days = load_real_data()
-    
-    stop_name_to_id = get_stop_name_to_id()
-    stop_ascii_dict = {unidecode(k).lower(): v for k, v in stop_name_to_id.items()}
 
-    start_station = get_id_from_best_name_match(stop_ascii_dict, "andelska hora, rozc")
+    stop_name_to_id = get_stop_name_to_id()
+
+    #start_station = get_id_from_best_name_match(stop_name_to_id, "andelska hora, rozc")
+    #target_station = get_id_from_best_name_match(stop_name_to_id, "nadrazi podbaba")
     start_station = 'dekanka'
-    target_station = get_id_from_best_name_match(stop_ascii_dict, "nadrazi podbaba")
     target_station = 'k juliane'
     start_time = '10:00:00'
     departure_day = '20250610'
@@ -31,7 +33,7 @@ def test_modified_dijkstra_pareto():
     profiler = cProfile.Profile()
     profiler.enable()
 
-    for i in range(10):
+    for i in range(1):
         start = time.time()
         result = run_algorithm(start_station, target_station, start_time, departure_day, edges, trip_service_days)
         end = time.time()
@@ -39,9 +41,13 @@ def test_modified_dijkstra_pareto():
         print(f"Run {i+1}: {execution_times[-1]:.3f} seconds")
 
     profiler.disable()
-    stats = pstats.Stats(profiler).sort_stats('cumtime')
-    stats.print_stats()
-    
+
+    s = io.StringIO()
+    ps = Stats(profiler, stream=s).sort_stats(SortKey.CUMULATIVE)
+    ps.print_stats(20)  # Top 20 functions
+    print("Detailed Profile:")
+    print(s.getvalue())
+
     avg_time = statistics.mean(execution_times)
     std_dev = statistics.stdev(execution_times)
     print(f"\nAverage execution time: {avg_time:.3f} seconds")

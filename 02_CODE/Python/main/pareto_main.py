@@ -103,12 +103,8 @@ def time_dependent_pareto_dijkstra(start_station, target_station, start_time, ed
 
     shifted_dates = {k: datetime.strftime(v, '%Y%m%d') for k,v in shifted_dates.items()}
 
-
     global checked_trips
     checked_trips = set()
-
-    global valid_dates
-    valid_dates = set()
 
     start = time.time()
 
@@ -176,19 +172,19 @@ def time_dependent_pareto_dijkstra(start_station, target_station, start_time, ed
 
     return evaluated_nodes
 
-def is_trip_service_day_valifdsd(departure_day_dt, trip_id, trip_service_days, weekday):
-    trip_info = trip_service_days[trip_id]
-    return weekday in trip_info['service_days'] and dep_str in trip_info['valid_days']
-
-def is_trip_service_day_valid(departure_day_dt, trip_id, trip_service_days, weekday):
+def is_trip_service_day_valid(departure_day, trip_id, trip_service_days, weekday):
     trip_info = trip_service_days[trip_id]
     return (weekday in trip_info['service_days'] and 
-            trip_info['start_date'] <= dep_str <= trip_info['end_date'])
+            trip_info['start_date'] <= departure_day <= trip_info['end_date'])
 
 def binary_search_next_edge(edges, current_time, zero_transfer_cost, trip_service_days, shifted_dates, shifted_weekday) -> tuple[float, float, int]:
     """Return next edge departure time, arrival time and transfer 0 or 1 
     Finds the next train connection using binary search 
     """
+    def check():
+        if edges[0][0] == 'P' or zero_transfer_cost:
+            return (current_time, current_time, 0)
+
     if edges[0][0] == 'P' or zero_transfer_cost:
         return (current_time, current_time, 0)
     
@@ -206,10 +202,10 @@ def binary_search_next_edge(edges, current_time, zero_transfer_cost, trip_servic
         if trip_id in checked_trips:
             return (dep_time, arr_time, 0)
         
-        shifted_departure_day = shifted_dates[day_shift]
         weekday = shifted_weekday[day_shift]
+        departure_day = shifted_dates[day_shift]
 
-        if is_trip_service_day_valid(shifted_departure_day, trip_id, trip_service_days, weekday):
+        if is_trip_service_day_valid(departure_day, trip_id, trip_service_days, weekday):
             checked_trips.add(trip_id)
             return (dep_time, arr_time, 0)
         
@@ -267,8 +263,6 @@ def select_random_stations():
     return random.choice(list(stop_name_to_id.keys())), random.choice(list(stop_name_to_id.keys()))
 
 def run_algorithm(departure_station_name, arrival_station_name, departure_time_str, departure_day, edges, trip_service_days):
-    global dep_str
-    dep_str = departure_day
     departure_day_dt = convert_str_to_datetime(departure_day)
     departure_time_sec = convert_str_to_sec(departure_time_str)
     departure_station_id, arrival_station_id = get_dep_arr_id_from_name(departure_station_name, arrival_station_name)
@@ -318,11 +312,10 @@ def run_algorithm(departure_station_name, arrival_station_name, departure_time_s
 
 def get_dep_arr_id_from_name(departure_station_name, arrival_station_name): 
     stop_name_to_id = get_stop_name_to_id()
-    stop_ascii_dict = {unidecode(k).lower(): v for k, v in stop_name_to_id.items()}
 
-    departure_station_id = get_id_from_best_name_match(stop_ascii_dict, departure_station_name)
+    departure_station_id = get_id_from_best_name_match(stop_name_to_id, departure_station_name)
 
-    arrival_station_id = get_id_from_best_name_match(stop_ascii_dict, arrival_station_name)
+    arrival_station_id = get_id_from_best_name_match(stop_name_to_id, arrival_station_name)
 
     return departure_station_id, arrival_station_id
 
@@ -370,7 +363,7 @@ def main():
 MIN_TRANSFER_TIME = 120
 TIME_WINDOW = 12*60*60
 TRANSFER_BOUND = 7
-ONLY_FASTEST_TRIP = True
+ONLY_FASTEST_TRIP = False
 NUMBER_OF_DAYS_IN_ADVANCE = 14
 
 NUM_OF_SEARCHES = 10 #for testing, number of searches

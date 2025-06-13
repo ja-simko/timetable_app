@@ -70,9 +70,15 @@ def build_stop_name_to_id():
     stops_df = get_stops_df()
     return dict(zip(stops_df['unique_name'], stops_df['main_station_id']))
 
-def build_stop_id_to_name():
+def build_stop_name_to_id_ZONE(zone = None):
+    stops_df = get_stops_df()
+    if zone:
+        stops_df = stops_df[(stops_df['zone_id'] == zone)]
+    return dict(zip(stops_df['unique_name'], stops_df['main_station_id']))
+
+def build_stop_id_to_name_and_platform():
     stops = get_stops_df()
-    return dict(zip(stops['stop_id'], stops['stop_name']))
+    return dict(zip(stops['stop_id'], zip(stops['stop_name'], stops['platform_code'])))
 
 def build_stops_df():
     gtfs_stops = read_stops_file()
@@ -96,7 +102,7 @@ def build_stops_df():
 
     gtfs_stops['main_station_id'] = gtfs_stops['stop_id'].apply(lambda x: x.split('Z')[0])
 
-    return gtfs_stops[['stop_id', 'main_station_id', 'stop_name', 'unique_name', 'stop_lat', 'stop_lon', 'asw_node_id', 'platform_code']]
+    return gtfs_stops[['stop_id', 'main_station_id', 'stop_name', 'unique_name', 'zone_id', 'stop_lat', 'stop_lon', 'asw_node_id', 'platform_code']]
 
 def build_trip_service_days():
     trips, calendar = read_trips_file(), read_calendar_file()
@@ -104,32 +110,26 @@ def build_trip_service_days():
     # Merge trips with calendar
     trips_with_service = trips.merge(calendar, on='service_id', how='inner')
 
-    trips_with_service['start_date'] = (pd.to_datetime(trips_with_service['start_date'], format="%Y%m%d"))
-    trips_with_service['end_date'] = (pd.to_datetime(trips_with_service['end_date'], format="%Y%m%d"))
+    trips_with_service['start_date'] = trips_with_service['start_date'].astype(str)
+    trips_with_service['end_date'] = trips_with_service['end_date'].astype(str)
 
     day_columns = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday']
     day_values = trips_with_service[day_columns].values
 
-    # Vectorized service days calculation
-    service_days = (set(np.where(row)[0].tolist()) for row in day_values)
-
-    # Create dictionary
-    trip_service_dict = dict(zip(
-    trips_with_service['trip_id'],
-    [
-        {
-            'service_days': sdays,
-            'start_date': sdate,
-            'end_date': edate
+    # Create a structured array/dictionary in one pass
+    trip_service_dict = {
+        trip_id: {
+            'service_days': set(np.where(days)[0].tolist()),
+            'start_date': start,
+            'end_date': end
         }
-        for sdays, sdate, edate in zip(
-            service_days,
+        for trip_id, days, start, end in zip(
+            trips_with_service['trip_id'],
+            day_values,
             trips_with_service['start_date'],
             trips_with_service['end_date']
         )
-    ]
-    ))
-
+    }
     return trip_service_dict
 
 def build_edges():
@@ -238,7 +238,6 @@ def convert_edge_times_to_timedelta(edges):
 def convert_nested_defaultdict(d):
     return {k: convert_nested_defaultdict(v) for k, v in d.items()} if isinstance(d, defaultdict) else d
 
-
 def load_cached_data(filename):
     return joblib.load(os.path.join(CACHE_FOLDER_PATH, filename))
 
@@ -260,22 +259,27 @@ def get_edges():
     return edges
 
 def get_trip_service_days():
-    return build_trip_service_days() 
+    #filename = 'trip_service_days'
+    #if os.path.exists(os.path.join(CACHE_FOLDER_PATH, filename)):
+     #   return load_cached_data(filename)
+    trip_service_days = build_trip_service_days() 
+    #save_cached_data(trip_service_days, filename)
+    return trip_service_days
 
 def get_stop_id_to_name():
     filename = 'stop_id_to_name'
-    if os.path.exists(os.path.join(CACHE_FOLDER_PATH, filename)):
-        return load_cached_data(filename)
-    stop_name_to_id = build_stop_name_to_id() 
-    save_cached_data(stop_name_to_id, filename)
-    return stop_name_to_id
+    #if os.path.exists(os.path.join(CACHE_FOLDER_PATH, filename)):
+    #    return load_cached_data(filename)
+    stop_id_to_name = build_stop_id_to_name_and_platform() 
+    #save_cached_data(stop_id_to_name, filename)
+    return stop_id_to_name
 
-def get_stop_name_to_id():
-    filename = 'stop_name_to_id'
-    if os.path.exists(os.path.join(CACHE_FOLDER_PATH, filename)):
-        return load_cached_data(filename)
-    stop_name_to_id = build_stop_name_to_id() 
-    save_cached_data(stop_name_to_id, filename)
+def get_stop_name_to_id(zone = None):
+    #filename = 'stop_name_to_id'
+    #if os.path.exists(os.path.join(CACHE_FOLDER_PATH, filename)):
+    #    return load_cached_data(filename)
+    stop_name_to_id = build_stop_name_to_id_ZONE(zone) 
+    #save_cached_data(stop_name_to_id, filename)
     return stop_name_to_id
 
 def get_stops_df():
@@ -296,7 +300,7 @@ def test_functions(function, *att, **kwargs):
         elapsed = timeit.timeit(partial(function, *att), number = n)
     else:
         elapsed = timeit.timeit(partial(function), number = n)
-    print(function.__name__, round(elapsed, 10))
+    print(function.__name__, round(elapsed/n, 10))
 
 abspath = os.path.abspath(__file__)
 dirpath = os.path.dirname(abspath)
@@ -321,15 +325,16 @@ if __name__ == "__main__":
     # build_timetable_df()
     # gg = get_stops_df()
     # build_stop_name_to_id()
+    get_trip_service_days()
+    fce = build_trip_service_days
 
-    fce = build_stops_df
     test_functions(fce)
 
     fce = load_cached_data
-    att = 'stops_df'
+    att = 'trip_service_days'
     test_functions(fce, att)
 
-    fce = build_stop_id_to_name
+    fce = build_stop_id_to_name_and_platform
     test_functions(fce)
 
     fce = load_cached_data

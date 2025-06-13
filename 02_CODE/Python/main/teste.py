@@ -19,8 +19,10 @@ def test_modified_dijkstra_pareto():
     stop_ascii_dict = {unidecode(k).lower(): v for k, v in stop_name_to_id.items()}
 
     start_station = get_id_from_best_name_match(stop_ascii_dict, "andelska hora, rozc")
+    start_station = 'dekanka'
     target_station = get_id_from_best_name_match(stop_ascii_dict, "nadrazi podbaba")
-    start_time = 36000  # 10:00:00
+    target_station = 'k juliane'
+    start_time = '10:00:00'
     departure_day = '20250610'
     departure_day_dt = convert_str_to_datetime(departure_day)
 
@@ -29,10 +31,9 @@ def test_modified_dijkstra_pareto():
     profiler = cProfile.Profile()
     profiler.enable()
 
-    for i in range(50):
+    for i in range(10):
         start = time.time()
-        result = modified_dijkstra_pareto(start_station, target_station, start_time, edges, 
-                                        trip_service_days, departure_day_dt)
+        result = run_algorithm(start_station, target_station, start_time, departure_day, edges, trip_service_days)
         end = time.time()
         execution_times.append(end - start)
         print(f"Run {i+1}: {execution_times[-1]:.3f} seconds")

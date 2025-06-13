@@ -12,6 +12,7 @@ from unidecode import unidecode
 import os
 
 import locale
+from functools import partial
 
 # Set Czech locale (try 'cs_CZ.UTF-8', or fallback options below)
 try:
@@ -148,7 +149,7 @@ def update_stations(event, entry, listbox, station_list):
         return
         
     typed_text = entry.get().lower()
-    if len(typed_text) >= 3:
+    if len(typed_text) >= 0:
         filtered_stations = [station for station in station_list if typed_text in unidecode(station.lower())]
         listbox.delete(0, tk.END)
         for station in filtered_stations:
@@ -214,11 +215,11 @@ start_time = time.time()
 CACHE_FILE = r"C:\Users\Jachym\OneDrive - České vysoké učení technické v Praze\Bakalářská_práce\02_CODE\cache\timetable_cache.pkl"
 CACHE_FILE_STOP_NAME_ID = r"C:\Users\Jachym\OneDrive - České vysoké učení technické v Praze\Bakalářská_práce\02_CODE\cache\stop_name_id.pkl"
 
-stop_name_id_dict = get_stop_name_to_id()
+root = tk.Tk()
 
+stop_name_id_dict = build_stop_name_to_id_ZONE()
 station_names = sorted(stop_name_id_dict.keys(), key=locale.strxfrm)  # Unique, sorted station names
 
-root = tk.Tk()
 root.title("Vyhledávač spojení (Dijkstra GUI)")
 
 # Set the size and position of the window
@@ -297,6 +298,34 @@ display_all_stops_button = tk.Checkbutton(
 )
 display_all_stops_button.grid(row=4, column=1, columnspan=2, pady=0)
 
+#Zona P
+zone_p_var = tk.StringVar(value='')
+zone_p_checkbox = tk.Checkbutton(
+    root, 
+    text="Jen Zona P", 
+    variable=zone_p_var,
+    onvalue='P',  
+    offvalue='', 
+    font=("Arial", 10),
+    padx=10, 
+    pady=5
+)
+zone_p_checkbox.grid(row=4, column=2, columnspan=2, pady=0)
+
+def on_zone_change(zone):
+    global station_names, stop_name_id_dict
+    stop_name_id_dict = build_stop_name_to_id_ZONE(zone)
+    station_names = sorted(stop_name_id_dict.keys(), key=locale.strxfrm)
+
+    # Update station lists in combo boxes
+    if root.focus_get() == departure_combo:
+        update_stations(None, departure_combo, departure_listbox, station_names)
+    elif root.focus_get() == arrival_combo:
+        update_stations(None, arrival_combo, arrival_listbox, station_names)
+
+zone_p_var.trace_add('write', lambda *args: on_zone_change(zone_p_var.get()))
+
+#Output grame
 output_frame = tk.Frame(root)
 output_frame.grid(row=5, column=0, columnspan=4, padx=10, pady=10, sticky="nsew")
 

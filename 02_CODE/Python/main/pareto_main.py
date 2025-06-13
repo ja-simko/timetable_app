@@ -23,8 +23,11 @@ from gtfs_pandas import *
 def convert_str_to_sec(timestamp: str) -> int:
     return sum(int(t) * 60 ** i for i, t in enumerate(reversed(timestamp.split(":"))))
 
-def convert_sec_to_hh_mm_ss(time: int) -> str:
-    return str(timedelta(seconds=time % (24*60*60)))
+def convert_sec_to_hh_mm_ss(time) -> str:
+    time = int(time % (24 * 3600))
+    hours, remainder = divmod(time, 3600)
+    minutes, seconds = divmod(remainder, 60)
+    return f"{hours:02}:{minutes:02}:{seconds:02}"
 
 def match_stop_name_and_id(key: str, stop_name_id_dict: dict) -> str:
     return stop_name_id_dict.get(key, None)
@@ -37,55 +40,12 @@ def get_id_from_best_name_match(stop_name_id_dict, user_input, threshold=80) -> 
     """Find the best matching stop name using fuzzy search. Returns station ID, without Z and the the part after it."""
 
     # Get the best match using fuzzy search (threshold avoids bad matches)
-    best_match, score, _ = process.extractOne(user_input, stop_name_id_dict.keys(), scorer=fuzz.ratio)
+    best_match, score, _ = process.extractOne(unidecode(user_input).lower(), stop_name_id_dict.keys(), scorer=fuzz.ratio)
 
     if score >= threshold:
-        return stop_name_id_dict[best_match].split('Z')[0]  # Get ID from dict
+        return stop_name_id_dict[best_match]  # Get ID from dict
     print("No Good Match Found")
     return None  # No good match found
-
-def load_data_from_memory():
-    return joblib.load(CACHE_TIMETABLE)
-
-def get_timetable_data(load_from_memory):
-    if load_from_memory:
-        print("Data are loaded from cache.")
-        return load_data_from_memory()
-    else:
-        print("Data are being extracted.")
-        return create_cache()
-
-def create_cache() -> dict:
-    cache = {}
-
-    stop_name_to_station_id, stop_id_to_stop_name, stops_df  = load_stop_name_id_dicts()
-    timetable = load_timetable()
-
-    # Store them in the cache
-    cache['timetable'] = timetable
-    cache['stops_df'] = stops_df
-    cache['stop_name_to_station_id'] = stop_name_to_station_id
-    cache['stop_id_to_stop_name'] = stop_id_to_stop_name
-
-    # Save to disk
-    
-    joblib.dump(cache, CACHE_TIMETABLE)
-    joblib.dump(stop_name_to_station_id, CACHE_STOP_NAME_ID)
-    print('end dumping')
-    return cache
-
-def load_timetable():
-    print('start query for timetable')
-    st = time.time()
-    timetable = build_timetable_df()
-    print('timetable',time.time() - st)
-    # Convert 'departure_time' and 'arrival_time' to seconds
-    #timetable['departure_time'] = timetable['departure_time'].apply(lambda timestamp: convert_str_to_sec(timestamp))
-    #timetable['arrival_time'] = timetable['arrival_time'].apply(lambda timestamp: convert_str_to_sec(timestamp))
-
-    print('end timetable')
-    return timetable
-
 
 def load_stop_name_id_dicts() -> tuple[dict, dict, pd.DataFrame]:
     # Construct the dictionary for stop_name to stop_id
@@ -127,20 +87,23 @@ def get_trip_id_to_line_num_dict(timetable):
 
     return trip_id_to_route_name  # {trip_id: line_num}
 
-def modified_dijkstra_pareto(start_station, target_station, start_time, edges, initial_max_transfers, trip_service_days):
+def modified_dijkstra_pareto(start_station, target_station, start_time, edges, trip_service_days, departure_day_dt):
     """ Implements the modified Dijkstra's algorithm to find all Pareto-optimal paths iteratively. """
+
     pq = [(start_time, 0, start_station)]  # (arrival_time, num_transfers, station)
     labels = {start_station: [(start_time, 0)]}  # Station → List of (arrival_time, num_transfers)
     evaluated_nodes = {start_station: {0: {'prev_node': None, 'departure_time': None, 'arrival_time': start_time, 'line_num': None}}}
 
-    max_transfers = initial_max_transfers  # Start with the initial transfer limit
+    max_transfers = TRANSFER_BOUND  # Start with the initial transfer limit
 
-    #trip_service_days = get_trip_service_dict()
-    #joblib.dump(trip_service_days, os.path.join(CACHE_PATH, 'trip_service_days'))
+    shifted_dates = {-1: departure_day_dt - timedelta(days=1), 0: departure_day_dt, 1: departure_day_dt + timedelta(days=1)
+    }
+
+    global checked_trips
+    checked_trips = set()
 
     start = time.time()
 
-    checked_trips = set()
     while max_transfers >= 0:  # Run until we reach -1 transfers
         while pq:
             current_time, current_transfers, current_station = heapq.heappop(pq)
@@ -151,20 +114,23 @@ def modified_dijkstra_pareto(start_station, target_station, start_time, edges, i
             if current_transfers > max_transfers:
                 continue  # Skip paths exceeding the allowed transfers
 
-            if current_station not in edges:
+            if current_station not in edges: #if the station is always the end station
                 continue
-         
-            line_num = current_station.split('_')[-1] if '_' in current_station else None
+
+            #line_num = current_station.split('_')[-1] if '_' in current_station else None
 
             is_start_station = current_station == start_station
 
             for next_station, connections in edges[current_station].items():
-                dep_time, arr_time, transfer = binary_search_next_edge(connections, current_time, is_start_station, current_transfers, max_transfers, trip_service_days, checked_trips)
+                dep_time, arr_time, transfer = binary_search_next_edge(connections, current_time, is_start_station, trip_service_days, shifted_dates)
         
                 if arr_time is None or arr_time > start_time + TIME_WINDOW:
                     continue
-
+                
                 new_transfers = current_transfers + transfer
+
+                if new_transfers > max_transfers:
+                    continue
 
                 # Check if this label is Pareto-optimal
                 if next_station not in labels:
@@ -190,8 +156,7 @@ def modified_dijkstra_pareto(start_station, target_station, start_time, edges, i
                 evaluated_nodes[next_station][new_transfers] = {
                     'prev_node': current_station,
                     'departure_time': dep_time,
-                    'arrival_time': arr_time,
-                    'line_num': line_num
+                    'arrival_time': arr_time
                 }
 
                 heapq.heappush(pq, (arr_time, new_transfers, next_station))
@@ -203,16 +168,29 @@ def modified_dijkstra_pareto(start_station, target_station, start_time, edges, i
     print('dijkstra',round(time.time() - start,3)*1000,'ms')
     return evaluated_nodes
 
-def binary_search_next_edge(edges, current_time, zero_transfer_cost, num_of_transfers, current_transfer_limit, trip_service_days, checked_trips) -> tuple[float, float, int]:
+def is_trip_service_day_valid(departure_day_dt, trip_id, trip_service_days):
+    if trip_id in checked_trips:
+        return True
+    
+    trip_info = trip_service_days[trip_id]
+
+    if departure_day_dt.weekday() not in trip_info['service_days']:
+        return False
+
+    if trip_info['start_date'] <= departure_day_dt <= trip_info['end_date']:
+        checked_trips.add(trip_id)
+        return True
+    
+    return False
+
+def binary_search_next_edge(edges, current_time, zero_transfer_cost, trip_service_days, shifted_dates) -> tuple[float, float, int]:
     """Return next edge departure time, arrival time and transfer 0 or 1 
     Finds the next train connection using binary search 
     """
     if edges[0][0] == 'P' or zero_transfer_cost:
-        return (current_time, current_time, 0) #to station edge with no cost, or zeroth transfer edge
+        return (current_time, current_time, 0)
     
     if edges[0][0] == 'T':
-        if num_of_transfers >= current_transfer_limit: 
-            return (None, None, 0)
         return (current_time, current_time + MIN_TRANSFER_TIME, 1)
     
     index = bisect.bisect_left(edges, (current_time,))
@@ -221,28 +199,13 @@ def binary_search_next_edge(edges, current_time, zero_transfer_cost, num_of_tran
         if index == len(edges):
             return (None, None, 0)
         
-        trip_id = edges[index][2]
-        service_day_shift = edges[index][3]
+        dep_time, arr_time, trip_id, day_shift =  edges[index]
+        shifted_departure_day = shifted_dates[day_shift]
 
-        departure_day_shifted = departure_day_dt if service_day_shift == 0 else departure_day_dt + timedelta(days = service_day_shift)
-
-        trip_start_date = trip_service_days[trip_id]['start_date']
-        trip_end_date = trip_service_days[trip_id]['end_date']#trip_start_date = convert_str_to_datetime(str(trip_service_days[trip_id]['start_date']))
-        #trip_start_date = convert_str_to_datetime(str(trip_service_days[trip_id]['start_date']))
-
-        #trip_end_date = convert_str_to_datetime(str(trip_service_days[trip_id]['end_date']))
-        service_days = trip_service_days[trip_id]['service_days']
-        ##takes alot of time to convert
-    
-        if (trip_id in checked_trips or
-        (departure_day_shifted.weekday() in service_days and (trip_end_date >= departure_day_shifted >= trip_start_date))):
-            checked_trips.add(trip_id)
-            
-            return (edges[index][0], edges[index][1], 0)
+        if is_trip_service_day_valid(shifted_departure_day, trip_id, trip_service_days):
+            return (dep_time, arr_time, 0)
+        
         index += 1
-            # return (24*60*60 + edges[0][0], 24*60*60 + edges[0][1], 0)
-
-#SHIFTs days
 
 def is_transit_edge(edge) -> bool:
     return True if edge['line_num'] == None else False
@@ -255,12 +218,16 @@ def find_path_pareto(source_node, end_node, evaluated_nodes, num_of_transfers):
  
         if num_of_transfers in evaluated_nodes[prev_node]:
 
-            connection = evaluated_nodes[prev_node][num_of_transfers]
+            edge = evaluated_nodes[prev_node][num_of_transfers]
 
-            path.append(connection)
-            prev_node = connection['prev_node'] 
+            path.append(edge)
+            prev_node = edge['prev_node'] 
 
-            num_of_transfers -= 1 if is_transit_edge(connection) else 0
+            if len(prev_node.split('_')) == 1:
+                num_of_transfers -= 1
+                edge['line_num'] = None 
+            else:
+                edge['line_num'] = prev_node.split('_')[-1]
 
         else:
             return None #no path of size of max_transfers transfers
@@ -269,151 +236,121 @@ def find_path_pareto(source_node, end_node, evaluated_nodes, num_of_transfers):
 
 def construct_final_path_table(path):
     connections = []
-
     stop_id_to_name = get_stop_id_to_name()
+    stops_df = get_stops_df()
 
     for edge in path:
-        node = edge['prev_node'].split('_')[0]
-        
-        if node[0] != 'U':
+        if not edge['line_num']:
+            connections.append([])
             continue
 
-        platform = get_platform_letter_from_stop_id(node)
+        stop_id = edge['prev_node'].split('_')[0]
+        stop_name = stop_id_to_name[stop_id]
         
-        stop_time = edge['departure_time']
-        stop_name = match_stop_name_and_id(node, stop_id_to_name)
+        platform = stops_df.loc[stops_df['stop_id'] == stop_id, 'platform_code'].values[0]
 
-        if edge['line_num'] != None:
-            connections[-1].append([stop_name, stop_time, edge['line_num'], platform])
-        else:
-            connections.append([])
+        if pd.isna(platform):
+            platform = str(int(stop_id[-3]) + int(stop_id[-2]))
 
+        connections[-1].append([stop_name, edge['departure_time'], edge['line_num'], platform])
+    
     return connections
 
-def get_platform_letter_from_stop_id(stop_id):
-    letter_number = {N+1:L for N, L in enumerate(string.ascii_uppercase)} 
-
-    platform = re.match(r".*[Z](\d+)", stop_id)
-
-    if platform:
-        platform = int(platform.group(1))
-        platform = platform % 10 if platform > 100 else platform
-        return letter_number.get(platform, 'XX')
-    return None
-
-def format_timedelta(td):
-    total_seconds = int(td.total_seconds())
-    hours, remainder = divmod(total_seconds%(24*3600), 3600)
-    minutes, seconds = divmod(remainder, 60)
-    return f"{hours:02}:{minutes:02}:{seconds:02}"
-
-def not_main(departure_station_id, arrival_station_id, departure_time_seconds, edges, trip_service_days) -> str:
-    all_found_connections = []
-
-    print(departure_station_id)
-
-    evaluated_nodes = modified_dijkstra_pareto(departure_station_id, arrival_station_id, departure_time_seconds, edges, TRANSFER_BOUND, trip_service_days)
-
-    if not (arrival_station_id and departure_station_id) or arrival_station_id not in evaluated_nodes:
-        print('No Route Found')
-        return False, None
-    print('fad2')
-    print('fad2')
-
-    least_transfers_for_EA = min(evaluated_nodes[arrival_station_id].keys(), key=lambda t: evaluated_nodes[arrival_station_id][t]['arrival_time'])
-
-    print('fad3')
-    for num_of_transfers in range(least_transfers_for_EA, -1, -1): #fastest paths with fewer transfers
-        path = find_path_pareto(departure_station_id, arrival_station_id, evaluated_nodes, num_of_transfers)
-
-        if path:
-            connections = construct_final_path_table(path)
-            all_found_connections.append(connections)
-            full_results_bool = False
-            if TO_PRINT_IN_TERMINAL:
-                print("Num of transfers", num_of_transfers)
-                for connection_counter, connection in enumerate(connections):
-                    for stop_counter, stop in enumerate(connection):
-                        if full_results_bool or stop_counter == 0 or stop_counter == len(connection) - 1:
-                            print(stop[0], convert_sec_to_hh_mm_ss(stop[1]),stop[2],stop[3] )
-
-                    print('')
-                print('')
-                print('Travel time', (path[-1]['arrival_time'] - path[0]['departure_time'])//60,'min')
-            else:
-                print("ROUTE EXISTS")
-    
-    print(dijkstra_time,'ms')
-                
-    return True, all_found_connections
+def get_travel_time(path):
+    return (path[-1]['arrival_time'] - path[0]['departure_time'])//60
 
 def select_random_stations():
     stop_name_to_id = get_stop_name_to_id()
-    return random.choice(list(stop_name_to_id.values())), random.choice(list(stop_name_to_id.values()))
+    return random.choice(list(stop_name_to_id.keys())), random.choice(list(stop_name_to_id.keys()))
 
-def run_algorithm(departure_station_name, arrival_station_name, departure_time_timedelta, departure_day, edges, trip_service_days):
-    global departure_day_dt
+def run_algorithm(departure_station_name, arrival_station_name, departure_time_str, departure_day, edges, trip_service_days):
 
-    print(departure_station_name, arrival_station_name)
     departure_day_dt = convert_str_to_datetime(departure_day)
-    departure_station_id, arrival_station_id = get_departure_and_arrival_id_from_name(departure_station_name, arrival_station_name)
-    departure_time_seconds = departure_time_timedelta# datetime #convert_str_to_sec(departure_time_str)#convert_date_and_time_to_total_seconds(departure_day, departure_time_str)
-    route_exists, all_found_connections = not_main(departure_station_id, arrival_station_id, departure_time_seconds, edges, trip_service_days)
+    departure_time_sec = convert_str_to_sec(departure_time_str)
+    departure_station_id, arrival_station_id = get_dep_arr_id_from_name(departure_station_name, arrival_station_name)
 
-    #print('One Run Time:', round((time.time() - start_time_alg)*1000, 2), 'ms')
+    if not (departure_station_id and arrival_station_id):
+        print('Station name is not valid.')
+        return False, None
+    
+    print("\n",departure_station_id)
 
-    #print('Loading Time', loading_time, 's')
-    #print('Total Time',round((time.time() - start_time_all), 2), 's')
-    #print('Average dijkstra time',round((time.time() - start_time_dijkstra)*1000, 2)/NUM_OF_SEARCHES, 'ms')
+    all_found_connections = []
 
-    return route_exists, all_found_connections
+    evaluated_nodes = modified_dijkstra_pareto(departure_station_id, arrival_station_id, departure_time_sec, edges, trip_service_days, departure_day_dt)
 
-def get_departure_and_arrival_id_from_name(departure_station_name, arrival_station_name):
+    if arrival_station_id not in evaluated_nodes:
+        print('No Route Found')
+        return False, None
+
+    #least_transfers_for_EA = min(evaluated_nodes[arrival_station_id].keys(), key=lambda t: evaluated_nodes[arrival_station_id][t]['arrival_time']) # I dont think this is necessary because the fastest route has the most transfers. other routes may or maynt exist, but when in the alg when a path is find the max transfers is put to this number
+
+    num_of_transfers_per_path = evaluated_nodes[arrival_station_id].keys()
+
+    for num_of_transfers in num_of_transfers_per_path: #paths with that many transfers
+        path = find_path_pareto(departure_station_id, arrival_station_id, evaluated_nodes, num_of_transfers)
+
+#       if path:
+        connections = construct_final_path_table(path)
+        all_found_connections.append(connections)
+        full_results_bool = False
+
+        if TO_PRINT_IN_TERMINAL:
+            print("Num of transfers", num_of_transfers)
+            for connection_counter, connection in enumerate(connections):
+                for stop_counter, stop in enumerate(connection):
+                    if full_results_bool or stop_counter == 0 or stop_counter == len(connection) - 1:
+                        print(stop[0], convert_sec_to_hh_mm_ss(stop[1]), stop[2], stop[3])
+
+                print('')
+            print('')
+            print('Travel time', get_travel_time(path),'min')
+        else:
+            print("Route Exists")
+
+    return True, all_found_connections
+
+def get_dep_arr_id_from_name(departure_station_name, arrival_station_name): 
     stop_name_to_id = get_stop_name_to_id()
-
     stop_ascii_dict = {unidecode(k).lower(): v for k, v in stop_name_to_id.items()}
 
-    departure_station_id = get_id_from_best_name_match(stop_ascii_dict, unidecode(departure_station_name).lower())
-    arrival_station_id = get_id_from_best_name_match(stop_ascii_dict, unidecode(arrival_station_name).lower())
+    departure_station_id = get_id_from_best_name_match(stop_ascii_dict, departure_station_name)
+
+    arrival_station_id = get_id_from_best_name_match(stop_ascii_dict, arrival_station_name)
 
     return departure_station_id, arrival_station_id
 
 def get_default_station_names():
     if RANDOM_STATIONS:
         departure_station_name, arrival_station_name = select_random_stations()
+        print(  departure_station_name, arrival_station_name )
         departure_time_str = f"{random.randint(0,24)}:{random.randint(0,60)}:{random.randint(0,60)}"
 
     else:
+        #departure_station_name = "dedina"
         departure_station_name = "k juliane"
-        arrival_station_name = "kotorska"
-        departure_time_str = '10:30:00'
+        arrival_station_name = "dekanka"
+        #arrival_station_name = "k juliane"
+        departure_time_str = '17:10:00'
 
     departure_day = '20250610'
 
-    hours, minutes, seconds = map(int, departure_time_str.split(':'))
-    departure_time_dt = convert_str_to_sec(departure_time_str)#dt.timedelta(hours=hours, minutes=minutes, seconds=seconds)
-
-    return departure_station_name, arrival_station_name, departure_time_dt, departure_day
+    return departure_station_name, arrival_station_name, departure_time_str, departure_day
 
 def convert_str_to_datetime(day: str):
     day = datetime.strptime(day, '%Y%m%d')
     return day
 
 def main():
-    departure_station_name, arrival_station_name, departure_time_dt, departure_day = get_default_station_names()
-    
-    st = time.time()
     edges = get_edges()
-    print('Download edges',round(time.time() - st, 3))
-
-    st = time.time()
     trip_service_days = get_trip_service_days()
-    print('Download tripsserivce',round(time.time() - st, 3))
 
     for i in range(NUM_OF_SEARCHES):
-        departure_station_name, arrival_station_name, departure_time_dt, departure_day = get_default_station_names()
+        departure_station_name, arrival_station_name, departure_time_str, departure_day = get_default_station_names()
         start_time = time.time()
-        run_algorithm(departure_station_name, arrival_station_name, departure_time_dt, departure_day, edges, trip_service_days)
+
+        run_algorithm(departure_station_name, arrival_station_name, departure_time_str, departure_day, edges, trip_service_days)
+        
         print('One Run Time:', round((time.time() - start_time)*1000, 2), 'ms')
 
 
@@ -422,24 +359,18 @@ def main():
 # Define constants
 MIN_TRANSFER_TIME = 120
 TIME_WINDOW = 12*60*60
-TRANSFER_BOUND = 10
+TRANSFER_BOUND = 7
 ONLY_FASTEST_TRIP = False
 NUMBER_OF_DAYS_IN_ADVANCE = 14
 
 NUM_OF_SEARCHES = 1 #for testing, number of searches
-TO_PRINT_IN_TERMINAL = False if NUM_OF_SEARCHES > 1 else True
+TO_PRINT_IN_TERMINAL = False if NUM_OF_SEARCHES > 1 or __name__ != "__main__" else True
 
 RANDOM_STATIONS = False
 
 abspath = os.path.abspath(__file__)
 dirpath = os.path.dirname(abspath)
 CACHE_FOLDER_PATH = os.path.join(dirpath, "cache")
-
-
-CACHE_FOLDER_PATH = r"C:\Users\Jachym\OneDrive - České vysoké učení technické v Praze\Bakalářská_práce\02_CODE\cache"
-CACHE_TIMETABLE = r"C:\Users\Jachym\OneDrive - České vysoké učení technické v Praze\Bakalářská_práce\02_CODE\cache\timetable_cache.pkl"
-CACHE_EDGES_DIR = r"C:\Users\Jachym\OneDrive - České vysoké učení technické v Praze\Bakalářská_práce\02_CODE\cache\edges"
-CACHE_STOP_NAME_ID = r"C:\Users\Jachym\OneDrive - České vysoké učení technické v Praze\Bakalářská_práce\02_CODE\cache\stop_name_id.pkl"
 
 def euclidean_distance(lat1, lon1, lat2, lon2):
     # Převod na radiány
@@ -484,8 +415,7 @@ def edges_between_stations():
 
 if __name__ == "__main__":
     main()
-    import cProfile
-    cProfile.run('main()', sort='cumtime')
+
     #build_stop_id_to_name()
     #create_stop_name_to_station_id(None)
 

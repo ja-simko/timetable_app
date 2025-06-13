@@ -37,61 +37,90 @@ def load_cache_async():
     try:
         edges = get_edges()
         trip_service_days = get_trip_service_days()
+        submit_button.config(bg="#BE2562")  # Change to green when cache is loaded
 
-        print("Edges loaded.")
-
-        submit_button.config(bg="#DE3163")  # Change to green when cache is loaded
     except Exception as e:
         print(f"Failed to load cache: {e}")
         submit_button.config(bg="#000000")  # Change to red if cache loading fails
 
+def process_route(iteration, departure_station_name, arrival_station_name, departure_time_str, departure_day):
+    output_area = output_areas[iteration]
+    global earliest_arrival
+    global len_of_last_conn
+    
+    try:
+        route_exists, all_paths = run_algorithm(
+            departure_station_name, 
+            arrival_station_name, 
+            departure_time_str, 
+            departure_day, 
+            edges, 
+            trip_service_days
+        )
+
+        if not route_exists:
+            output_area.delete('1.0', tk.END)
+            output_area.insert(tk.END, "Žádná trasa nenalezena.")
+            return
+
+        fastest_path = all_paths[0]
+        connection = fastest_path[0]
+        stop = connection[0]
+        next_departure_time = convert_sec_to_hh_mm_ss(int(stop[1]) + 10*60)
+
+        '''
+        new_arrival_time = fastest_path[-1][-1][1]
+        len_of_new_conn = len(fastest_path)
+    
+        if iteration != 0 and new_arrival_time == earliest_arrival and len_of_new_conn == len_of_last_conn:
+            iteration -= 1
+            output_area = output_areas[iteration]
+            output_area.delete('1.0', tk.END)
+        else:
+            earliest_arrival, len_of_last_conn = new_arrival_time, len_of_new_conn
+        '''
+        full_results_bool = bool(display_all_stops_var.get())
+        insert_results(all_paths, full_results_bool, output_area)
+
+        # Schedule next iteration if not done
+        if iteration < NUM_OF_SOLUTIONS -1:
+            output_area.after(100, lambda: process_route(
+                iteration + 1,
+                departure_station_name,
+                arrival_station_name,
+                next_departure_time,
+                departure_day
+            ))
+    except Exception as e:
+        messagebox.showerror("Chyba při hledání trasy", str(e))
+
 def on_submit():
-    start_time = time.time()
     departure_station_name = departure_combo.get() or get_default_station_names()[0]
     arrival_station_name = arrival_combo.get() or get_default_station_names()[1]
     departure_time_str = time_entry.get() or get_default_station_names()[2]
     departure_day = date_entry.get() or get_default_station_names()[3]
 
     try:
-        seconds = 0
-        if not isinstance(departure_time_str, int):
-            if re.match(r"^\d{2}:\d{2}$", departure_time_str):
-                departure_time_str += ":00"
-            elif re.match(r"^\d{1}:\d{2}$", departure_time_str):
-                departure_time_str = "0" + departure_time_str + ":00"
-            elif not re.match(r"^\d{2}:\d{2}:\d{2}$", departure_time_str):
-                raise ValueError("Invalid time format")
-            
-            departure_time_seconds = convert_str_to_sec(departure_time_str) 
-        else:
-            departure_time_seconds = departure_time_str
+        if re.match(r"^\d{1,2}:\d{2}$", departure_time_str):
+            departure_time_str += ":00"
+        elif not re.match(r"^\d{1,2}:\d{2}:\d{2}$", departure_time_str):
+            raise ValueError("Invalid time format")
     except ValueError:
         messagebox.showerror("Chyba", "Zadej čas ve formátu HH:MM")
         return
 
-    try:
-        route_exists, all_paths = run_algorithm(departure_station_name, arrival_station_name, departure_time_seconds, departure_day, edges, trip_service_days)
-        if not route_exists:
-            output_area.delete('1.0', tk.END)
-            output_area.insert(tk.END, "Žádná trasa nenalezena.")
-        else:
-            full_results_bool = bool(display_all_stops_var.get()) 
-            insert_results(all_paths, full_results_bool)
-
-    except Exception as e:
-        messagebox.showerror("Chyba při hledání trasy", str(e))
-    
-    print(time.time() - start_time)
+    for output_area in output_areas:
+        output_area.delete('1.0', tk.END)
+    process_route(0, departure_station_name, arrival_station_name, departure_time_str, departure_day)
 
 # Modify the insert_results function
-def insert_results(all_paths, full_results_bool):
-    output_area.delete('1.0', tk.END)
+def insert_results(all_paths, full_results_bool, output_area):
+    #output_area.delete('1.0', tk.END)
     header = f"{'Stop':<25}{'Dep. Time':<15}{'Line':<10}{'Platform':<10}\n"
 
-    print('inse')
     for complete_path in all_paths:
         output_area.insert(tk.END, header)
-        output_area.insert(tk.END, "-" * 60 + "\n")
+        output_area.insert(tk.END, "-" *60 + "\n")
         
         for connection_counter, connection in enumerate(complete_path):
             for stop_counter, stop in enumerate(connection):
@@ -106,7 +135,7 @@ def insert_results(all_paths, full_results_bool):
                 next_time = complete_path[connection_counter + 1][0][1]
                 transit_time = (next_time - current_time) // 60  # Convert to minutes
 
-                output_area.insert(tk.END, f"{'-' * 22} Transit ({int(transit_time)} min){'-' * 22}\n")
+                output_area.insert(tk.END, f"{'-' * 21} Transit ({int(transit_time)} min){'-' * 21}\n")
 
         output_area.insert(tk.END, "=" * 60 + "\n\n")
 
@@ -193,12 +222,12 @@ root = tk.Tk()
 root.title("Vyhledávač spojení (Dijkstra GUI)")
 
 # Set the size and position of the window
-height = 900
-width = 700
-x_offset = 400
-y_offset = 200
+width = 1200
+height = 850
+x_offset = 630
+y_offset = 85
 
-root.geometry(f"{height}x{width}+{x_offset}+{y_offset}")
+root.geometry(f"{width}x{height}+{x_offset}+{y_offset}")
 
 label_style = {"font": ("Arial", 10, "bold"), "anchor": "e", "padx": 5, "pady": 5}
 list_color = "#FFFFFF"
@@ -246,7 +275,7 @@ submit_button = tk.Button(
     root, 
     text="Vyhledat trasu", 
     command=on_submit, 
-    bg="#0078D7", 
+    bg="#808080", 
     fg="white", 
     font=("Arial", 10, "bold"), 
     relief="raised", 
@@ -268,8 +297,21 @@ display_all_stops_button = tk.Checkbutton(
 )
 display_all_stops_button.grid(row=4, column=1, columnspan=2, pady=0)
 
-output_area = tk.Text(root, wrap="word", relief="solid", borderwidth=1)
-output_area.grid(row=5, column=0, columnspan=2, padx=10, pady=10, sticky="nsew")
+output_frame = tk.Frame(root)
+output_frame.grid(row=5, column=0, columnspan=4, padx=10, pady=10, sticky="nsew")
+
+# Create 4 output areas arranged in a 1x4 grid
+output_areas = []
+NUM_OF_SOLUTIONS = 4
+for i in range(NUM_OF_SOLUTIONS):
+    output_area = tk.Text(output_frame, wrap="word", relief="solid", borderwidth=1, height=35)
+    output_area.grid(row=0, column=i, padx=5, pady=5, sticky="nsew")
+    output_areas.append(output_area)
+
+# Configure grid weights for output frame
+output_frame.grid_rowconfigure(0, weight=1)
+for i in range(NUM_OF_SOLUTIONS):
+    output_frame.grid_columnconfigure(i, weight=1)
 
 # Configure grid weights to make the output area resize with the window
 root.grid_rowconfigure(4, weight=1)
@@ -278,8 +320,6 @@ root.grid_columnconfigure(1, weight=1)
 
 # Start loading cache in the background
 threading.Thread(target=load_cache_async, daemon=True).start()
-
-# Bind the shortcut after creating the GUI
 bind_shortcuts()
-
+# Bind the shortcut after creating the GUI
 root.mainloop()

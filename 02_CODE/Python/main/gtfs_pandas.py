@@ -10,7 +10,6 @@ import timeit
 import joblib
 from unidecode import unidecode
 
-
 def convert_str_to_datetime(day):
     origin = datetime(2000, 1, 1)
     day = datetime.strptime(str(day), '%Y%m%d')
@@ -38,6 +37,11 @@ def read_calendar_file():
 def convert_str_to_sec(timestamp: str) -> int:
     return sum(int(t) * 60 ** i for i, t in enumerate(reversed(timestamp.split(":"))))
 
+def get_timetable_sample():
+    timetable_sample = get_timetable()
+    timetable_sample = timetable_sample[timetable_sample['route_type'].isin((0,1,3))]
+    return timetable_sample
+
 def build_timetable_df():
     stop_times, trips = read_stop_times_file(), read_trips_file()
     routes = read_routes_file()
@@ -53,8 +57,8 @@ def build_timetable_df():
     timetable['stop_id'] = timetable['stop_id'].astype('string')
     timetable['trip_id'] = timetable['trip_id'].astype('string')
     timetable['route_short_name'] = timetable['route_short_name'].astype('string')
-    timetable['main_station'] = timetable['stop_id'].str.extract(r"^(U\d+)[ZS]", expand=False).astype('string')
-    timetable = timetable.dropna(subset=['main_station'])
+    timetable['main_station_id'] = timetable['stop_id'].str.extract(r"^(U\d+)[ZS]", expand=False).astype('string')
+    timetable = timetable.dropna(subset=['main_station_id'])
 
     trip_id_to_route = generate_route_ids(timetable)
 
@@ -62,13 +66,13 @@ def build_timetable_df():
     timetable['node_id'] = timetable['stop_id'] + '_' + timetable['route_id'] + '_' + timetable['route_short_name']
 
     timetable = timetable[
-        ['trip_id', 'stop_id', 'node_id', 'main_station', 'departure_time', 'arrival_time', 'stop_sequence', 'route_short_name', 
+        ['trip_id', 'stop_id', 'node_id', 'main_station_id', 'departure_time', 'arrival_time', 'stop_sequence', 'route_short_name', 'route_type' 
         ]
     ].sort_values(by=['trip_id', 'stop_sequence'])
     return timetable
 
 def build_stop_name_to_id(zone = None):
-    stops_df = build_stops_df()
+    stops_df = get_stops_df()
     if zone:
         stops_df = stops_df[(stops_df['zone_id'] == zone)]
     
@@ -80,7 +84,7 @@ def build_stop_id_to_name_and_platform():
 
 def build_stop_id_to_coordinates():
     stops = get_stops_df()
-    return dict(zip(stops['stop_id'], zip(stops['stop_lat'], stops['stop_lon'])))
+    return dict(zip(stops['main_station_id'], zip(stops['stop_lat'], stops['stop_lon'])))
 
 def build_stops_df():
     gtfs_stops = read_stops_file()
@@ -96,7 +100,7 @@ def build_stops_df():
 
     gtfs_stops['unique_name'] = (gtfs_stops['stop_id']).map(stop_id_to_name).astype(str)
 
-    node_stop_id_to_platform = {stop['id']: stop['platform'] for station in json_stops for stop in station['stops'] if 'platform' in stop}
+    node_stop_id_to_platform = {stop['id']: (stop['platform'] if 'platform' in stop else '') for station in json_stops for stop in station['stops']}
 
     gtfs_stops['sub_stop_id'] = gtfs_stops['asw_node_id'].astype(str) + '/' + gtfs_stops['asw_stop_id'].astype(str)
 
@@ -136,11 +140,12 @@ def build_trip_service_days():
 
     return trip_service_dict
 
-def build_edges():
+def build_edges(timetable = pd.DataFrame()):
     """
     Optimized version of build_edges with better performance and cleaner logic.
     """
-    timetable = get_timetable()
+    if timetable.empty:
+        timetable = get_timetable()
     
     # Pre-allocate with better estimate
     edges = defaultdict(lambda: defaultdict(list))
@@ -149,7 +154,7 @@ def build_edges():
     # Convert to numpy arrays for faster iteration
     trip_ids = timetable['trip_id'].values
     node_ids = timetable['node_id'].values
-    main_stations = timetable['main_station'].values
+    main_stations = timetable['main_station_id'].values
     departure_times = timetable['departure_time'].values
     arrival_times = timetable['arrival_time'].values
     
@@ -271,7 +276,7 @@ def get_trip_service_days():
     return trip_service_days
 
 def get_stop_id_to_name():
-    filename = 'stop_id_to_name'
+    #filename = 'stop_id_to_name'
     #if os.path.exists(os.path.join(CACHE_FOLDER_PATH, filename)):
     #    return load_cached_data(filename)
     stop_id_to_name = build_stop_id_to_name_and_platform() 
@@ -314,27 +319,18 @@ MIN_TRANSFER_TIME = 120
 from functools import partial
 
 
-if __name__ == "__main__":
-    #a = build_timetable_df()
-    #t = build_timetable_df()
-    #save_timetable_to_memory(a)
-    #print(t.dtypes)
+if __name__ == "__main__": 
+
+
+
     #import timeit
     #import cProfile
     #cProfile.run("build_edges_optimized_numpy()",sort='cumtime')
     # a = timeit.timeit(lambda: build_edges_optimized_numpy(), number=3)
     # print(a/3)
-    #/explain do you it makes sense to load it from memory when it takes about 30ms to laod and 50ms to build from scratch?
-    # get_stop_name_to_id()
-    # build_timetable_df()
-    # gg = get_stops_df()
-    # build_stop_name_to_id()
-
-    # build_trip_service_days()
-
-    # fce = build_trip_service_days
 
     # test_functions(fce)
+    '''
     build_stops_df()
     build_stop_name_to_id()
     exit()
@@ -342,48 +338,7 @@ if __name__ == "__main__":
     att = 'trip_service_days'
     test_functions(fce, att)
 
-
     fce = build_stop_id_to_name_and_platform
     test_functions(fce)
-
-    fce = load_cached_data
-    att = 'stop_id_to_name'
-    test_functions(fce, att)
-
-    fce = build_stop_name_to_id
-    test_functions(fce)
-
-    fce = load_cached_data
-    att = 'stop_name_to_id'
-    test_functions(fce, att)
-
-    dic = build_stop_name_to_id() 
-
-    def get_from_dict(dic, item):
-        return dic[item]
-    
-    fce = get_from_dict
-    test_functions(fce, dic, 'Florenc', n=1000)
-
-    stops = get_stops_df()
-    def get_from_df(df, item):
-        return df.query('stop_id == @item')['unique_name']
-    
-    fce = get_from_df
-    test_functions(fce, stops, 'U4161Z1', n=2)
-
-    print(get_from_df(stops, 'U4161Z1'))
-
-
     '''
-    ann = '1361_28262_241216'
 
-    tri = get_trip_service_days()
-    edges = get_edges()
-    for out, v in edges.items():
-        for ins, vals in v.items():
-            for item in vals:
-                if item[2] == ann:
-                    print(out, v)
-
-    '''

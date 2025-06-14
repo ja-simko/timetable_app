@@ -32,6 +32,8 @@ def test_modified_dijkstra_pareto():
     execution_times = []
     profiler = cProfile.Profile()
     profiler.enable()
+    global modifier
+    modifier = 5 
 
     for i in range(10):
         start = time.time()

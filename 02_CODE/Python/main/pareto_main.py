@@ -36,14 +36,17 @@ def is_dominated(existing, new):
     return (existing['arrival_time'] - existing['start_departure_time'] <= new['arrival_time'] - new['start_departure_time']) and \
            (existing['transfers'] <= new['transfers'])
 
-def get_id_from_best_name_match(stop_name_id_dict, user_input, threshold=80) -> str|None:
+def get_id_from_best_name_match(stop_name_to_id, user_input, threshold=80) -> str|None:
     """Find the best matching stop name using fuzzy search. Returns station ID, without Z and the the part after it."""
 
+    stop_name_to_id_ascii = {unidecode(name).lower(): v for name, v in stop_name_to_id.items()}
     # Get the best match using fuzzy search (threshold avoids bad matches)
-    best_match, score, _ = process.extractOne(unidecode(user_input).lower(), stop_name_id_dict.keys(), scorer=fuzz.ratio)
+    best_match, score, _ = process.extractOne(unidecode(user_input).lower(), stop_name_to_id_ascii.keys(), scorer=fuzz.ratio)
+
+    print(best_match, score)
 
     if score >= threshold:
-        return stop_name_id_dict[best_match]  # Get ID from dict
+        return stop_name_to_id_ascii[best_match]  # Get ID from dict
     print("No Good Match Found")
     return None  # No good match found
 
@@ -89,8 +92,7 @@ def get_trip_id_to_line_num_dict(timetable):
 
 def time_dependent_pareto_dijkstra(start_station, target_station, start_time, edges, trip_service_days, departure_day_dt):
     """ Implements the modified Dijkstra's algorithm to find all Pareto-optimal paths iteratively. """
-
-    pq = [(start_time, 0, start_station)]  # (arrival_time, num_transfers, station)
+    pq = [(0, start_time, 0, start_station)]  # (arrival_time, num_transfers, station)
     labels = {start_station: [(start_time, 0)]}  # Station → List of (arrival_time, num_transfers)
     evaluated_nodes = {start_station: {0: {'prev_node': None, 'departure_time': None, 'arrival_time': start_time, 'line_num': None}}}
 
@@ -108,9 +110,19 @@ def time_dependent_pareto_dijkstra(start_station, target_station, start_time, ed
 
     start = time.time()
 
+    coordinates = build_stop_id_to_coordinates()
+
+    sss = get_stop_id_to_name()
+
+    t_lat, t_lon = coordinates[target_station+"Z1P"]        
+    counter = 0
+
     while max_transfers >= 0:  # Run until we reach -1 transfers
         while pq:
-            current_time, current_transfers, current_station = heapq.heappop(pq)
+            potential, current_time, current_transfers, current_station = heapq.heappop(pq)
+
+            counter += 1
+
             if current_station == target_station:
                 max_transfers = -1 if ONLY_FASTEST_TRIP else current_transfers
                 break
@@ -127,7 +139,7 @@ def time_dependent_pareto_dijkstra(start_station, target_station, start_time, ed
 
             for next_station, connections in edges[current_station].items():
                 dep_time, arr_time, transfer = binary_search_next_edge(connections, current_time, is_start_station, trip_service_days, shifted_dates, shifted_weekday)
-        
+
                 if arr_time is None or arr_time > start_time + TIME_WINDOW:
                     continue
                 
@@ -156,6 +168,13 @@ def time_dependent_pareto_dijkstra(start_station, target_station, start_time, ed
                 # Update evaluated_nodes for each transfer count
                 if next_station not in evaluated_nodes:
                     evaluated_nodes[next_station] = {}
+                
+                c_lat, c_lon = coordinates.get(next_station.split('_')[0], (None, None))
+                if c_lat:
+                    potential = euclidean_distance(c_lat, c_lon, t_lat, t_lon)
+                    reduced_cost = arr_time + potential/10 #m/m/s
+                else:
+                    reduced_cost = arr_time
 
                 evaluated_nodes[next_station][new_transfers] = {
                     'prev_node': current_station,
@@ -163,13 +182,14 @@ def time_dependent_pareto_dijkstra(start_station, target_station, start_time, ed
                     'arrival_time': arr_time
                 }
 
-                heapq.heappush(pq, (arr_time, new_transfers, next_station))
+                heapq.heappush(pq, (reduced_cost, arr_time, new_transfers, next_station))
 
         max_transfers -= 1
 
     global dijkstra_time
     dijkstra_time = round(time.time() - start,3)*1000
 
+    print('counter',counter)
     return evaluated_nodes
 
 def is_trip_service_day_valid(departure_day, trip_id, trip_service_days, weekday):
@@ -181,9 +201,7 @@ def binary_search_next_edge(edges, current_time, zero_transfer_cost, trip_servic
     """Return next edge departure time, arrival time and transfer 0 or 1 
     Finds the next train connection using binary search 
     """
-    def check():
-        if edges[0][0] == 'P' or zero_transfer_cost:
-            return (current_time, current_time, 0)
+
 
     if edges[0][0] == 'P' or zero_transfer_cost:
         return (current_time, current_time, 0)
@@ -326,10 +344,10 @@ def get_default_station_names():
         departure_time_str = f"{random.randint(0,24):02}:{random.randint(0,60):02}:{random.randint(0,60):02}"
 
     else:
-        #departure_station_name = "dedina"
-        departure_station_name = "k juliane"
-        arrival_station_name = "dekanka"
-        #arrival_station_name = "k juliane"
+        #departure_station_name = "sidliste petriny"
+        #arrival_station_name = "holesovicka trznice"
+        departure_station_name = "prazskeho povstani"
+        arrival_station_name = "praha-podbaba"
         departure_time_str = '10:10:00'
 
     departure_day = '20250610'
@@ -366,10 +384,11 @@ TRANSFER_BOUND = 7
 ONLY_FASTEST_TRIP = False
 NUMBER_OF_DAYS_IN_ADVANCE = 14
 
-NUM_OF_SEARCHES = 10 #for testing, number of searches
+NUM_OF_SEARCHES = 1 #for testing, number of searches
 TO_PRINT_IN_TERMINAL = False if NUM_OF_SEARCHES > 1 or __name__ != "__main__" else True
 
 RANDOM_STATIONS = False
+random.seed(10)
 
 abspath = os.path.abspath(__file__)
 dirpath = os.path.dirname(abspath)
@@ -434,3 +453,13 @@ if __name__ == "__main__":
     # departure_station_name = "prazskeho povstani" #GOOD FOR THREE DIFFERENT TRIPS PARETO
     # arrival_station_name = "nadrazi podbaba"
     # time_of_departure = '7:15:00'
+    '''
+    target =  [50, 30]
+    start = [10,10]
+
+    nodes = [(20, 30), (10, 15), (40, 40), (0, 5)]
+
+    for node in nodes:
+        a = euclidean_distance(target[0], target[1],node[0], node[1])/10000
+        print(node,':', a/20,'m/s -> time penalty')
+    '''

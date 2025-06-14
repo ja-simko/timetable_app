@@ -220,8 +220,8 @@ CACHE_FILE_STOP_NAME_ID = r"C:\Users\Jachym\OneDrive - České vysoké učení t
 
 root = tk.Tk()
 
-stop_name_id_dict = build_stop_name_to_id_ZONE()
-station_names = sorted(stop_name_id_dict.keys(), key=locale.strxfrm)  # Unique, sorted station names
+stop_name_to_id = build_stop_name_to_id()
+station_names = sorted(stop_name_to_id.keys(), key=locale.strxfrm)  # Unique, sorted station names
 
 root.title("Vyhledávač spojení (Dijkstra GUI)")
 
@@ -316,9 +316,9 @@ zone_p_checkbox = tk.Checkbutton(
 zone_p_checkbox.grid(row=4, column=2, columnspan=2, pady=0)
 
 def on_zone_change(zone):
-    global station_names, stop_name_id_dict
-    stop_name_id_dict = build_stop_name_to_id_ZONE(zone)
-    station_names = sorted(stop_name_id_dict.keys(), key=locale.strxfrm)
+    global station_names, stop_name_to_id
+    stop_name_to_id = build_stop_name_to_id(zone)
+    station_names = sorted(stop_name_to_id.keys(), key=locale.strxfrm)
 
     # Update station lists in combo boxes
     if root.focus_get() == departure_combo:

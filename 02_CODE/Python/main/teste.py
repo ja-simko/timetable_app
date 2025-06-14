@@ -33,7 +33,7 @@ def test_modified_dijkstra_pareto():
     profiler = cProfile.Profile()
     profiler.enable()
 
-    for i in range(1):
+    for i in range(10):
         start = time.time()
         result = run_algorithm(start_station, target_station, start_time, departure_day, edges, trip_service_days)
         end = time.time()

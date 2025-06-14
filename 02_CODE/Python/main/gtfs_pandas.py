@@ -67,20 +67,20 @@ def build_timetable_df():
     ].sort_values(by=['trip_id', 'stop_sequence'])
     return timetable
 
-def build_stop_name_to_id():
-    stops_df = get_stops_df()
-    return dict(zip(stops_df['unique_name'], stops_df['main_station_id']))
-
-def build_stop_name_to_id_ZONE(zone = None):
-    stops_df = get_stops_df()
+def build_stop_name_to_id(zone = None):
+    stops_df = build_stops_df()
     if zone:
         stops_df = stops_df[(stops_df['zone_id'] == zone)]
-
-    return dict(zip(stops_df['unique_name'].str.lower(), stops_df['main_station_id']))
-
+    
+    return dict(zip(stops_df['unique_name'], stops_df['main_station_id']))
+ 
 def build_stop_id_to_name_and_platform():
     stops = get_stops_df()
     return dict(zip(stops['stop_id'], zip(stops['stop_name'], stops['platform_code'])))
+
+def build_stop_id_to_coordinates():
+    stops = get_stops_df()
+    return dict(zip(stops['stop_id'], zip(stops['stop_lat'], stops['stop_lon'])))
 
 def build_stops_df():
     gtfs_stops = read_stops_file()
@@ -92,9 +92,9 @@ def build_stops_df():
     gtfs_stops['asw_node_id'] = gtfs_stops['asw_node_id'].astype(int)
     gtfs_stops['asw_stop_id'] = gtfs_stops['asw_stop_id'].astype(int)
 
-    node_to_name = {station['node']: station['uniqueName'] for station in json_stops if 'node' in station}
+    stop_id_to_name = {id: station['uniqueName'] for station in json_stops for stop in station['stops'] for id in stop['gtfsIds']}
 
-    gtfs_stops['unique_name'] = gtfs_stops['asw_node_id'].map(node_to_name).astype(str)
+    gtfs_stops['unique_name'] = (gtfs_stops['stop_id']).map(stop_id_to_name).astype(str)
 
     node_stop_id_to_platform = {stop['id']: stop['platform'] for station in json_stops for stop in station['stops'] if 'platform' in stop}
 
@@ -103,8 +103,6 @@ def build_stops_df():
     gtfs_stops['platform_code'] = gtfs_stops['sub_stop_id'].map(node_stop_id_to_platform)
 
     gtfs_stops['main_station_id'] = gtfs_stops['stop_id'].apply(lambda x: x.split('Z')[0])
-
-    gtfs_stops['unique_name'] = gtfs_stops['unique_name'].apply(lambda x: unidecode(x))
 
     return gtfs_stops[['stop_id', 'main_station_id', 'stop_name', 'unique_name', 'zone_id', 'stop_lat', 'stop_lon', 'asw_node_id', 'platform_code']]
 
@@ -284,7 +282,7 @@ def get_stop_name_to_id(zone = None):
     #filename = 'stop_name_to_id'
     #if os.path.exists(os.path.join(CACHE_FOLDER_PATH, filename)):
     #    return load_cached_data(filename)
-    stop_name_to_id = build_stop_name_to_id_ZONE(zone) 
+    stop_name_to_id = build_stop_name_to_id(zone) 
     #save_cached_data(stop_name_to_id, filename)
     return stop_name_to_id
 
@@ -337,16 +335,13 @@ if __name__ == "__main__":
     # fce = build_trip_service_days
 
     # test_functions(fce)
-
-    print(load_cached_data('only_dates'))
-
+    build_stops_df()
+    build_stop_name_to_id()
+    exit()
     fce = load_cached_data
     att = 'trip_service_days'
     test_functions(fce, att)
 
-    fce = load_cached_data
-    att = 'only_dates'
-    test_functions(fce, att)
 
     fce = build_stop_id_to_name_and_platform
     test_functions(fce)
@@ -369,7 +364,6 @@ if __name__ == "__main__":
     
     fce = get_from_dict
     test_functions(fce, dic, 'Florenc', n=1000)
-
 
     stops = get_stops_df()
     def get_from_df(df, item):

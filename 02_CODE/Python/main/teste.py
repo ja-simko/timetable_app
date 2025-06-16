@@ -37,7 +37,7 @@ def test_modified_dijkstra_pareto():
 
     for i in range(10):
         start = time.time()
-        result = run_algorithm(start_station, target_station, start_time, departure_day, edges, trip_service_days)
+        result = run_program(start_station, target_station, start_time, departure_day, edges, trip_service_days)
         end = time.time()
         execution_times.append(end - start)
         print(f"Run {i+1}: {execution_times[-1]:.3f} seconds")

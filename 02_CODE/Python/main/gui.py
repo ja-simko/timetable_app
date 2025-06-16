@@ -50,7 +50,7 @@ def process_route(iteration, departure_station_name, arrival_station_name, depar
     global len_of_last_conn
     
     try:
-        route_exists, all_paths = run_algorithm(
+        route_exists, all_paths = run_program(
             departure_station_name, 
             arrival_station_name, 
             departure_time_str, 

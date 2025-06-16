@@ -63,7 +63,7 @@ def build_timetable_df():
     trip_id_to_route = generate_route_ids(timetable)
 
     timetable['route_id'] = timetable['trip_id'].map(trip_id_to_route)
-    timetable['node_id'] = timetable['stop_id'] + '_' + timetable['route_id'] + '_' + timetable['route_short_name']
+    timetable['node_id'] = timetable['stop_id']  + '_' + timetable['route_id'] + '_' + timetable['route_short_name']
 
     timetable = timetable[
         ['trip_id', 'stop_id', 'node_id', 'main_station_id', 'departure_time', 'arrival_time', 'stop_sequence', 'route_short_name', 'route_type' 

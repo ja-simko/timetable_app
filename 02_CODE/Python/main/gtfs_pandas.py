@@ -10,6 +10,8 @@ import timeit
 import joblib
 from unidecode import unidecode
 
+
+
 def convert_str_to_datetime(day):
     origin = datetime(2000, 1, 1)
     day = datetime.strptime(str(day), '%Y%m%d')
@@ -80,6 +82,20 @@ def build_stop_name_to_id(zone = None):
  
 def build_stop_id_to_name_and_platform():
     stops = get_stops_df()
+    timetable = get_timetable()
+    full_node_ids = timetable['node_id']
+    route_names = timetable['route_short_name']
+    node_to_route = dict(zip(full_node_ids, route_names))
+    print(len(full_node_ids))
+    print(len(stops['stop_id']))
+    d = defaultdict(tuple)
+    stopname = dict(zip(stops['stop_id'], map(list, zip(stops['stop_name'], stops['platform_code']))))
+
+    for node_id in full_node_ids:
+        split_node = node_id.split('_')[0]
+        d[node_id] = stopname[split_node] + [node_to_route[node_id]]
+    print(d)
+
     return dict(zip(stops['stop_id'], zip(stops['stop_name'], stops['platform_code'])))
 
 def build_stop_id_to_coordinates():
@@ -320,7 +336,7 @@ from functools import partial
 
 
 if __name__ == "__main__": 
-
+    build_stop_id_to_name_and_platform()
 
 
     #import timeit

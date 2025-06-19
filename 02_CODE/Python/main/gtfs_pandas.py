@@ -10,6 +10,7 @@ import timeit
 import joblib
 from unidecode import unidecode
 import random
+from rapidfuzz import process, fuzz
 
 class StopNames:
     _platforms = {}
@@ -40,7 +41,7 @@ class StopNames:
         cls._id_to_names = dict(zip(stops_df['stop_id'], stops_df['stop_name']))
         cls._name_to_main_ids = dict(zip(stops_df['unique_name'], stops_df['main_station_id']))
         cls._coordinates = dict(zip(stops_df['stop_id'], zip(stops_df['stop_lat'], stops_df['stop_lon'])))
-
+        cls._ascii_names_dict = {unidecode(name).lower(): v for name, v in cls._name_to_main_ids.items()}
 
 
     @classmethod
@@ -65,9 +66,19 @@ class StopNames:
         return cls._coordinates.get(id)
     
     @classmethod
-    def get_name_to_main_ids(cls, id):
+    def get_name_to_main_id(cls, id):
         cls._ensure_initialized()
         return cls._name_to_main_ids.get(id)
+    
+    @classmethod
+    def get_id_from_fuzzy_input_name(cls, user_input, threshold = 80):
+        cls._ensure_initialized()
+
+        best_match, score, _ = process.extractOne(unidecode(user_input).lower(), cls._ascii_names_dict.keys(), scorer = fuzz.ratio)
+
+        if score >= threshold:
+            return cls._ascii_names_dict[best_match]
+        return None
     
     @classmethod
     def get_a_random_stop_name(cls, zone=None):
@@ -296,7 +307,7 @@ def build_edges(timetable = pd.DataFrame()):
     
         # Add time-shifted edges (vectorized logic)
         if dep_time >= DAY_SECONDS:
-            edges[out_node][in_node].append((dep_time - DAY_SECONDS, arr_time - DAY_SECONDS,current_trip_id, -1))
+            edges[out_node][in_node].append((dep_time - DAY_SECONDS, arr_time - DAY_SECONDS, current_trip_id, -1))
 
         elif dep_time < EARLY_MORNING:
             edges[out_node][in_node].append((dep_time + DAY_SECONDS, arr_time + DAY_SECONDS, current_trip_id, 1))
@@ -307,13 +318,29 @@ def build_edges(timetable = pd.DataFrame()):
             edges[in_node][in_main_station].append(('P', 0, None))
             transfer_edges_added.add(out_node)
     
-    # Sort all edge lists in place
     for out_node in edges:
         for in_node in edges[out_node]:
             edges[out_node][in_node].sort()
-    
-    edges = convert_nested_defaultdict(edges)
-    return edges
+
+    # Sort all edge lists in place
+    new_edges = defaultdict(lambda: defaultdict(list))
+
+    for out_node in edges:
+        for in_node in edges[out_node]:
+            if out_node == 'U693Z2P_R1003_176' and in_node == 'U168Z2P_R1003_176':
+                for i, connection in enumerate(edges[out_node][in_node]):
+                    dep_time = connection[0]
+                    arr_time = edges['U148Z2P_R1003_176']['U930Z2P_R1003_176'][i][1:]
+                    new_edges[out_node]['U930Z2P_R1003_176'].append((connection[0], *arr_time))
+            else:
+                new_edges[out_node][in_node] = edges[out_node][in_node]
+
+    for out_node in new_edges:
+        for in_node in new_edges[out_node]:
+            new_edges[out_node][in_node].sort()
+
+    new_edges = convert_nested_defaultdict(new_edges)
+    return new_edges
 
 def generate_route_ids(timetable):
     trip_sequences = timetable.groupby('trip_id')['stop_id'].apply(tuple)
@@ -429,6 +456,19 @@ from functools import partial
 
 
 if __name__ == "__main__": 
+    evaluated_nodes = get_edges()
+    # Print all keys in 'e' that start with 'U530Z1P' (case-insensitive) and end with anything
+    pattern = re.compile(r'^U693Z2P.*', re.IGNORECASE) #693
+    for key in evaluated_nodes:
+        if pattern.match(key):
+            print(key, evaluated_nodes[key],'\n')
+
+    pattern = re.compile(r'^U168Z2P.*', re.IGNORECASE) #693
+    for key in evaluated_nodes:
+        if pattern.match(key):
+            print(key, evaluated_nodes[key].keys(),'\n')
+            
+
     a = build_stop_id_to_name_and_platform()
     #save_cached_data(a, 'stop_id_class')
     exit()

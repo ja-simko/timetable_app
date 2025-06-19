@@ -14,13 +14,13 @@ from rapidfuzz import process, fuzz
 
 class StopNames:
     _platforms = {}
-    _id_to_names = {}
+    _stop_id_to_names = {}
     _coordinates = {}
     _zones = {}
     is_initialized = False
 
     @classmethod
-    def initialize(cls, stops_df):
+    def initialize(cls, stops_df, timetable):
         cls.is_initialized = True
 
         if os.path.exists(os.path.join(CACHE_FOLDER_PATH, 'zones')):
@@ -36,19 +36,19 @@ class StopNames:
 
                     cache_data = cls._zones
                     save_cached_data(cache_data, 'zones')
-    
         cls._platforms = dict(zip(stops_df['stop_id'], stops_df['platform_code']))
-        cls._id_to_names = dict(zip(stops_df['stop_id'], stops_df['stop_name']))
+        cls._stop_id_to_names = dict(zip(stops_df['stop_id'], stops_df['stop_name']))
+        cls._node_id_to_main_st_id = dict(zip(timetable['node_id'], timetable['main_station_id']))
         cls._name_to_main_ids = dict(zip(stops_df['unique_name'], stops_df['main_station_id']))
-        cls._coordinates = dict(zip(stops_df['stop_id'], zip(stops_df['stop_lat'], stops_df['stop_lon'])))
+        cls._coordinates = dict(zip(stops_df['main_station_id'], zip(stops_df['stop_lat'], stops_df['stop_lon'])))
         cls._ascii_names_dict = {unidecode(name).lower(): v for name, v in cls._name_to_main_ids.items()}
-
 
     @classmethod
     def _ensure_initialized(cls):
         if not cls.is_initialized:
             stops_df = get_stops_df()
-            cls.initialize(stops_df)
+            timetable = get_timetable()
+            cls.initialize(stops_df, timetable)
 
     @classmethod
     def get_platform_code(cls, id):
@@ -58,12 +58,13 @@ class StopNames:
     @classmethod
     def get_general_name_from_id(cls, id):
         cls._ensure_initialized()
-        return cls._id_to_names.get(id)
+        return cls._stop_id_to_names.get(id)
     
     @classmethod
-    def get_coordinates_lat_lon(cls, id):
+    def get_coordinates_lat_lon(cls, node_id):
         cls._ensure_initialized()
-        return cls._coordinates.get(id)
+        station_id = cls._node_id_to_main_st_id.get(node_id, node_id)
+        return cls._coordinates.get(station_id)
     
     @classmethod
     def get_name_to_main_id(cls, id):
@@ -150,7 +151,6 @@ def build_timetable_df():
 
     timetable['route_id'] = timetable['trip_id'].map(trip_id_to_route)
     timetable['node_id'] = timetable['stop_id']  + '_' + timetable['route_id'] + '_' + timetable['route_short_name']
-
     timetable = timetable[
         ['trip_id', 'stop_id', 'node_id', 'main_station_id', 'departure_time', 'arrival_time', 'stop_sequence', 'route_short_name', 'route_type' 
         ]
@@ -167,7 +167,7 @@ def build_stop_name_to_id(zone = None):
 def build_stop_id_to_name_and_platform():
     stops = get_stops_df()
     # Initialize all data at once
-    StopNames.initialize(stops)
+    StopNames.initialize(stops, get_timetable())
     return stops
 
 def build_stop_id_to_name_and_platform_2():
@@ -456,6 +456,10 @@ from functools import partial
 
 
 if __name__ == "__main__": 
+    #StopNames.initialize(get_stops_df(), get_timetable())
+    #print(StopNames._node_id_to_stop_id)
+    #a = StopNames.get_coordinates_lat_lon('U126Z1P_R79_107')
+    #print(a)
     evaluated_nodes = get_edges()
     # Print all keys in 'e' that start with 'U530Z1P' (case-insensitive) and end with anything
     pattern = re.compile(r'^U693Z2P.*', re.IGNORECASE) #693

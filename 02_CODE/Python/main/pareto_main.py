@@ -72,7 +72,7 @@ def time_dependent_pareto_dijkstra(start_station, target_station, start_time, ed
     preprocessed_paths = load_cached_data('preprocess_zatec_zasmuky_komarov_bakov_n_jizerou')
     counter = 0
     global settled
-    settled = {}
+    settled = set()
     ONLY_FASTEST_TRIP = False
 
     dist_to_landmarks_target = {landmark:dist for landmark, dist in preprocessed_paths[target_station.split('Z')[0]].items()}
@@ -81,6 +81,8 @@ def time_dependent_pareto_dijkstra(start_station, target_station, start_time, ed
     global already_landmarked
     already_landmarked = {}
     cc = 0
+    dominatesd = 0
+    tentative_best_path = np.inf
 
     while max_transfers >= 0:  # Run until we reach -1 transfers
         while pq:
@@ -88,11 +90,10 @@ def time_dependent_pareto_dijkstra(start_station, target_station, start_time, ed
             counter += 1
             #print(reduced_cost, current_time, current_transfers, StopNames.get_general_name_from_id(current_station.split('_')[0]))
 
-            settled[current_station] = (current_time, current_transfers)
+            settled.add((current_station, current_transfers))
 
             if current_station == target_station:
                 max_transfers = -1 if ONLY_FASTEST_TRIP else current_transfers
-                print("FFFF", current_time, current_transfers)
                 break
 
             if current_transfers > max_transfers:
@@ -107,21 +108,10 @@ def time_dependent_pareto_dijkstra(start_station, target_station, start_time, ed
 
             for next_station, connections in edges[current_station].items():
                 
-                if settled.get(next_station, None):
-                    if current_time > settled[next_station][0] and current_transfers >= settled[next_station][1]:
-                        if next_station.split('Z')[0] == 'U664':
-                            print('dads',current_time)
-                            cc += 1
-                            continue
+                if (next_station, current_transfers) in settled:
+                    continue
                 
                 dep_time, arr_time, transfer = binary_search_next_edge(connections, current_time, is_start_station, trip_service_days, shifted_dates, shifted_weekday)
-
-                # if start_station in current_station and dep_time:
-                #     original_gap_bias = (dep_time - start_time)
-                #     if original_gap_bias > 2*3600:
-                #         original_gap_bias = 0
-                #     reduced_cost -= original_gap_bias 
-                #     print(original_gap_bias, dep_time, start_time)
 
                 if arr_time is None or arr_time > start_time + TIME_WINDOW:
                     continue
@@ -135,32 +125,41 @@ def time_dependent_pareto_dijkstra(start_station, target_station, start_time, ed
                 if next_station not in labels:
                     labels[next_station] = []
 
-                dominated = False  # Initialize the variable before use
+                else:
+                    dominated = False  # Initialize the variable before use
 
-                for prev_time, prev_transfers in labels[next_station]:
-                    if prev_time <= arr_time and prev_transfers <= new_transfers:
-                        dominated = True
-                        break  # The new label is dominated, discard it
+                    for prev_time, prev_transfers in labels[next_station]:
+                        if prev_time <= arr_time and prev_transfers <= new_transfers:
+                            dominated = True
+                            break  # The new label is dominated, discard it
 
-                if dominated:
-                    continue
+                    if dominated:
+                        continue
 
-                labels[next_station] = [(time, transfer) for (time, transfer) in labels[next_station] if not (time >= arr_time and transfer >= new_transfers)] #prolly a bit faster without this step (40ms per run?)
+                    labels[next_station] = [(time, transfer) for (time, transfer) in labels[next_station] if not (time >= arr_time and transfer >= new_transfers)] #prolly a bit faster without this step (40ms per run?)
+
                 labels[next_station].append((arr_time, new_transfers))
 
-                if current_station.split('Z')[0] == 'U597' and next_station.split('Z')[0] == 'U664':
-                    print(current_time, current_transfers, dep_time)
-                # Update evaluated_nodes for each transfer count
                 if next_station not in evaluated_nodes:
                     evaluated_nodes[next_station] = {}
                 
                 if using_star:
-                    curr_lat, curr_lon = coordinates.get(next_station.split('_')[0], (None, None))
+                    try:
+                        curr_lat, curr_lon = StopNames.get_coordinates_lat_lon(next_station)
+                    except:
+                        print(next_station)
                     if curr_lat:
                         curr_difference = euclidean_distance(curr_lat, curr_lon, t_lat, t_lon)
-                        reduced_cost += (arr_time - current_time) + int(curr_difference/10)
+                        lower_bound_in_seconds = math.floor(curr_difference/7)
+                        new_reduced_cost = reduced_cost + (arr_time - current_time) + lower_bound_in_seconds
+
+                        #Condition
+                        if (arr_time - start_time) + lower_bound_in_seconds > 2*tentative_best_path:
+                            dominatesd += 1
+                            continue
                     else:
-                        reduced_cost += (arr_time - current_time)
+                        new_reduced_cost = reduced_cost + (arr_time - current_time)
+
                 
                 elif using_landmarks:
                     #curr_lat, curr_lon = coordinates.get(next_station.split('Z')[0], (None, None))
@@ -194,17 +193,12 @@ def time_dependent_pareto_dijkstra(start_station, target_station, start_time, ed
                     'is_transfer': True if transfer else False
                 }
 
-                if current_station.split('Z')[0] == 'U597' and next_station.split('Z')[0] == 'U664':
-
-                    pattern = re.compile(r'^U664.*', re.IGNORECASE) #693
-                    for key in evaluated_nodes:
-                        if pattern.match(key):
-                            print(key, evaluated_nodes[key],'\n')
-
                 heapq.heappush(pq, (new_reduced_cost, arr_time, new_transfers, next_station))
-
+        
+        tentative_best_path = current_time - start_time
         max_transfers -= 1
     print('cc',cc)
+    print(dominatesd)
     global dijkstra_time
     dijkstra_time = round(time.time() - start,3)*1000
     print(dijkstra_time)
@@ -377,7 +371,7 @@ def get_default_station_names():
         #arrival_station_name = "holesovicka trznice"
         departure_station_name = "nadrazi podbaba"
         arrival_station_name = "dekanka"
-        departure_time_str = '10:21:00'
+        departure_time_str = '10:00:00'
 
     departure_day = '20250611'
 
@@ -407,7 +401,7 @@ def main():
     spec_node_to_main = {node: main for node, main in zip(tmtb['node_id'], tmtb['main_station_id'])}
     #departure_station_name = departures[j]
     #arrival_station_name = arrivals[j]
-    StopNames.initialize(get_stops_df())
+    StopNames.initialize(get_stops_df(), tmtb)
     
     start_time = time.time()
     _, all_found_connections = run_program(departure_station_name, arrival_station_name, departure_time_str, departure_day, edges, trip_service_days)
@@ -525,20 +519,27 @@ def preprocess():
     return preprocessed_paths
 
 if __name__ == "__main__":
-    #e = get_edges()
+    e = get_edges()
     # Print all keys in 'e' that start with 'U530Z1P' (case-insensitive) and end with anything
-    #pattern = re.compile(r'^U693Z1P.*', re.IGNORECASE) #693
-    #for key in e:
-    #    if pattern.match(key):
-    #        print(key, e[key],'\n')
+    pattern = re.compile(r'^U693Z1P.*', re.IGNORECASE) #693
+    for key, v in e.items():
+        if pattern.match(key):
+            for a, times in v.items():
+                print(key, e[key],'\n')
+
+    exit()
+
+
+
+
     global using_landmarks
     global using_star
     using_landmarks = False
-    using_star = False
+    using_star = True
     main()
     id_to_name = get_stop_id_to_name()
-    for stop in settled:
-        name = StopNames._id_to_names.get(stop.split('_')[0], None)
+    for stop, tr in settled:
+        name = StopNames._stop_id_to_names.get(stop.split('_')[0], None)
         if name:
             continue
             time.sleep(0.02)

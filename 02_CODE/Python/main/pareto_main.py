@@ -47,46 +47,6 @@ def get_id_from_best_name_match(stop_name_to_id_ascii, user_input, threshold=80)
     print("No Good Match Found")
     return None  # No good match found
 
-def load_stop_name_id_dicts() -> tuple[dict, dict, pd.DataFrame]:
-    # Construct the dictionary for stop_name to stop_id
-    dataframe = get_stops_df()
-
-    stop_name_to_stations = defaultdict(set)
-    stop_id_to_stop_name = {}
-
-    BothTh = defaultdict(set)
-
-    for _, row in dataframe.iterrows():
-        stop_name = row['stop_name']
-        station_id = 'U' + str(row['asw_node_id'])
-        stop_name_to_stations[stop_name].add(station_id)
-        stop_id_to_stop_name[row['stop_id']] = stop_name
-    
-    stop_name_to_station_id = {}
-
-    for stop_name, station_ids in stop_name_to_stations.items():
-        if len(station_ids) == 1:
-            stop_name_to_station_id[stop_name] = next(iter(station_ids))
-        else:
-            for station_id in station_ids:
-                stop_name_to_station_id[f"{stop_name} ({station_id})"] = station_id
-
-    # Add the station_id to the original DataFrame
-    dataframe['station_id'] = dataframe['stop_name'].map(lambda name: stop_name_to_station_id.get(name, None))
-
-    return stop_name_to_station_id, stop_id_to_stop_name, dataframe
-
-def get_trip_id_to_line_num_dict(timetable):
-    """ Assigns a unique route ID to each unique stop sequence. """
-    
-    # Group trips by their ordered sequence of stops
-    trip_id_to_route_name = {}
-
-    for row in timetable.itertuples(index=False):
-        trip_id_to_route_name[row.trip_id] = row.route_short_name
-
-    return trip_id_to_route_name  # {trip_id: line_num}
-
 def time_dependent_pareto_dijkstra(start_station, target_station, start_time, edges, trip_service_days, departure_day_dt):
     """ Implements the modified Dijkstra's algorithm to find all Pareto-optimal paths iteratively. """
 
@@ -119,6 +79,7 @@ def time_dependent_pareto_dijkstra(start_station, target_station, start_time, ed
     start = time.time()
     global already_landmarked
     already_landmarked = {}
+    cc = 0
     while max_transfers >= 0:  # Run until we reach -1 transfers
         while pq:
             reduced_cost, current_time, current_transfers, current_station = heapq.heappop(pq)
@@ -142,6 +103,7 @@ def time_dependent_pareto_dijkstra(start_station, target_station, start_time, ed
 
                 if explored.get(next_station, None):
                     if current_time > explored[next_station][0] and current_transfers >= explored[next_station][1]:
+                        cc += 1
                         continue
                 
                 dep_time, arr_time, transfer = binary_search_next_edge(connections, current_time, is_start_station, trip_service_days, shifted_dates, shifted_weekday)
@@ -218,7 +180,7 @@ def time_dependent_pareto_dijkstra(start_station, target_station, start_time, ed
                 heapq.heappush(pq, (reduced_cost, arr_time, new_transfers, next_station))
 
         max_transfers -= 1
-
+    print('cc',cc)
     global dijkstra_time
     dijkstra_time = round(time.time() - start,3)*1000
     print(dijkstra_time)
@@ -283,7 +245,7 @@ def find_path_pareto(source_node, end_node, evaluated_nodes, num_of_transfers):
 
     return path[::-1] #Return reversed path
 
-def construct_final_path_table(path, stop_id_to_name):
+def construct_final_path_table(path):
     connections = [[]]
    
     for edge in path[1:]:
@@ -292,8 +254,8 @@ def construct_final_path_table(path, stop_id_to_name):
             continue
         stop_id = edge['prev_node'].split('_')[0]
 
-        stop_name = stop_id_to_name[stop_id][0]
-        platform = stop_id_to_name[stop_id][1]
+        stop_name = StopNames.get_general_name_from_id(stop_id)
+        platform = StopNames.get_platform_code(stop_id)
 
         connections[-1].append([stop_name, edge['departure_time'], edge['line_num'], platform])
     
@@ -302,9 +264,8 @@ def construct_final_path_table(path, stop_id_to_name):
 def get_travel_time_in_mins(path):
     return (path[-1]['arrival_time'] - path[0]['departure_time'])//60
 
-def select_random_stations():
-    stop_name_to_id = get_stop_name_to_id(zone = 'P')
-    return random.choice(list(stop_name_to_id.keys())), random.choice(list(stop_name_to_id.keys()))
+def select_random_stations(zone = None):
+    return (StopNames.get_a_random_stop_name(zone), StopNames.get_a_random_stop_name(zone))
 
 def run_program(departure_station_name, arrival_station_name, departure_time_str, departure_day, edges, trip_service_days):
     departure_day_dt = convert_str_to_datetime(departure_day)
@@ -346,13 +307,11 @@ def run_program(departure_station_name, arrival_station_name, departure_time_str
             num_of_transfers_per_path.append(transfers)
             seen_arrival_times.append(arrival_time)
 
-    stop_id_to_name = get_stop_id_to_name()
-
     for num_of_transfers in num_of_transfers_per_path: #paths with that many transfers
         path = find_path_pareto(departure_station_id, arrival_station_id, evaluated_nodes, num_of_transfers)
 
 #       if path:
-        connections = construct_final_path_table(path, stop_id_to_name)
+        connections = construct_final_path_table(path)
         all_found_connections.append(connections)
         full_results_bool = False
 
@@ -391,8 +350,8 @@ def get_default_station_names():
     else:
         #departure_station_name = "sidliste petriny"
         #arrival_station_name = "holesovicka trznice"
-        departure_station_name = "dekanka"
-        arrival_station_name = "Nuselska radnice"
+        departure_station_name = "u palaty"
+        arrival_station_name = "kobrova"
         departure_time_str = '10:00:00'
 
     departure_day = '20250610'
@@ -421,10 +380,11 @@ def main():
     tmtb = get_timetable()
     global spec_node_to_main
     spec_node_to_main = {node: main for node, main in zip(tmtb['node_id'], tmtb['main_station_id'])}
-    start_time = time.time()
     #departure_station_name = departures[j]
     #arrival_station_name = arrivals[j]
-
+    StopNames.initialize(get_stops_df())
+    
+    start_time = time.time()
     _, all_found_connections = run_program(departure_station_name, arrival_station_name, departure_time_str, departure_day, edges, trip_service_days)
     
     #connections_str = str(all_found_connections)  # Convert to string to make hashable
@@ -450,7 +410,7 @@ NUMBER_OF_DAYS_IN_ADVANCE = 14
 NUM_OF_SEARCHES = 1 #for testing, number of searches
 TO_PRINT_IN_TERMINAL = False if NUM_OF_SEARCHES > 1 or __name__ != "__main__" else True
 
-RANDOM_STATIONS = False
+RANDOM_STATIONS = True
 random.seed(10)
 
 abspath = os.path.abspath(__file__)
@@ -540,6 +500,13 @@ def preprocess():
     return preprocessed_paths
 
 if __name__ == "__main__":
+    e = get_edges()
+    # Print all keys in 'e' that start with 'U530Z1P' (case-insensitive) and end with anything
+    pattern = re.compile(r'^U530Z1P.*', re.IGNORECASE)
+    for key in e:
+        if pattern.match(key):
+            print(key, e[key],'\n')
+    exit()
     global using_landmarks
     global using_star
     using_landmarks = False

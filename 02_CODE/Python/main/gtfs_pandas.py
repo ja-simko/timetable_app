@@ -9,9 +9,82 @@ import re
 import timeit
 import joblib
 from unidecode import unidecode
+import random
+
+class StopNames:
+    _platforms = {}
+    _id_to_names = {}
+    _coordinates = {}
+    _zones = {}
+    is_initialized = False
+
+    @classmethod
+    def initialize(cls, stops_df):
+        cls.is_initialized = True
+
+        if os.path.exists(os.path.join(CACHE_FOLDER_PATH, 'zones')):
+            cls._zones = load_cached_data('zones')
+        else:
+            cls._zones = {}
+            stops_df = stops_df[stops_df['zone_id'].notna()]
+            stops_df.loc[:, 'zone_id'] = stops_df['zone_id'].astype(str)
+
+            for zone in stops_df['zone_id'].unique():
+                if len(zone) <= 2 and zone != '-':
+                    cls._zones[zone] = stops_df[stops_df['zone_id'].str.contains(zone)]['unique_name'].tolist()
+
+                    cache_data = cls._zones
+                    save_cached_data(cache_data, 'zones')
+    
+        cls._platforms = dict(zip(stops_df['stop_id'], stops_df['platform_code']))
+        cls._id_to_names = dict(zip(stops_df['stop_id'], stops_df['stop_name']))
+        cls._name_to_main_ids = dict(zip(stops_df['unique_name'], stops_df['main_station_id']))
+        cls._coordinates = dict(zip(stops_df['stop_id'], zip(stops_df['stop_lat'], stops_df['stop_lon'])))
 
 
 
+    @classmethod
+    def _ensure_initialized(cls):
+        if not cls.is_initialized:
+            stops_df = get_stops_df()
+            cls.initialize(stops_df)
+
+    @classmethod
+    def get_platform_code(cls, id):
+        cls._ensure_initialized()
+        return cls._platforms.get(id)
+    
+    @classmethod
+    def get_general_name_from_id(cls, id):
+        cls._ensure_initialized()
+        return cls._id_to_names.get(id)
+    
+    @classmethod
+    def get_coordinates_lat_lon(cls, id):
+        cls._ensure_initialized()
+        return cls._coordinates.get(id)
+    
+    @classmethod
+    def get_name_to_main_ids(cls, id):
+        cls._ensure_initialized()
+        return cls._name_to_main_ids.get(id)
+    
+    @classmethod
+    def get_a_random_stop_name(cls, zone=None):
+        cls._ensure_initialized()
+        
+        if zone:
+            if zone in cls._zones:
+                return random.choice(cls._zones[zone])
+            print(f"Warning: Zone {zone} not found, using any station")
+                
+        return random.choice(list(cls._name_to_main_ids.keys()))
+
+    @classmethod
+    def get_available_zones(cls):
+        cls._ensure_initialized()
+        return list(cls._zones.keys())
+    
 def convert_str_to_datetime(day):
     origin = datetime(2000, 1, 1)
     day = datetime.strptime(str(day), '%Y%m%d')
@@ -82,21 +155,41 @@ def build_stop_name_to_id(zone = None):
  
 def build_stop_id_to_name_and_platform():
     stops = get_stops_df()
-    timetable = get_timetable()
-    full_node_ids = timetable['node_id']
-    route_names = timetable['route_short_name']
-    node_to_route = dict(zip(full_node_ids, route_names))
-    print(len(full_node_ids))
-    print(len(stops['stop_id']))
-    d = defaultdict(tuple)
-    stopname = dict(zip(stops['stop_id'], map(list, zip(stops['stop_name'], stops['platform_code']))))
+    # Initialize all data at once
+    StopNames.initialize(stops)
+    return stops
 
-    for node_id in full_node_ids:
-        split_node = node_id.split('_')[0]
-        d[node_id] = stopname[split_node] + [node_to_route[node_id]]
-    print(d)
+def build_stop_id_to_name_and_platform_2():
+    stops = get_stops_df()
+    # full_node_ids = timetable['node_id']
+    # route_names = timetable['route_short_name']
+    # node_to_route = dict(zip(full_node_ids, route_names))
+    # print(len(full_node_ids))
+    # print(len(stops['stop_id']))
+    # d = defaultdict(tuple)
+    # stopname = dict(zip(stops['stop_id'], map(list, zip(stops['stop_name'], stops['platform_code']))))
 
-    return dict(zip(stops['stop_id'], zip(stops['stop_name'], stops['platform_code'])))
+    # for node_id in full_node_ids:
+    #     split_node = node_id.split('_')[0]
+    #     d[node_id] = stopname[split_node] + [node_to_route[node_id]]
+
+    # Create StopNames objects for all stops and store in a dictionary
+    stop_objects = {
+        stop_id: StopNames(
+            id=stop_id,
+            name=row['stop_name'],
+            unique_name=row['unique_name'],
+            lat=row['stop_lat'],
+            lon=row['stop_lon'],
+            platform=row['platform_code']
+        )
+        for stop_id, row in stops.set_index('stop_id').iterrows()
+        }
+    
+    print(StopNames.get_platform_code('U321Z1P'))
+
+    return stop_objects# dict(zip(stops['stop_id'], zip(stops['stop_name'], stops['platform_code'])))
+
 
 def build_stop_id_to_coordinates():
     stops = get_stops_df()
@@ -336,7 +429,14 @@ from functools import partial
 
 
 if __name__ == "__main__": 
-    build_stop_id_to_name_and_platform()
+    a = build_stop_id_to_name_and_platform()
+    #save_cached_data(a, 'stop_id_class')
+    exit()
+    fce = load_cached_data
+    att = 'stop_id_class'
+    test_functions(fce, att, n=25)
+
+    test_functions(build_stop_id_to_name_and_platform, n=25)
 
 
     #import timeit

@@ -37,7 +37,7 @@ class StopNames:
                     cache_data = cls._zones
                     save_cached_data(cache_data, 'zones')
         cls._platforms = dict(zip(stops_df['stop_id'], stops_df['platform_code']))
-        cls._stop_id_to_names = dict(zip(stops_df['stop_id'], stops_df['stop_name']))
+        cls._stop_id_to_names = dict(zip(stops_df['stop_id'], stops_df['stop_name'])) | dict(zip(stops_df['main_station_id'], stops_df['stop_name']))
         cls._node_id_to_main_st_id = dict(zip(timetable['node_id'], timetable['main_station_id']))
         cls._name_to_main_ids = dict(zip(stops_df['unique_name'], stops_df['main_station_id']))
         cls._coordinates = dict(zip(stops_df['main_station_id'], zip(stops_df['stop_lat'], stops_df['stop_lon'])))
@@ -273,7 +273,7 @@ def build_edges(timetable = pd.DataFrame()):
     
     # Convert to numpy arrays for faster iteration
     trip_ids = timetable['trip_id'].values
-    node_ids = timetable['node_id'].values
+    node_ids = timetable['main_station_id'].values
     main_stations = timetable['main_station_id'].values
     departure_times = timetable['departure_time'].values
     arrival_times = timetable['arrival_time'].values
@@ -312,35 +312,36 @@ def build_edges(timetable = pd.DataFrame()):
         elif dep_time < EARLY_MORNING:
             edges[out_node][in_node].append((dep_time + DAY_SECONDS, arr_time + DAY_SECONDS, current_trip_id, 1))
         
-        # Add transfer edges (only once per node)
-        if out_node not in transfer_edges_added:
-            edges[out_main_station][out_node].append(('T', MIN_TRANSFER_TIME, None))
-            edges[in_node][in_main_station].append(('P', 0, None))
-            transfer_edges_added.add(out_node)
+        # Add transfer edges (only once per node)A
+        # if out_node not in transfer_edges_added:
+        #     edges[out_main_station][out_node].append(('T', MIN_TRANSFER_TIME, None))
+        #     edges[in_node][in_main_station].append(('P', 0, None))
+        #     transfer_edges_added.add(out_node)
     
     for out_node in edges:
         for in_node in edges[out_node]:
             edges[out_node][in_node].sort()
 
-    # Sort all edge lists in place
-    new_edges = defaultdict(lambda: defaultdict(list))
 
-    for out_node in edges:
-        for in_node in edges[out_node]:
-            if out_node == 'U693Z2P_R1003_176' and in_node == 'U168Z2P_R1003_176':
-                for i, connection in enumerate(edges[out_node][in_node]):
-                    dep_time = connection[0]
-                    arr_time = edges['U148Z2P_R1003_176']['U930Z2P_R1003_176'][i][1:]
-                    new_edges[out_node]['U930Z2P_R1003_176'].append((connection[0], *arr_time))
-            else:
-                new_edges[out_node][in_node] = edges[out_node][in_node]
+    # # Sort all edge lists in place
+    # new_edges = defaultdict(lambda: defaultdict(list))
 
-    for out_node in new_edges:
-        for in_node in new_edges[out_node]:
-            new_edges[out_node][in_node].sort()
+    # for out_node in edges:
+    #     for in_node in edges[out_node]:
+    #         if out_node == 'U693Z2P_R1003_176' and in_node == 'U168Z2P_R1003_176':
+    #             for i, connection in enumerate(edges[out_node][in_node]):
+    #                 dep_time = connection[0]
+    #                 arr_time = edges['U148Z2P_R1003_176']['U930Z2P_R1003_176'][i][1:]
+    #                 new_edges[out_node]['U930Z2P_R1003_176'].append((connection[0], *arr_time))
+    #         else:
+    #             new_edges[out_node][in_node] = edges[out_node][in_node]
 
-    new_edges = convert_nested_defaultdict(new_edges)
-    return new_edges
+    # for out_node in new_edges:
+    #     for in_node in new_edges[out_node]:
+    #         new_edges[out_node][in_node].sort()
+
+    edges = convert_nested_defaultdict(edges)
+    return edges
 
 def generate_route_ids(timetable):
     trip_sequences = timetable.groupby('trip_id')['stop_id'].apply(tuple)
@@ -475,7 +476,6 @@ if __name__ == "__main__":
 
     a = build_stop_id_to_name_and_platform()
     #save_cached_data(a, 'stop_id_class')
-    exit()
     fce = load_cached_data
     att = 'stop_id_class'
     test_functions(fce, att, n=25)

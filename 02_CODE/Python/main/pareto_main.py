@@ -47,53 +47,64 @@ def get_id_from_best_name_match(stop_name_to_id_ascii, user_input, threshold=80)
     print("No Good Match Found")
     return None  # No good match found
 
-def time_dependent_pareto_dijkstra(start_station, target_station, start_time, edges, trip_service_days, departure_day_dt):
-    """ Implements the modified Dijkstra's algorithm to find all Pareto-optimal paths iteratively. """
-
-    pq = [(start_time, start_time, 0, start_station)]  # (reduced cost, arrival_time, num_transfers, station)
-    labels = {start_station: [(start_time, 0)]}  # Station → List of (arrival_time, num_transfers)
-    evaluated_nodes = {start_station: {0: {'prev_node': None, 'departure_time': None, 'arrival_time': start_time}}}
-
-    max_transfers = TRANSFER_BOUND  # Start with the initial transfer limit
-
+def get_shifted_days_dicts(departure_day_dt):
     shifted_dates = {-1: departure_day_dt - timedelta(days=1), 0: departure_day_dt, 1: departure_day_dt + timedelta(days=1)
     }
 
-    shifted_weekday = {k: v.weekday() for k, v in shifted_dates.items()}
+    return {k: (v.strftime('%Y%m%d'), v.weekday()) for k, v in shifted_dates.items()}
 
-    shifted_dates = {k: datetime.strftime(v, '%Y%m%d') for k,v in shifted_dates.items()}
+def time_dependent_pareto_dijkstra(start_station, target_station, start_time, edges, trip_service_days, departure_day_dt, tentative_best_path, pq, evaluated_nodes):
+    """ Implements the modified Dijkstra's algorithm to find all Pareto-optimal paths iteratively. """
+    if not pq:
+        pq = [(0, start_time, 0, start_station)]  # (reduced cost, arrival_time, num_transfers, station)
+        evaluated_nodes = {start_station: {0: {'prev_node': None, 'departure_time': None, 'arrival_time': start_time}}}
+    else:
+        heapq.heappush(pq, (0, start_time, 0, start_station))
+    
+
+    labels = {start_station: [(start_time, 0)]}  # Station → List of (arrival_time, num_transfers)
+
+    max_transfers = TRANSFER_BOUND  # Start with the initial transfer limit
+
+    # Create a mapping: {shift: (YYYYMMDD, weekday)}
+    shifted_dates = get_shifted_days_dicts(departure_day_dt)
 
     global checked_trips
     checked_trips = set()
 
-    coordinates = build_stop_id_to_coordinates()
+    #coordinates = build_stop_id_to_coordinates()
 
-    t_lat, t_lon = coordinates[target_station]    
-    preprocessed_paths = load_cached_data('preprocess_zatec_zasmuky_komarov_bakov_n_jizerou')
-    counter = 0
+    t_lat, t_lon = StopNames.get_coordinates_lat_lon(target_station)    
+    #preprocessed_paths = load_cached_data('preprocess_zatec_zasmuky_komarov_bakov_n_jizerou')
+    taken_from_pq = 0
     global settled
-    settled = set()
-    ONLY_FASTEST_TRIP = False
+    settled = defaultdict(set)
+    ONLY_FASTEST_TRIP = True
 
-    dist_to_landmarks_target = {landmark:dist for landmark, dist in preprocessed_paths[target_station.split('Z')[0]].items()}
+    #dist_to_landmarks_target = {landmark:dist for landmark, dist in preprocessed_paths[target_station.split('Z')[0]].items()}
 
     start = time.time()
     global already_landmarked
     already_landmarked = {}
-    cc = 0
-    dominatesd = 0
-    tentative_best_path = np.inf
-
+    discarded_cuz_settled = 0
+    longer_than_tent_path = 0
+    already_evaluated = 0
     while max_transfers >= 0:  # Run until we reach -1 transfers
         while pq:
             current_travel_time, current_time, current_transfers, current_station = heapq.heappop(pq)
-            counter += 1
+            taken_from_pq += 1
             #print(reduced_cost, current_time, current_transfers, StopNames.get_general_name_from_id(current_station.split('_')[0]))
 
-            settled.add((current_station, current_transfers))
+            if current_travel_time > tentative_best_path:
+                print('breaaak')
+                max_transfers = -1 if ONLY_FASTEST_TRIP else current_transfers
+                break
+
+            settled[current_station].add(current_transfers)
 
             if current_station == target_station:
                 max_transfers = -1 if ONLY_FASTEST_TRIP else current_transfers
+                tentative_best_path = current_time - start_time
                 break
 
             if current_transfers > max_transfers:
@@ -107,11 +118,12 @@ def time_dependent_pareto_dijkstra(start_station, target_station, start_time, ed
             is_start_station = current_station == start_station
 
             for next_station, connections in edges[current_station].items():
-                
+
                 if (next_station, current_transfers) in settled:
                     continue
                 
-                dep_time, arr_time, transfer = binary_search_next_edge(connections, current_time, is_start_station, trip_service_days, shifted_dates, shifted_weekday)
+                dep_time, arr_time, transfer = binary_search_next_edge(connections, current_time, is_start_station, trip_service_days, shifted_dates)
+
 
                 if arr_time is None or arr_time > start_time + TIME_WINDOW:
                     continue
@@ -123,6 +135,20 @@ def time_dependent_pareto_dijkstra(start_station, target_station, start_time, ed
                 if new_transfers > max_transfers:
                     continue
 
+                if StopNames.get_main_id_from_node_id(current_station) == start_station and start_time != dep_time:
+                    print('perha invalid day')
+                    break
+                
+                if new_transfers in evaluated_nodes.get(next_station, {}) and evaluated_nodes[next_station][new_transfers]['arrival_time'] <= arr_time:
+                    already_evaluated += 1
+                    continue
+
+                if settled.get(next_station) and min(settled[next_station]) <= new_transfers:
+                    discarded_cuz_settled += 1
+                    continue
+
+
+               
                 # Check if this label is Pareto-optimal
                 if next_station not in labels:
                     labels[next_station] = []
@@ -152,16 +178,21 @@ def time_dependent_pareto_dijkstra(start_station, target_station, start_time, ed
                         print(next_station)
                     if curr_lat:
                         curr_difference = euclidean_distance(curr_lat, curr_lon, t_lat, t_lon)
-                        lower_bound_in_seconds = math.floor(curr_difference/7)
-                        new_travel_time = current_travel_time + edge_travel_time + lower_bound_in_seconds
+                        lower_bound_in_seconds = math.floor(curr_difference/15)
 
-                        #Condition
-                        if (arr_time - start_time) + lower_bound_in_seconds > 2*tentative_best_path:
-                            dominatesd += 1
-                            continue
-                    else:
                         new_travel_time = current_travel_time + edge_travel_time
 
+                        #Condition
+                        if current_travel_time + edge_travel_time + lower_bound_in_seconds > tentative_best_path:
+                            longer_than_tent_path += 1
+                            continue
+
+
+                        #if (arr_time - start_time) + lower_bound_in_seconds > 2*tentative_best_path:
+                         #   dominatesd += 1
+                          #  continue
+                    else:
+                        new_travel_time = current_travel_time + edge_travel_time
                 
                 elif using_landmarks:
                     #curr_lat, curr_lon = coordinates.get(next_station.split('Z')[0], (None, None))
@@ -196,23 +227,22 @@ def time_dependent_pareto_dijkstra(start_station, target_station, start_time, ed
                 }
 
                 heapq.heappush(pq, (new_travel_time, arr_time, new_transfers, next_station))
-        
-        tentative_best_path = current_time - start_time
         max_transfers -= 1
-    print('cc',cc)
-    print(dominatesd)
+    print('discarded_cuz_settled',discarded_cuz_settled)
+    print('longer_than_tent_path',longer_than_tent_path)
+    print('already_eval',already_evaluated)
     global dijkstra_time
     dijkstra_time = round(time.time() - start,3)*1000
-    print(dijkstra_time)
-    #print('counter',counter)
-    return evaluated_nodes, settled
+    print('OG Dijkstra',dijkstra_time)
+    print('taken_from_pq',taken_from_pq)
+    return evaluated_nodes, settled, tentative_best_path, pq
 
 def is_trip_service_day_valid(departure_day, trip_id, trip_service_days, weekday):
     trip_info = trip_service_days[trip_id]
     return (weekday in trip_info['service_days'] and 
             trip_info['start_date'] <= departure_day <= trip_info['end_date'])
 
-def binary_search_next_edge(edges, current_time, zero_transfer_cost, trip_service_days, shifted_dates, shifted_weekday) -> tuple[float, float, int]:
+def binary_search_next_edge(edges, current_time, zero_transfer_cost, trip_service_days, shifted_dates) -> tuple[float, float, int]:
     """Return next edge departure time, arrival time and transfer 0 or 1 
     Finds the next train connection using binary search 
     """
@@ -233,8 +263,7 @@ def binary_search_next_edge(edges, current_time, zero_transfer_cost, trip_servic
         if trip_id in checked_trips:
             return (dep_time, arr_time, 0)
         
-        weekday = shifted_weekday[day_shift]
-        departure_day = shifted_dates[day_shift]
+        departure_day, weekday = shifted_dates[day_shift]
 
         if is_trip_service_day_valid(departure_day, trip_id, trip_service_days, weekday):
             checked_trips.add(trip_id)
@@ -301,7 +330,40 @@ def run_program(departure_station_name, arrival_station_name, departure_time_str
 
     all_found_connections = []
 
-    evaluated_nodes, _ = time_dependent_pareto_dijkstra(departure_station_id, arrival_station_id, departure_time_sec, edges, trip_service_days, departure_day_dt)
+    global tentative_best_path
+    last_tentative_best_path = np.inf
+    pq = None
+    last_ev = {}
+
+    starting_times = []
+
+    start_stations = edges[departure_station_id].keys()
+    for start_station in start_stations:
+        for out_node, connections in edges[start_station].items():
+            if connections[0][0] != 'P':
+                starting_times += [edge[0] for edge in connections if departure_time_sec + 20*60 > edge[0] > departure_time_sec]
+                print(start_station, out_node, [edge[0] for edge in connections if departure_time_sec + 20*60 > edge[0] > departure_time_sec])
+
+    print(starting_times)
+    starting_times = sorted(set(starting_times), reverse=True)
+
+    for starting_time in starting_times:
+        print('\nii,',starting_time)
+        departure_time_sec = starting_time
+
+        evaluated_nodes, _, new_tentative_best_path, pq = time_dependent_pareto_dijkstra(departure_station_id, arrival_station_id, departure_time_sec, edges, trip_service_days, departure_day_dt, last_tentative_best_path, pq, last_ev)
+
+        print('new path',new_tentative_best_path, convert_sec_to_hh_mm_ss(departure_time_sec))
+        
+        last_ev = evaluated_nodes #tady to chce mergnou a nechat to mensi kdyz je na vyber
+        print(len(last_ev))
+        print(evaluated_nodes.get('U157', None))
+        if new_tentative_best_path < last_tentative_best_path and evaluated_nodes.get(arrival_station_id): #tohle je blbe naimplemenotvan nebo mozna ne
+            last_tentative_best_path = new_tentative_best_path
+            best_eval_nodes = evaluated_nodes
+            print('Best path', new_tentative_best_path//60)
+
+    evaluated_nodes = best_eval_nodes
 
     print('eval',len(evaluated_nodes))
     # for node, v in evaluated_nodes.items():
@@ -352,16 +414,6 @@ def run_program(departure_station_name, arrival_station_name, departure_time_str
 
     return True, all_found_connections
 
-def get_dep_arr_id_from_name(departure_station_name, arrival_station_name): 
-    stop_name_to_id = get_stop_name_to_id()
-    stop_name_to_id_ascii = {unidecode(name).lower(): v for name, v in stop_name_to_id.items()}
-
-    departure_station_id = get_id_from_best_name_match(stop_name_to_id_ascii, departure_station_name)
-
-    arrival_station_id = get_id_from_best_name_match(stop_name_to_id_ascii, arrival_station_name)
-
-    return departure_station_id, arrival_station_id
-
 def get_default_station_names():
     if RANDOM_STATIONS:
         departure_station_name, arrival_station_name = select_random_stations()
@@ -369,13 +421,13 @@ def get_default_station_names():
         departure_time_str = f"{random.randint(0,24):02}:{random.randint(0,60):02}:{random.randint(0,60):02}"
 
     else:
-        #departure_station_name = "sidliste petriny"
-        #arrival_station_name = "holesovicka trznice"
-        departure_station_name = "nadrazi podbaba"
-        arrival_station_name = "dekanka"
-        departure_time_str = '10:00:00'
+        departure_station_name = "dedina"
+        arrival_station_name = "k juliane"
+        #departure_station_name = "ladvi"
+        #arrival_station_name = "andelska hora,rozc"
+        departure_time_str = '14:35:00'
 
-    departure_day = '20250611'
+    departure_day = '20250615'
 
     return departure_station_name, arrival_station_name, departure_time_str, departure_day
 
@@ -395,26 +447,26 @@ def main():
     modifiers = [100,6,5,4,3]
     #for j in range(len(departures)):
      #   print(departures[j],arrivals[j])
-      #  for i in range(NUM_OF_SEARCHES):
-    #modifier = modifiers[i]
-    departure_station_name, arrival_station_name, departure_time_str, departure_day = get_default_station_names()
     tmtb = get_timetable()
-    global spec_node_to_main
-    spec_node_to_main = {node: main for node, main in zip(tmtb['node_id'], tmtb['main_station_id'])}
-    #departure_station_name = departures[j]
-    #arrival_station_name = arrivals[j]
     StopNames.initialize(get_stops_df(), tmtb)
-    
-    start_time = time.time()
-    _, all_found_connections = run_program(departure_station_name, arrival_station_name, departure_time_str, departure_day, edges, trip_service_days)
-    
-    #connections_str = str(all_found_connections)  # Convert to string to make hashable
-    #if i != 0:
-        #print(connections_str in muj_set, modifier)
-    #muj_set.add(connections_str)
+    for i in range(NUM_OF_SEARCHES):
+        #modifier = modifiers[i]
+        departure_station_name, arrival_station_name, departure_time_str, departure_day = get_default_station_names()
+        global spec_node_to_main
+        spec_node_to_main = {node: main for node, main in zip(tmtb['node_id'], tmtb['main_station_id'])}
+        #departure_station_name = departures[j]
+        #arrival_station_name = arrivals[j]
+        
+        start_time = time.time()
+        _, all_found_connections = run_program(departure_station_name, arrival_station_name, departure_time_str, departure_day, edges, trip_service_days)
+        
+        #connections_str = str(all_found_connections)  # Convert to string to make hashable
+        #if i != 0:
+            #print(connections_str in muj_set, modifier)
+        #muj_set.add(connections_str)
 
-    print('Dijkstra Time',dijkstra_time)
-    print('One RunTime:', round((time.time() - start_time)*1000, 2), 'ms')
+        print('Dijkstra Time',dijkstra_time)
+        print('One RunTime:', round((time.time() - start_time)*1000, 2), 'ms')
     print('Global Avg Run Time:', round((time.time() - global_time)*1000/NUM_OF_SEARCHES, 2), 'ms')
     print(len(muj_set))
 
@@ -539,14 +591,14 @@ if __name__ == "__main__":
     using_landmarks = False
     using_star = True
     main()
-    id_to_name = get_stop_id_to_name()
-    for stop, tr in settled:
-        name = StopNames._stop_id_to_names.get(stop.split('_')[0], None)
-        if name:
-            continue
-            time.sleep(0.02)
-            print(name, stop)
-            #print(already_landmarked[stop.split('Z')[0]])
+    # id_to_name = get_stop_id_to_name()
+    # for stop, tr in settled:
+    #     name = StopNames._stop_id_to_names.get(stop.split('_')[0], None)
+    #     if name:
+    #         continue
+    #         time.sleep(0.02)
+    #         print(name, stop)
+    #         #print(already_landmarked[stop.split('Z')[0]])
     exit()
     tmtb_sample = get_timetable_sample()
     main_stops_id = tmtb_sample['main_station_id'].unique().tolist()

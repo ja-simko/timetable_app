@@ -61,6 +61,11 @@ class StopNames:
         return cls._stop_id_to_names.get(id)
     
     @classmethod
+    def get_main_id_from_node_id(cls, node_id):
+        cls._ensure_initialized()
+        return cls._node_id_to_main_st_id.get(node_id, node_id)
+    
+    @classmethod
     def get_coordinates_lat_lon(cls, node_id):
         cls._ensure_initialized()
         station_id = cls._node_id_to_main_st_id.get(node_id, node_id)

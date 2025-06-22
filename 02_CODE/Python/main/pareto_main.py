@@ -86,7 +86,7 @@ def time_dependent_pareto_dijkstra(start_station, target_station, start_time, ed
 
     while max_transfers >= 0:  # Run until we reach -1 transfers
         while pq:
-            reduced_cost, current_time, current_transfers, current_station = heapq.heappop(pq)
+            current_travel_time, current_time, current_transfers, current_station = heapq.heappop(pq)
             counter += 1
             #print(reduced_cost, current_time, current_transfers, StopNames.get_general_name_from_id(current_station.split('_')[0]))
 
@@ -115,6 +115,8 @@ def time_dependent_pareto_dijkstra(start_station, target_station, start_time, ed
 
                 if arr_time is None or arr_time > start_time + TIME_WINDOW:
                     continue
+
+                edge_travel_time = (arr_time - current_time)
 
                 new_transfers = current_transfers + transfer
 
@@ -151,21 +153,21 @@ def time_dependent_pareto_dijkstra(start_station, target_station, start_time, ed
                     if curr_lat:
                         curr_difference = euclidean_distance(curr_lat, curr_lon, t_lat, t_lon)
                         lower_bound_in_seconds = math.floor(curr_difference/7)
-                        new_reduced_cost = reduced_cost + (arr_time - current_time) + lower_bound_in_seconds
+                        new_travel_time = current_travel_time + edge_travel_time + lower_bound_in_seconds
 
                         #Condition
                         if (arr_time - start_time) + lower_bound_in_seconds > 2*tentative_best_path:
                             dominatesd += 1
                             continue
                     else:
-                        new_reduced_cost = reduced_cost + (arr_time - current_time)
+                        new_travel_time = current_travel_time + edge_travel_time
 
                 
                 elif using_landmarks:
                     #curr_lat, curr_lon = coordinates.get(next_station.split('Z')[0], (None, None))
                     main_id = spec_node_to_main.get(current_station, current_station)
                     if main_id in already_landmarked:
-                        reduced_cost = arr_time + already_landmarked[main_id]
+                        current_travel_time = arr_time + already_landmarked[main_id]
 
                     elif main_id in preprocessed_paths:
                         this_node = preprocessed_paths[main_id]
@@ -173,18 +175,18 @@ def time_dependent_pareto_dijkstra(start_station, target_station, start_time, ed
                         for landmark, dist in this_node.items())
                         if max_lower_bound > 0:
                             print('f', max_lower_bound)
-                            reduced_cost = arr_time + max_lower_bound*60
+                            current_travel_time = arr_time + max_lower_bound*60
                             already_landmarked[main_id] = max_lower_bound*60
                         else:
-                            reduced_cost = arr_time 
+                            current_travel_time = arr_time 
                             already_landmarked[main_id] = 0
 
                     else:
-                        reduced_cost = arr_time
+                        current_travel_time = arr_time
                         already_landmarked[main_id] = 0
 
                 else:
-                    new_reduced_cost = reduced_cost + (arr_time - current_time)
+                    new_travel_time = current_travel_time + edge_travel_time
 
                 evaluated_nodes[next_station][new_transfers] = {
                     'prev_node': current_station,
@@ -193,7 +195,7 @@ def time_dependent_pareto_dijkstra(start_station, target_station, start_time, ed
                     'is_transfer': True if transfer else False
                 }
 
-                heapq.heappush(pq, (new_reduced_cost, arr_time, new_transfers, next_station))
+                heapq.heappush(pq, (new_travel_time, arr_time, new_transfers, next_station))
         
         tentative_best_path = current_time - start_time
         max_transfers -= 1
@@ -519,15 +521,15 @@ def preprocess():
     return preprocessed_paths
 
 if __name__ == "__main__":
-    e = get_edges()
+    #e = get_edges()
     # Print all keys in 'e' that start with 'U530Z1P' (case-insensitive) and end with anything
-    pattern = re.compile(r'^U693Z1P.*', re.IGNORECASE) #693
-    for key, v in e.items():
-        if pattern.match(key):
-            for a, times in v.items():
-                print(key, e[key],'\n')
+    #pattern = re.compile(r'^U693Z1P.*', re.IGNORECASE) #693
+    #for key, v in e.items():
+    #    if pattern.match(key):
+     #       for a, times in v.items():
+      #          print(key, e[key],'\n')
 
-    exit()
+    #exit()
 
 
 

@@ -57,11 +57,10 @@ def time_dependent_pareto_dijkstra(start_station, target_station, start_time, ed
     """ Implements the modified Dijkstra's algorithm to find all Pareto-optimal paths iteratively. """
     if not pq:
         pq = [(0, start_time, 0, start_station)]  # (reduced cost, arrival_time, num_transfers, station)
-        evaluated_nodes = {start_station: {0: {'prev_node': None, 'departure_time': None, 'arrival_time': start_time}}}
+        evaluated_nodes = {start_station: {'prev_node': None, 'departure_time': None, 'arrival_time': start_time}}
     else:
         heapq.heappush(pq, (0, start_time, 0, start_station))
     
-
     labels = {start_station: [(start_time, 0)]}  # Station → List of (arrival_time, num_transfers)
 
     max_transfers = TRANSFER_BOUND  # Start with the initial transfer limit
@@ -96,7 +95,6 @@ def time_dependent_pareto_dijkstra(start_station, target_station, start_time, ed
             #print(reduced_cost, current_time, current_transfers, StopNames.get_general_name_from_id(current_station.split('_')[0]))
 
             if current_travel_time > tentative_best_path:
-                print('breaaak')
                 max_transfers = -1 if ONLY_FASTEST_TRIP else current_transfers
                 break
 
@@ -124,7 +122,6 @@ def time_dependent_pareto_dijkstra(start_station, target_station, start_time, ed
                 
                 dep_time, arr_time, transfer = binary_search_next_edge(connections, current_time, is_start_station, trip_service_days, shifted_dates)
 
-
                 if arr_time is None or arr_time > start_time + TIME_WINDOW:
                     continue
 
@@ -136,10 +133,9 @@ def time_dependent_pareto_dijkstra(start_station, target_station, start_time, ed
                     continue
 
                 if StopNames.get_main_id_from_node_id(current_station) == start_station and start_time != dep_time:
-                    print('perha invalid day')
                     break
                 
-                if new_transfers in evaluated_nodes.get(next_station, {}) and evaluated_nodes[next_station][new_transfers]['arrival_time'] <= arr_time:
+                if evaluated_nodes.get(next_station) and evaluated_nodes[next_station]['arrival_time'] <= arr_time:
                     already_evaluated += 1
                     continue
 
@@ -147,8 +143,6 @@ def time_dependent_pareto_dijkstra(start_station, target_station, start_time, ed
                     discarded_cuz_settled += 1
                     continue
 
-
-               
                 # Check if this label is Pareto-optimal
                 if next_station not in labels:
                     labels[next_station] = []
@@ -219,7 +213,7 @@ def time_dependent_pareto_dijkstra(start_station, target_station, start_time, ed
                 else:
                     new_travel_time = current_travel_time + edge_travel_time
 
-                evaluated_nodes[next_station][new_transfers] = {
+                evaluated_nodes[next_station] = {
                     'prev_node': current_station,
                     'departure_time': dep_time,
                     'arrival_time': arr_time,
@@ -274,23 +268,19 @@ def binary_search_next_edge(edges, current_time, zero_transfer_cost, trip_servic
 def is_transit_edge(edge) -> bool:
     return True if edge['line_num'] == None else False
 
-def find_path_pareto(source_node, end_node, evaluated_nodes, num_of_transfers):
+def find_path_pareto(source_node, end_node, evaluated_nodes):
     path = []
     prev_node = end_node
     while prev_node != source_node:
-        if num_of_transfers in evaluated_nodes[prev_node]:
-            edge = evaluated_nodes[prev_node][num_of_transfers]
-            path.append(edge)
-            prev_node = edge['prev_node'] 
+        edge = evaluated_nodes[prev_node]
+        path.append(edge)
+        prev_node = edge['prev_node'] 
 
-            if edge['is_transfer']:
-                num_of_transfers -= 1
-                edge['line_num'] = None 
-            else:
-                edge['line_num'] = prev_node.split('_')[-1]
-
+        if edge['is_transfer']:
+            #num_of_transfers -= 1
+            edge['line_num'] = None 
         else:
-            return None #no path of size of max_transfers transfers
+            edge['line_num'] = prev_node.split('_')[-1]
 
     return path[::-1] #Return reversed path
 
@@ -341,8 +331,8 @@ def run_program(departure_station_name, arrival_station_name, departure_time_str
     for start_station in start_stations:
         for out_node, connections in edges[start_station].items():
             if connections[0][0] != 'P':
-                starting_times += [edge[0] for edge in connections if departure_time_sec + 20*60 > edge[0] > departure_time_sec]
-                print(start_station, out_node, [edge[0] for edge in connections if departure_time_sec + 20*60 > edge[0] > departure_time_sec])
+                starting_times += [edge[0] for edge in connections if departure_time_sec + 10*60 >= edge[0] >= departure_time_sec]
+                print(start_station, out_node, [edge[0] for edge in connections if departure_time_sec + 10*60 > edge[0] > departure_time_sec])
 
     print(starting_times)
     starting_times = sorted(set(starting_times), reverse=True)
@@ -356,61 +346,39 @@ def run_program(departure_station_name, arrival_station_name, departure_time_str
         print('new path',new_tentative_best_path, convert_sec_to_hh_mm_ss(departure_time_sec))
         
         last_ev = evaluated_nodes #tady to chce mergnou a nechat to mensi kdyz je na vyber
-        print(len(last_ev))
-        print(evaluated_nodes.get('U157', None))
+        print('new tent', new_tentative_best_path)
         if new_tentative_best_path < last_tentative_best_path and evaluated_nodes.get(arrival_station_id): #tohle je blbe naimplemenotvan nebo mozna ne
             last_tentative_best_path = new_tentative_best_path
-            best_eval_nodes = evaluated_nodes
+            best_eval_nodes = evaluated_nodes.copy()
             print('Best path', new_tentative_best_path//60)
 
     evaluated_nodes = best_eval_nodes
-
-    print('eval',len(evaluated_nodes))
-    # for node, v in evaluated_nodes.items():
-    #     for tr, info in v.items():
-    #         try:
-    #             print(node, convert_sec_to_hh_mm_ss(info['departure_time']))
-    #         except:
-    #             continue
 
     if arrival_station_id not in evaluated_nodes:
         print('No Route Found')
         return False, None
 
     # Filter out paths with same arrival time but more transfers
-    seen_arrival_times = []
-    num_of_transfers_per_path = []
 
-    print(evaluated_nodes[arrival_station_id].items())
-    for transfers, edge in sorted(evaluated_nodes[arrival_station_id].items(), reverse = True):
-        arrival_time = edge['arrival_time']
-        if seen_arrival_times and arrival_time < seen_arrival_times[-1]:
-            num_of_transfers_per_path[-1] = transfers
-        else:
-            num_of_transfers_per_path.append(transfers)
-            seen_arrival_times.append(arrival_time)
-
-    for num_of_transfers in num_of_transfers_per_path: #paths with that many transfers
-        path = find_path_pareto(departure_station_id, arrival_station_id, evaluated_nodes, num_of_transfers)
+    path = find_path_pareto(departure_station_id, arrival_station_id, evaluated_nodes)
 
 #       if path:
-        connections = construct_final_path_table(path)
-        all_found_connections.append(connections)
-        full_results_bool = False
+    connections = construct_final_path_table(path)
+    all_found_connections.append(connections)
+    full_results_bool = False
 
-        if TO_PRINT_IN_TERMINAL:
-            print("Num of transfers", num_of_transfers)
-            for connection_counter, connection in enumerate(connections):
-                for stop_counter, stop in enumerate(connection):
-                    if full_results_bool or stop_counter == 0 or stop_counter == len(connection) - 1:
-                        print(stop[0], convert_sec_to_hh_mm_ss(stop[1]), stop[2], stop[3])
+    if TO_PRINT_IN_TERMINAL:
+        for connection_counter, connection in enumerate(connections):
+            for stop_counter, stop in enumerate(connection):
+                if full_results_bool or stop_counter == 0 or stop_counter == len(connection) - 1:
+                    print(stop[0], convert_sec_to_hh_mm_ss(stop[1]), stop[2], stop[3])
 
-                print('')
             print('')
-            print('Travel time', get_travel_time_in_mins(path),'min')
-        else:
-            continue
-            print("Route Exists")
+        print('')
+        print('Travel time', get_travel_time_in_mins(path),'min')
+    else:
+        pass
+        #print("Route Exists")
 
     return True, all_found_connections
 
@@ -421,13 +389,13 @@ def get_default_station_names():
         departure_time_str = f"{random.randint(0,24):02}:{random.randint(0,60):02}:{random.randint(0,60):02}"
 
     else:
-        departure_station_name = "dedina"
-        arrival_station_name = "k juliane"
+        departure_station_name = "andelska hora, rozc"
+        arrival_station_name = "xaverov"
         #departure_station_name = "ladvi"
         #arrival_station_name = "andelska hora,rozc"
-        departure_time_str = '14:35:00'
+        departure_time_str = '14:44:00'
 
-    departure_day = '20250615'
+    departure_day = '20250616'
 
     return departure_station_name, arrival_station_name, departure_time_str, departure_day
 

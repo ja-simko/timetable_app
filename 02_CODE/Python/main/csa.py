@@ -79,7 +79,7 @@ def build_edges_csa(timetable = pd.DataFrame()):
 
     return edges
 
-def build_footpaths(edges, min_transfer_time: int = 300) -> list:
+def build_footpaths(edges, min_transfer_time: int = 120) -> list:
     # Group stops by station
     station_stops = defaultdict(set)
     
@@ -113,38 +113,48 @@ def scan_connections(connections, footpaths, starting_time, start_station, targe
     index = bisect.bisect_left(connections, (starting_time,))
 
     trips = {}
-    evaluated_stops = defaultdict(lambda: 2 * 24 * 60 * 60)  # S[x] ← ∞
+    evaluated_stops = defaultdict(lambda: (2 * 24 * 60 * 60, 10))  # (earliest_arrival_time, min_transfers)
     journey_pointers = {}
 
-    evaluated_stops[start_station] = starting_time
+    evaluated_stops[start_station] = (starting_time, 0)
 
     for to_stop, transfer_time in footpaths.get(start_station, []):
-        evaluated_stops[to_stop] = starting_time
+        evaluated_stops[to_stop] = (starting_time, 0)
 
     counter = 0
 
     for conn in connections[index:]:
         counter += 1
 
-        if conn.dep_time >= evaluated_stops[target_station]:
-            return evaluated_stops[target_station], counter, journey_pointers
-        
-        current_trip = trips.get(conn.trip_id)
+        arr_time, arr_transfers = evaluated_stops[target_station]
+        if conn.dep_time >= arr_time:
+            return arr_time, arr_transfers, counter, journey_pointers
 
-        if current_trip or evaluated_stops[conn.dep_stop] <= conn.dep_time:
+        current_trip = trips.get(conn.trip_id)
+        dep_time, dep_transfers = evaluated_stops[conn.dep_stop]
+
+        if current_trip or dep_time <= conn.dep_time:
             if not current_trip:
                 trips[conn.trip_id] = conn
                 current_trip = conn
-        
+
+            # If we are transferring to a new trip, increment transfers
+            if current_trip.trip_id != conn.trip_id:
+                transfers = dep_transfers + 1
+            else:
+                transfers = dep_transfers
+
             arr_footpaths = footpaths.get(conn.arr_stop)
             if arr_footpaths:
-                new_time = conn.arr_time + transfer_time
                 for to_stop, transfer_time in arr_footpaths:
-                    if new_time < evaluated_stops[to_stop]:
-                        evaluated_stops[to_stop] = new_time
+                    new_time = conn.arr_time + transfer_time
+                    prev_time, prev_transfers = evaluated_stops[to_stop]
+                    # Pareto improvement: earlier arrival or same time but fewer transfers
+                    if (new_time < prev_time) or (new_time == prev_time and transfers < prev_transfers):
+                        evaluated_stops[to_stop] = (new_time, transfers)
                         journey_pointers[to_stop] = (current_trip, conn)
-    
-    return None, counter, None
+
+    return None, None, counter, None
 
 def extract_full_journey(journey_pointers, connections, target):
     if target not in journey_pointers:
@@ -204,8 +214,12 @@ def extract_journey(journey_pointers, target):
     return list(reversed(journey))
 
 def construct_final_path(path):
+    c = 0
     if path:
         for stop, time in path:
+            if c%2 == 0:
+                print('')
+            c += 1
             print(StopNames.get_general_name_from_id(stop), convert_sec_to_hh_mm_ss(time))
     else:
         print('No path')
@@ -220,23 +234,23 @@ if __name__ == "__main__":
 
     # More precise timing
     start_station = StopNames.get_id_from_fuzzy_input_name('albertov') + 'Z1P'#StopNames.get_id_from_fuzzy_input_name(StopNames.get_a_random_stop_name())
-    end_station = StopNames.get_id_from_fuzzy_input_name('letenske namesti')+ 'Z1P'#StopNames.get_id_from_fuzzy_input_name(StopNames.get_a_random_stop_name())
+    end_station = StopNames.get_id_from_fuzzy_input_name('dekanka')+ 'Z1P'#StopNames.get_id_from_fuzzy_input_name(StopNames.get_a_random_stop_name())
     
     start_time = time.perf_counter()
-    for i in range(10):
-        print(start_station, end_station)
-        ea_time, seen_conns, journey_pointers = scan_connections(
+    for i in range(1):
+        ea_time, tr, seen_conns, journey_pointers = scan_connections(
             connections=edges,
             footpaths = footpaths, 
-            starting_time=40500, 
+            starting_time=convert_str_to_sec('10:01:00'), 
             start_station=start_station, 
             target_station=end_station
         )
-    elapsed = (time.perf_counter() - start_time)/10
+    elapsed = (time.perf_counter() - start_time)/1
 
-    journey = extract_journey(journey_pointers, end_station)
+    if ea_time:
+        journey = extract_journey(journey_pointers, end_station)
 
-    construct_final_path(journey)
+        construct_final_path(journey)
 
     print(f"Outside function timing: {elapsed*1000:.4f} ms")
     print(f"Seen connections: {seen_conns}")

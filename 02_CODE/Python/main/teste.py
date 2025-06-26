@@ -1,4 +1,5 @@
 from pareto_main import *
+from pareto_main_full_TD_with_transfers import *
 from gtfs_pandas import get_edges, get_trip_service_days
 import cProfile
 from pstats import *
@@ -11,8 +12,11 @@ from csa import *
 
 
 def load_real_data():
-    edges = build_edges_csa()
-    footpaths = build_footpaths(edges)
+    #edges = build_edges_csa()
+    #footpaths = build_footpaths(edges)
+    
+    footpaths = None
+    edges = get_edges()
     trip_service_days = get_trip_service_days()
     return edges, trip_service_days,footpaths
 
@@ -22,11 +26,14 @@ def test_modified_dijkstra_pareto():
 
     stop_name_to_id = get_stop_name_to_id()
 
-    #start_station = get_id_from_best_name_match(stop_name_to_id, "andelska hora, rozc")
-    #target_station = get_id_from_best_name_match(stop_name_to_id, "nadrazi podbaba")
-    start_station = 'dekanka'
-    target_station = 'k juliane'
-    start_time = 30000
+    #start_station = 'dekanka'
+    #target_station = 'k juliane'
+    # start_time = 30000
+    
+    start_station = "andelska hora, rozc"
+    target_station = "palmovka"
+    start_time = "10:00:00"
+    
     departure_day = '20250610'
     departure_day_dt = convert_str_to_datetime(departure_day)
 
@@ -39,7 +46,8 @@ def test_modified_dijkstra_pareto():
 
     for i in range(10):
         start = time.time()
-        result = scan_connections(edges, footpaths, start_time, start_station, target_station)
+        #result = scan_connections(edges, footpaths, start_time, start_station, target_station)
+        result = run_program(start_station, target_station, start_time, departure_day, edges, trip_service_days)
         end = time.time()
         execution_times.append(end - start)
         print(f"Run {i+1}: {execution_times[-1]:.3f} seconds")

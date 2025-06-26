@@ -48,13 +48,15 @@ def get_id_from_best_name_match(stop_name_to_id_ascii, user_input, threshold=80)
     print("No Good Match Found")
     return None  # No good match found
 
-def get_shifted_days_dicts(departure_day_dt):
+def get_shifted_days_dicts(departure_day: str):
+    departure_day_dt = convert_str_to_datetime(departure_day)
+
     shifted_dates = {-1: departure_day_dt - timedelta(days=1), 0: departure_day_dt, 1: departure_day_dt + timedelta(days=1)
     }
 
     return {k: (v.strftime('%Y%m%d'), v.weekday()) for k, v in shifted_dates.items()}
 
-def time_dependent_pareto_dijkstra(start_station, target_station, start_time, edges, trip_service_days, departure_day_dt, tentative_best_path, pq, evaluated_nodes):
+def time_dependent_pareto_dijkstra(start_station, target_station, start_time, edges, trip_service_days, departure_day, tentative_best_path, pq, evaluated_nodes):
     """ Implements the modified Dijkstra's algorithm to find all Pareto-optimal paths iteratively. """
     if not pq:
         pq = [(0, start_time, 0, start_station)]  # (reduced cost, arrival_time, num_transfers, station)
@@ -67,7 +69,7 @@ def time_dependent_pareto_dijkstra(start_station, target_station, start_time, ed
     max_transfers = TRANSFER_BOUND  # Start with the initial transfer limit
 
     # Create a mapping: {shift: (YYYYMMDD, weekday)}
-    shifted_dates = get_shifted_days_dicts(departure_day_dt)
+    shifted_dates = get_shifted_days_dicts(departure_day)
 
     global checked_trips
     checked_trips = set()
@@ -232,8 +234,10 @@ def time_dependent_pareto_dijkstra(start_station, target_station, start_time, ed
     print('taken_from_pq',taken_from_pq)
     return evaluated_nodes, settled, tentative_best_path, pq
 
-def is_trip_service_day_valid(departure_day, trip_id, trip_service_days, weekday):
+def is_trip_service_day_valid(trip_id, trip_service_days, shifted_dates, day_shift):
+    departure_day, weekday = shifted_dates[day_shift]
     trip_info = trip_service_days[trip_id]
+    
     return (weekday in trip_info['service_days'] and 
             trip_info['start_date'] <= departure_day <= trip_info['end_date'])
 
@@ -255,12 +259,7 @@ def binary_search_next_edge(edges, current_time, zero_transfer_cost, trip_servic
         
         dep_time, arr_time, trip_id, day_shift =  edges[index]
 
-        if trip_id in checked_trips:
-            return (dep_time, arr_time, 0)
-        
-        departure_day, weekday = shifted_dates[day_shift]
-
-        if is_trip_service_day_valid(departure_day, trip_id, trip_service_days, weekday):
+        if trip_id in checked_trips or is_trip_service_day_valid(trip_id, trip_service_days, shifted_dates, day_shift):
             checked_trips.add(trip_id)
             return (dep_time, arr_time, 0)
         
@@ -308,7 +307,6 @@ def select_random_stations(zone = None):
     return (StopNames.get_a_random_stop_name(zone), StopNames.get_a_random_stop_name(zone))
 
 def run_program(departure_station_name, arrival_station_name, departure_time_str, departure_day, edges, trip_service_days):
-    departure_day_dt = convert_str_to_datetime(departure_day)
     departure_time_sec = convert_str_to_sec(departure_time_str)
     departure_station_id = StopNames.get_id_from_fuzzy_input_name(departure_station_name)
     arrival_station_id = StopNames.get_id_from_fuzzy_input_name(arrival_station_name)
@@ -342,7 +340,7 @@ def run_program(departure_station_name, arrival_station_name, departure_time_str
         print('\nii,',starting_time)
         departure_time_sec = starting_time
 
-        evaluated_nodes, _, new_tentative_best_path, pq = time_dependent_pareto_dijkstra(departure_station_id, arrival_station_id, departure_time_sec, edges, trip_service_days, departure_day_dt, last_tentative_best_path, pq, last_ev)
+        evaluated_nodes, _, new_tentative_best_path, pq = time_dependent_pareto_dijkstra(departure_station_id, arrival_station_id, departure_time_sec, edges, trip_service_days, departure_day, last_tentative_best_path, pq, last_ev)
 
         print('new path',new_tentative_best_path, convert_sec_to_hh_mm_ss(departure_time_sec))
         
@@ -525,7 +523,7 @@ def preprocess():
 
     for landmark in landmarks:
         print('L', landmark)
-        evaluated_nodes, _ = time_dependent_pareto_dijkstra(start_station=landmark, target_station=end, start_time=dep_time,edges=edges,trip_service_days=trips, departure_day_dt=departure_day_dt)
+        evaluated_nodes, _ = time_dependent_pareto_dijkstra(start_station=landmark, target_station=end, start_time=dep_time,edges=edges,trip_service_days=trips, departure_day=departure_day_dt)
 
         for node, val in evaluated_nodes.items():
             max_tr = max(val.keys())

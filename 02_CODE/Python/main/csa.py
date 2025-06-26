@@ -19,7 +19,7 @@ from rapidfuzz import process, fuzz
 from unidecode import unidecode
 from sqlalchemy import create_engine, text
 from gtfs_pandas import *
-from pareto_main import convert_sec_to_hh_mm_ss
+from pareto_main import convert_sec_to_hh_mm_ss, is_trip_service_day_valid, get_shifted_days_dicts
 
 def build_edges_csa(timetable = pd.DataFrame()):
     """
@@ -113,7 +113,7 @@ def build_footpaths(edges) -> list:
                         footpaths[stop2].append((stop1, min_transfer_time))
     return footpaths
 
-def scan_connections(connections, footpaths, starting_time, start_station, target_station):
+def scan_connections(connections, footpaths, starting_time, start_station, target_station, departure_day, trip_service_days):
 
     index = bisect.bisect_left(connections, (starting_time,))
 
@@ -128,8 +128,15 @@ def scan_connections(connections, footpaths, starting_time, start_station, targe
 
     counter = 0
 
+    shifted_days = get_shifted_days_dicts(departure_day)
+
+    checked_trips = set()
     for conn in connections[index:]:
         counter += 1
+
+        if not (conn.trip_id in checked_trips or is_trip_service_day_valid(conn.trip_id, trip_service_days, shifted_days, conn.shift)):
+            checked_trips.add(conn.trip_id)
+            continue
 
         arr_time, arr_transfers = evaluated_stops[target_station]
 
@@ -234,10 +241,13 @@ if __name__ == "__main__":
 
     edges = build_edges_csa(timetable)
     footpaths = build_footpaths(edges)
+    trip_service_days = get_trip_service_days()
 
     # More precise timing
+    departure_day = '20250612'
+
     start_station = StopNames.get_stop_id_from_main_id(StopNames.get_id_from_fuzzy_input_name('lotyska'))#StopNames.get_id_from_fuzzy_input_name(StopNames.get_a_random_stop_name())
-    end_station = StopNames.get_stop_id_from_main_id(StopNames.get_id_from_fuzzy_input_name('andelska hora, rozc'))#StopNames.get_id_from_fuzzy_input_name(StopNames.get_a_random_stop_name())
+    end_station = StopNames.get_stop_id_from_main_id(StopNames.get_id_from_fuzzy_input_name('filosofsak'))#StopNames.get_id_from_fuzzy_input_name(StopNames.get_a_random_stop_name())
     
     start_time = time.perf_counter()
     n = 10
@@ -247,7 +257,9 @@ if __name__ == "__main__":
             footpaths = footpaths, 
             starting_time=convert_str_to_sec('10:21:00') + (i+2)*60, 
             start_station=start_station, 
-            target_station=end_station
+            target_station=end_station,
+            departure_day = departure_day,
+            trip_service_days = trip_service_days
         )
 
     elapsed = (time.perf_counter() - start_time)/n

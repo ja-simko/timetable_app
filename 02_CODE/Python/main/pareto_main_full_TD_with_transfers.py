@@ -292,6 +292,9 @@ def run_program(departure_station_name, arrival_station_name, departure_time_str
     departure_station_id = StopNames.get_id_from_fuzzy_input_name(departure_station_name)
     arrival_station_id = StopNames.get_id_from_fuzzy_input_name(arrival_station_name)
     print(departure_station_id, arrival_station_id)
+    global using_star
+    using_star = True
+
     if not (departure_station_id and arrival_station_id):
         print('Station name is not valid.')
         return False, None

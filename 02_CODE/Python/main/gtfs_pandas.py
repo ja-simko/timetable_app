@@ -39,7 +39,7 @@ class StopNames:
 
         cls._platforms = dict(zip(stops_df['stop_id'], stops_df['platform_code']))
         cls._stop_id_to_names = dict(zip(stops_df['stop_id'], stops_df['stop_name'])) | dict(zip(stops_df['main_station_id'], stops_df['stop_name']))
-        #cls._node_id_to_main_st_id = dict(zip(timetable['node_id'], timetable['main_station_id']))
+        cls._node_id_to_main_st_id = dict(zip(timetable['node_id'], timetable['main_station_id']))
 
         cls._name_to_main_ids = dict(zip(stops_df['unique_name'], stops_df['main_station_id']))
         cls._main_id_to_stop_ids = dict(zip(stops_df['main_station_id'], stops_df['stop_id']))

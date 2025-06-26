@@ -36,12 +36,17 @@ class StopNames:
 
                     cache_data = cls._zones
                     save_cached_data(cache_data, 'zones')
+
         cls._platforms = dict(zip(stops_df['stop_id'], stops_df['platform_code']))
         cls._stop_id_to_names = dict(zip(stops_df['stop_id'], stops_df['stop_name'])) | dict(zip(stops_df['main_station_id'], stops_df['stop_name']))
-        cls._node_id_to_main_st_id = dict(zip(timetable['node_id'], timetable['main_station_id']))
+        #cls._node_id_to_main_st_id = dict(zip(timetable['node_id'], timetable['main_station_id']))
+
         cls._name_to_main_ids = dict(zip(stops_df['unique_name'], stops_df['main_station_id']))
+        cls._main_id_to_stop_ids = dict(zip(stops_df['main_station_id'], stops_df['stop_id']))
+
         cls._coordinates = dict(zip(stops_df['main_station_id'], zip(stops_df['stop_lat'], stops_df['stop_lon'])))
         cls._ascii_names_dict = {unidecode(name).lower(): v for name, v in cls._name_to_main_ids.items()}
+
 
     @classmethod
     def _ensure_initialized(cls):
@@ -64,6 +69,11 @@ class StopNames:
     def get_main_id_from_node_id(cls, node_id):
         cls._ensure_initialized()
         return cls._node_id_to_main_st_id.get(node_id, node_id)
+    
+    @classmethod
+    def get_stop_id_from_main_id(cls, name):
+        cls._ensure_initialized()
+        return cls._main_id_to_stop_ids.get(name)
     
     @classmethod
     def get_coordinates_lat_lon(cls, node_id):
@@ -247,7 +257,6 @@ def build_trip_service_days():
     day_columns = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday']
     day_values = trips_with_service[day_columns].values
 
-    
     # Create a structured array/dictionary in one pass
     trip_service_dict = {
         trip_id: {
@@ -265,7 +274,7 @@ def build_trip_service_days():
 
     return trip_service_dict
 
-def build_edges(timetable = pd.DataFrame()):
+def build_edges(timetable):
     """
     Optimized version of build_edges with better performance and cleaner logic.
     """
@@ -402,10 +411,10 @@ def get_timetable():
     save_cached_data(timetable, 'timetable') 
     return timetable
 
-def get_edges():
+def get_edges(timetable = pd.DataFrame()):
     print('Fetching edges')
     st = time.time()
-    edges = build_edges()
+    edges = build_edges(timetable)
     print('Edges loaded in:', round(time.time() - st, 2), "s")
     return edges
 

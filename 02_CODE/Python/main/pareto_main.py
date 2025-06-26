@@ -1,3 +1,4 @@
+#profile
 import heapq
 import joblib
 import pandas as pd
@@ -389,8 +390,8 @@ def get_default_station_names():
         departure_time_str = f"{random.randint(0,24):02}:{random.randint(0,60):02}:{random.randint(0,60):02}"
 
     else:
-        departure_station_name = "andelska hora, rozc"
-        arrival_station_name = "xaverov"
+        departure_station_name = "dedina"
+        arrival_station_name = "k juliane"
         #departure_station_name = "ladvi"
         #arrival_station_name = "andelska hora,rozc"
         departure_time_str = '14:44:00'
@@ -404,10 +405,8 @@ def convert_str_to_datetime(day: str):
     return day
 
 def main():
-    edges = get_edges()
     trip_service_days = get_trip_service_days()
     print("Trips loaded")
-    global_time = time.time()
     departures = ['Palmovka','Lazarská',"Stadion Strahov",'Spořilov','Hůrka','Albertov','Sparta', 'Geologická','Nádraží Zahradní Město','Urxova']
     arrivals = ['Lazarská',"Stadion Strahov",'Spořilov','Hůrka','Albertov','Sparta', 'Geologická','Nádraží Zahradní Město','Urxova', 'Palmovka']
     global modifier
@@ -416,7 +415,10 @@ def main():
     #for j in range(len(departures)):
      #   print(departures[j],arrivals[j])
     tmtb = get_timetable()
+    edges = get_edges(tmtb)
     StopNames.initialize(get_stops_df(), tmtb)
+    global_time = time.time()
+
     for i in range(NUM_OF_SEARCHES):
         #modifier = modifiers[i]
         departure_station_name, arrival_station_name, departure_time_str, departure_day = get_default_station_names()

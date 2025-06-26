@@ -7,16 +7,18 @@ import json
 import statistics
 import line_profiler
 import io
+from csa import *
 
 
 def load_real_data():
-    edges = get_edges()
+    edges = build_edges_csa()
+    footpaths = build_footpaths(edges)
     trip_service_days = get_trip_service_days()
-    return edges, trip_service_days
+    return edges, trip_service_days,footpaths
 
 def test_modified_dijkstra_pareto():
     # Load real data
-    edges, trip_service_days = load_real_data()
+    edges, trip_service_days, footpaths= load_real_data()
 
     stop_name_to_id = get_stop_name_to_id()
 
@@ -24,7 +26,7 @@ def test_modified_dijkstra_pareto():
     #target_station = get_id_from_best_name_match(stop_name_to_id, "nadrazi podbaba")
     start_station = 'dekanka'
     target_station = 'k juliane'
-    start_time = '10:00:00'
+    start_time = 30000
     departure_day = '20250610'
     departure_day_dt = convert_str_to_datetime(departure_day)
 
@@ -37,7 +39,7 @@ def test_modified_dijkstra_pareto():
 
     for i in range(10):
         start = time.time()
-        result = run_program(start_station, target_station, start_time, departure_day, edges, trip_service_days)
+        result = scan_connections(edges, footpaths, start_time, start_station, target_station)
         end = time.time()
         execution_times.append(end - start)
         print(f"Run {i+1}: {execution_times[-1]:.3f} seconds")

@@ -168,7 +168,6 @@ def scan_connections(connections, footpaths, starting_time, start_station, targe
                         evaluated_stops[to_stop] = (new_time, trip_info.transfers)
                         journey_pointers[to_stop] = (trip_info.conn, conn)
 
-
     return None, None, counter, None
 
 def extract_journey(journey_pointers, target, connections):
@@ -288,13 +287,13 @@ if __name__ == "__main__":
     start_time = '10:38:00'
     start_time = convert_str_to_sec(start_time)
 
-    start_station = 'olsanksa'
-    end_station = 'vodickova'
     
 
     # end_station = 'klikovan'
-    start_station = 'prazskeho pvostani'
-    end_station = 'lotyska'
+    start_station = 'dvorce'
+    end_station = 'lihovar'
+    start_station = 'olsanksa'
+    end_station = 'vodickova'
     # # end_station = 'prazskeho pvostani'
 
 

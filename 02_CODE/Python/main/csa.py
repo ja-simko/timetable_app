@@ -107,7 +107,6 @@ def build_footpaths(edges) -> list:
 
                     if stop1 == stop2:
                         footpaths[stop1].append((stop2, min_transfer_loop_time))
-
                     else:
                         footpaths[stop1].append((stop2, min_transfer_time))
                         footpaths[stop2].append((stop1, min_transfer_time))
@@ -193,6 +192,7 @@ def extract_full_journey(journey_pointers, target, connections):
                         trip_segment.append((conn.dep_stop, conn.dep_time, conn.trip_id))
                         
                         if conn.arr_stop == exit_conn.arr_stop:
+                            trip_segment.append((conn.arr_stop, conn.arr_time, conn.trip_id))
                             break
             
             journey_segments += reversed(trip_segment)
@@ -241,7 +241,6 @@ def construct_final_path(path):
 def run_multiple_scans(edges, footpaths, start_time, start_station, end_station, departure_day, trip_service_days, n = 10):
     start_clock = time.perf_counter()
     is_full = True
-
     for i in range(n):
         ea_time, tr, seen_conns, journey_pointers = scan_connections(
             connections = edges,
@@ -255,6 +254,7 @@ def run_multiple_scans(edges, footpaths, start_time, start_station, end_station,
 
         if ea_time:
             journey = extract_full_journey(journey_pointers, end_station, edges)
+            print(journey)
             construct_final_path(journey)
     elapsed = (time.perf_counter() - start_clock)/n
 
@@ -284,7 +284,7 @@ if __name__ == "__main__":
     start_station = 'dvorce'
     end_station = 'lihovar'
     start_station = 'albertov'
-    end_station = 'palmova'
+    end_station = 'ip pavlova'
     # # end_station = 'prazskeho pvostani'
 
 

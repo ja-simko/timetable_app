@@ -170,7 +170,41 @@ def scan_connections(connections, footpaths, starting_time, start_station, targe
 
     return None, None, counter, None
 
-def extract_journey(journey_pointers, target, connections):
+def extract_full_journey(journey_pointers, target, connections):
+    if target not in journey_pointers:
+        return []
+    
+    journey_segments = []
+    current_stop = target
+    
+    while journey_pointers.get(current_stop):
+        trip_start_conn, exit_conn = journey_pointers[current_stop]
+        if trip_start_conn and exit_conn:
+            trip_id = trip_start_conn.trip_id
+            trip_segment = []
+            
+            found_start = False
+            for conn in connections:
+                if conn.trip_id == trip_id:
+                    if conn.dep_stop == trip_start_conn.dep_stop:
+                        found_start = True
+
+                    if found_start:
+                        trip_segment.append((conn.dep_stop, conn.dep_time, conn.trip_id))
+                        
+                        if conn.arr_stop == exit_conn.arr_stop:
+                            break
+            
+            journey_segments += reversed(trip_segment)
+        
+        if trip_start_conn:
+            current_stop = trip_start_conn.dep_stop
+        else:
+            break
+    
+    return list(reversed(journey_segments))
+
+def extract_journey(journey_pointers, target):
     if target not in journey_pointers:
         return []
         
@@ -192,49 +226,6 @@ def extract_journey(journey_pointers, target, connections):
             break
         
     return list(reversed(journey))
-
-def extract_journey_2(is_full, journey_pointers, target, connections):
-    if target not in journey_pointers:
-        return []
-    
-    journey_segments = []
-    current_stop = target
-    is_full = False
-    
-    while journey_pointers.get(current_stop):
-        first_conn, exit_conn = journey_pointers[current_stop]
-
-        if is_full:
-            if first_conn and exit_conn:
-                trip_id = first_conn.trip_id
-                trip_segment = []
-                
-                found_start = False
-                for conn in connections:
-                    if conn.trip_id == trip_id:
-                        if conn.dep_stop == first_conn.dep_stop:
-                            found_start = True
-
-                        if found_start:
-                            trip_segment.append((conn.dep_stop, conn.dep_time, conn.trip_id))
-                            
-                            if conn.arr_stop == exit_conn.arr_stop:
-                                break
-                
-                journey_segments += reversed(trip_segment)
-
-        
-        else:
-            if exit_conn:
-                journey_segments.append((exit_conn.arr_stop, exit_conn.arr_time))
-                journey_segments.append((first_conn.dep_stop, first_conn.dep_time, first_conn.trip_id))
-        
-        if first_conn:
-            current_stop = first_conn.dep_stop
-        else:
-            break
-    
-    return list(reversed(journey_segments))
 
 def construct_final_path(path):
     c = 0
@@ -263,7 +254,7 @@ def run_multiple_scans(edges, footpaths, start_time, start_station, end_station,
         )
 
         if ea_time:
-            journey = extract_journey(journey_pointers, end_station, edges)
+            journey = extract_full_journey(journey_pointers, end_station, edges)
             construct_final_path(journey)
     elapsed = (time.perf_counter() - start_clock)/n
 
@@ -292,8 +283,8 @@ if __name__ == "__main__":
     # end_station = 'klikovan'
     start_station = 'dvorce'
     end_station = 'lihovar'
-    start_station = 'olsanksa'
-    end_station = 'vodickova'
+    start_station = 'albertov'
+    end_station = 'palmova'
     # # end_station = 'prazskeho pvostani'
 
 

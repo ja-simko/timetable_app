@@ -330,8 +330,8 @@ def run_program(departure_station_name, arrival_station_name, departure_time_str
     for start_station in start_stations:
         for out_node, connections in edges[start_station].items():
             if connections[0][0] != 'P':
-                starting_times += [edge[0] for edge in connections if departure_time_sec + 10*60 >= edge[0] >= departure_time_sec]
-                print(start_station, out_node, [edge[0] for edge in connections if departure_time_sec + 10*60 > edge[0] > departure_time_sec])
+                starting_times += [edge[0] for edge in connections if departure_time_sec + PROFILE_INTERVAL >= edge[0] >= departure_time_sec]
+                print(start_station, out_node, [edge[0] for edge in connections if departure_time_sec + PROFILE_INTERVAL > edge[0] > departure_time_sec])
 
     print(starting_times)
     starting_times = sorted(set(starting_times), reverse=True)
@@ -392,7 +392,7 @@ def get_default_station_names():
         arrival_station_name = "k juliane"
         #departure_station_name = "ladvi"
         #arrival_station_name = "andelska hora,rozc"
-        departure_time_str = '14:44:00'
+        departure_time_str = '15:01:00'
 
     departure_day = '20250616'
 
@@ -447,6 +447,7 @@ TIME_WINDOW = 5*60*60
 TRANSFER_BOUND = 6
 ONLY_FASTEST_TRIP = False
 NUMBER_OF_DAYS_IN_ADVANCE = 14
+PROFILE_INTERVAL = 20*60 #seconds
 
 NUM_OF_SEARCHES = 1 #for testing, number of searches
 TO_PRINT_IN_TERMINAL = False if NUM_OF_SEARCHES > 1 or __name__ != "__main__" else True
@@ -550,8 +551,6 @@ if __name__ == "__main__":
       #          print(key, e[key],'\n')
 
     #exit()
-
-
 
 
     global using_landmarks

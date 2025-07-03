@@ -84,6 +84,7 @@ def time_dependent_pareto_dijkstra(start_station, target_station, start_time, ed
     discarded_cuz_settled = 0
     longer_than_tent_path = 0
     already_evaluated = 0
+    
     while max_transfers >= 0:  # Run until we reach -1 transfers
         while pq:
             current_travel_time, current_time, current_transfers, current_station = heapq.heappop(pq)
@@ -112,7 +113,6 @@ def time_dependent_pareto_dijkstra(start_station, target_station, start_time, ed
                     continue
                 
                 dep_time, arr_time, transfer = binary_search_next_edge(connections, current_time, is_start_station, trip_service_days, shifted_dates)
-
 
                 if arr_time is None or arr_time > start_time + TIME_WINDOW:
                     continue
@@ -363,8 +363,8 @@ def get_default_station_names():
     else:
         #departure_station_name = "sidliste petriny"
         #arrival_station_name = "holesovicka trznice"
-        departure_station_name = "dedina"
-        arrival_station_name = "k juliane"
+        departure_station_name = "k juliane"
+        arrival_station_name = "dedina"
         departure_time_str = '14:36:00'
 
     departure_day = '20250611'

@@ -151,8 +151,8 @@ def build_timetable_df():
     stop_times['departure_time'] = stop_times['departure_time'].apply(convert_str_to_sec).astype(int)
     stop_times['arrival_time'] = stop_times['arrival_time'].apply(convert_str_to_sec).astype(int)
 
-    stop_times_trips = trips.merge(stop_times, on='trip_id', how='inner')
-    stop_times_routes = stop_times_trips.merge(routes, on='route_id', how='inner')
+    #stop_times_trips = trips.merge(stop_times, on='trip_id', how='inner')
+    stop_times_routes = stop_times.merge(routes, on='route_id', how='inner')
     
     timetable = stop_times_routes.copy()
 
@@ -475,6 +475,8 @@ if __name__ == "__main__":
     #print(StopNames._node_id_to_stop_id)
     #a = StopNames.get_coordinates_lat_lon('U126Z1P_R79_107')
     #print(a)
+    build_timetable_df()
+    exit()
     evaluated_nodes = get_edges()
     # Print all keys in 'e' that start with 'U530Z1P' (case-insensitive) and end with anything
     pattern = re.compile(r'^U693Z2P.*', re.IGNORECASE) #693

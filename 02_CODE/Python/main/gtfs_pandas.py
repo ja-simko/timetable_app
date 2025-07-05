@@ -17,6 +17,7 @@ class StopNames:
     _stop_id_to_names = {}
     _coordinates = {}
     _zones = {}
+    _stop_zone = {}
     is_initialized = False
 
     @classmethod
@@ -31,11 +32,15 @@ class StopNames:
             stops_df.loc[:, 'zone_id'] = stops_df['zone_id'].astype(str)
 
             for zone in stops_df['zone_id'].unique():
+                print(zone)
                 if len(zone) <= 2 and zone != '-':
                     cls._zones[zone] = stops_df[stops_df['zone_id'].str.contains(zone)]['unique_name'].tolist()
 
                     cache_data = cls._zones
                     save_cached_data(cache_data, 'zones')
+
+        stops_df.loc[:, 'zone_id'] = stops_df['zone_id'].astype(str)
+        cls._stop_zone = dict(zip(stops_df['main_station_id'], (stops_df['zone_id'].str.split(','))))
 
         cls._platforms = dict(zip(stops_df['stop_id'], stops_df['platform_code']))
         cls._stop_id_to_names = dict(zip(stops_df['stop_id'], stops_df['stop_name'])) | dict(zip(stops_df['main_station_id'], stops_df['stop_name']))
@@ -151,8 +156,8 @@ def build_timetable_df():
     stop_times['departure_time'] = stop_times['departure_time'].apply(convert_str_to_sec).astype(int)
     stop_times['arrival_time'] = stop_times['arrival_time'].apply(convert_str_to_sec).astype(int)
 
-    #stop_times_trips = trips.merge(stop_times, on='trip_id', how='inner')
-    stop_times_routes = stop_times.merge(routes, on='route_id', how='inner')
+    stop_times_trips = trips.merge(stop_times, on='trip_id', how='inner')
+    stop_times_routes = routes.merge(stop_times_trips, on='route_id', how='inner')
     
     timetable = stop_times_routes.copy()
 
@@ -475,6 +480,7 @@ if __name__ == "__main__":
     #print(StopNames._node_id_to_stop_id)
     #a = StopNames.get_coordinates_lat_lon('U126Z1P_R79_107')
     #print(a)
+    StopNames.initialize( get_stops_df(), get_timetable())
     build_timetable_df()
     exit()
     evaluated_nodes = get_edges()

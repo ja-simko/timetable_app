@@ -23,6 +23,9 @@ from gtfs_pandas import *
 def convert_str_to_sec(timestamp: str) -> int:
     return sum(int(t) * 60 ** i for i, t in enumerate(reversed(timestamp.split(":"))))
 
+def convert_kph_to_ms(speed_kph):
+    return speed_kph/3.6
+
 def convert_sec_to_hh_mm_ss(time) -> str:
     time = int(time % (24 * 3600))
     hours, remainder = divmod(time, 3600)
@@ -87,7 +90,7 @@ def time_dependent_pareto_dijkstra(start_station, target_station, start_time, ed
     
     while max_transfers >= 0:  # Run until we reach -1 transfers
         while pq:
-            current_travel_time, current_time, current_transfers, current_station = heapq.heappop(pq)
+            current_augmented_time, current_time, current_transfers, current_station = heapq.heappop(pq)
             taken_from_pq += 1
             #print(reduced_cost, current_time, current_transfers, StopNames.get_general_name_from_id(current_station.split('_')[0]))
 
@@ -152,23 +155,24 @@ def time_dependent_pareto_dijkstra(start_station, target_station, start_time, ed
                     except:
                         print(next_station)
                     if curr_lat:
-                        curr_difference = euclidean_distance(curr_lat, curr_lon, t_lat, t_lon)
-                        lower_bound_in_seconds = math.floor(curr_difference/15)
+                        eucl_m_dist = euclidean_distance(curr_lat, curr_lon, t_lat, t_lon)
+                        
+                        station_main = StopNames.get_main_id_from_node_id(current_station)
 
-                        new_travel_time = current_travel_time + edge_travel_time 
+                        max_speed_kph = min(MAX_SPEED_PER_ZONE[zone] for zone in StopNames._stop_zone.get(station_main, ['']))
+                        max_speed_ms = convert_kph_to_ms(max_speed_kph)
 
-                        #Condition
-                        # if current_travel_time + edge_travel_time + lower_bound_in_seconds > tentative_best_path:
-                        #     longer_than_tent_path += 1
-                        #     continue
+                        lower_bound_in_seconds = math.floor(eucl_m_dist/max_speed_ms)
+                        new_augmented_time = current_augmented_time + edge_travel_time + lower_bound_in_seconds
+
                     else:
-                        new_travel_time = current_travel_time + edge_travel_time
+                        new_augmented_time = current_augmented_time + edge_travel_time
                 
                 elif using_landmarks:
                     #curr_lat, curr_lon = coordinates.get(next_station.split('Z')[0], (None, None))
                     main_id = spec_node_to_main.get(current_station, current_station)
                     if main_id in already_landmarked:
-                        current_travel_time = arr_time + already_landmarked[main_id]
+                        current_augmented_time = arr_time + already_landmarked[main_id]
 
                     elif main_id in preprocessed_paths:
                         this_node = preprocessed_paths[main_id]
@@ -176,18 +180,18 @@ def time_dependent_pareto_dijkstra(start_station, target_station, start_time, ed
                         for landmark, dist in this_node.items())
                         if max_lower_bound > 0:
                             print('f', max_lower_bound)
-                            current_travel_time = arr_time + max_lower_bound*60
+                            current_augmented_time = arr_time + max_lower_bound*60
                             already_landmarked[main_id] = max_lower_bound*60
                         else:
-                            current_travel_time = arr_time 
+                            current_augmented_time = arr_time 
                             already_landmarked[main_id] = 0
 
                     else:
-                        current_travel_time = arr_time
+                        current_augmented_time = arr_time
                         already_landmarked[main_id] = 0
 
                 else:
-                    new_travel_time = current_travel_time + edge_travel_time
+                    new_augmented_time = current_augmented_time + edge_travel_time
 
                 evaluated_nodes[next_station][new_transfers] = {
                     'prev_node': current_station,
@@ -196,7 +200,7 @@ def time_dependent_pareto_dijkstra(start_station, target_station, start_time, ed
                     'is_transfer': True if transfer else False
                 }
 
-                heapq.heappush(pq, (new_travel_time, arr_time, new_transfers, next_station))
+                heapq.heappush(pq, (new_augmented_time, arr_time, new_transfers, next_station))
         max_transfers -= 1
     print('discarded_cuz_settled',discarded_cuz_settled)
     print('longer_than_tent_path',longer_than_tent_path)
@@ -364,8 +368,8 @@ def get_default_station_names():
         #departure_station_name = "sidliste petriny"
         #arrival_station_name = "holesovicka trznice"
         departure_station_name = "k juliane"
-        arrival_station_name = "dedina"
-        departure_time_str = '14:36:00'
+        arrival_station_name = "praha holesovice"
+        departure_time_str = '6:20:00'
 
     departure_day = '20250611'
 
@@ -523,7 +527,7 @@ if __name__ == "__main__":
 
     # exit()
 
-
+    MAX_SPEED_PER_ZONE = defaultdict(lambda: (75)) | {'P': 35, '0': 35, 'B': 35, '1': 50}
 
 
     global using_landmarks
@@ -589,6 +593,7 @@ if __name__ == "__main__":
     #arrivals = [get_id_from_best_name_match(stop_name_to_id_ascii,name) for name in arrivals]
     departure_day_dt=convert_str_to_datetime('20250610')
 
+   
     starttime = time.time()
     for i in range(n):
         print(i)

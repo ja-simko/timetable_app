@@ -300,8 +300,8 @@ if __name__ == "__main__":
     end_station = 'lihovar'
     start_station = 'olsanksa'
     end_station = 'vodickova'
-    start_station = 'k juliane'
-    end_station = 'urxova'
+    start_station = 'jablonec n jiz. zel st'
+    end_station = 'trutnov'
     # # end_station = 'prazskeho pvostani'
 
 

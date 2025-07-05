@@ -73,13 +73,13 @@ def time_dependent_pareto_dijkstra(start_station, target_station, start_time, ed
     #coordinates = build_stop_id_to_coordinates()
 
     t_lat, t_lon = StopNames.get_coordinates_lat_lon(target_station)    
-    #preprocessed_paths = load_cached_data('preprocess_zatec_zasmuky_komarov_bakov_n_jizerou')
     taken_from_pq = 0
     global settled
     settled = set()
     ONLY_FASTEST_TRIP = False
 
-    #dist_to_landmarks_target = {landmark:dist for landmark, dist in preprocessed_paths[target_station.split('Z')[0]].items()}
+    preprocessed_paths = load_cached_data('preprocess_zatec_zasmuky_komarov_bakov_n_jizerou')
+    dist_to_landmarks_target = {landmark:dist for landmark, dist in preprocessed_paths[target_station.split('Z')[0]].items()}
 
     start = time.time()
     global already_landmarked
@@ -96,9 +96,9 @@ def time_dependent_pareto_dijkstra(start_station, target_station, start_time, ed
 
             settled.add((current_station, current_transfers))
 
-            if current_station == target_station:
-                max_transfers = -1 if ONLY_FASTEST_TRIP else current_transfers
-                break
+            #if current_station == target_station:
+             #   max_transfers = -1 if ONLY_FASTEST_TRIP else current_transfers
+              #  break
 
             if current_transfers > max_transfers:
                 continue  # Skip paths exceeding the allowed transfers
@@ -156,7 +156,7 @@ def time_dependent_pareto_dijkstra(start_station, target_station, start_time, ed
                         print(next_station)
                     if curr_lat:
                         eucl_m_dist = euclidean_distance(curr_lat, curr_lon, t_lat, t_lon)
-                        
+                    
                         station_main = StopNames.get_main_id_from_node_id(current_station)
 
                         max_speed_kph = min(MAX_SPEED_PER_ZONE[zone] for zone in StopNames._stop_zone.get(station_main, ['']))
@@ -172,22 +172,21 @@ def time_dependent_pareto_dijkstra(start_station, target_station, start_time, ed
                     #curr_lat, curr_lon = coordinates.get(next_station.split('Z')[0], (None, None))
                     main_id = spec_node_to_main.get(current_station, current_station)
                     if main_id in already_landmarked:
-                        current_augmented_time = arr_time + already_landmarked[main_id]
+                        new_augmented_time = arr_time + already_landmarked[main_id]
 
                     elif main_id in preprocessed_paths:
                         this_node = preprocessed_paths[main_id]
                         max_lower_bound = max(abs(int(dist) - int(dist_to_landmarks_target.get(landmark, dist)))
                         for landmark, dist in this_node.items())
                         if max_lower_bound > 0:
-                            print('f', max_lower_bound)
-                            current_augmented_time = arr_time + max_lower_bound*60
+                            new_augmented_time = arr_time + max_lower_bound*60
                             already_landmarked[main_id] = max_lower_bound*60
                         else:
-                            current_augmented_time = arr_time 
+                            new_augmented_time = arr_time 
                             already_landmarked[main_id] = 0
 
                     else:
-                        current_augmented_time = arr_time
+                        new_augmented_time = arr_time
                         already_landmarked[main_id] = 0
 
                 else:
@@ -202,12 +201,12 @@ def time_dependent_pareto_dijkstra(start_station, target_station, start_time, ed
 
                 heapq.heappush(pq, (new_augmented_time, arr_time, new_transfers, next_station))
         max_transfers -= 1
-    print('discarded_cuz_settled',discarded_cuz_settled)
-    print('longer_than_tent_path',longer_than_tent_path)
-    print('already_eval',already_evaluated)
+    #print('discarded_cuz_settled',discarded_cuz_settled)
+    #print('longer_than_tent_path',longer_than_tent_path)
+    #print('already_eval',already_evaluated)
     global dijkstra_time
     dijkstra_time = round(time.time() - start,3)*1000
-    print(dijkstra_time)
+    #print(dijkstra_time)
     #print('counter',counter)
     return evaluated_nodes, settled
 
@@ -419,8 +418,8 @@ def main():
 
 # Define constants
 MIN_TRANSFER_TIME = 120
-TIME_WINDOW = 5*60*60
-TRANSFER_BOUND = 6
+TIME_WINDOW = 10*60*60
+TRANSFER_BOUND = 12
 ONLY_FASTEST_TRIP = False
 NUMBER_OF_DAYS_IN_ADVANCE = 14
 
@@ -476,7 +475,7 @@ def edges_between_stations():
             transit_time = calculate_transit_time(distance)
             print(f"Distance: {distance} meters, Platform: {platform}, ID: {stop_id}", transit_time)
 
-def preprocess():
+def preprocess(landmarks):
     tmtb_sample = get_timetable()
     stop_ids = tmtb_sample['stop_id'].unique().tolist()
     main_station_ids = tmtb_sample['main_station_id'].unique().tolist()
@@ -485,7 +484,7 @@ def preprocess():
     dep_time = 10*60*60
 
     trips = get_trip_service_days()
-    landmarks = ['U5079', 'U9830', 'U9989', 'U6210']   #zatec, zaskmuky, komarov, bakov n. jizerou
+    #landmarks = ['U5079', 'U9830', 'U9989', 'U6210']   #zatec, zaskmuky, komarov, bakov n. jizerou
     end = 'U597'
     preprocessed_paths = defaultdict(dict)
 
@@ -527,11 +526,98 @@ if __name__ == "__main__":
 
     # exit()
 
+    def get_farthest(landmarks):
+        farthest = 0
+        farthest_stop = None
+        landmarks_coords = []
+        for landmark in landmarks:
+            lm_lat, lm_lon = StopNames.get_coordinates_lat_lon(landmark)
+            landmarks_coords.append((lm_lat, lm_lon))
+
+        for k, (clat, clon) in StopNames._coordinates.items():
+            temp_dist = 0
+            for lm_lat, lm_lon in landmarks_coords:
+                temp_dist += euclidean_distance(lm_lat, lm_lon, clat, clon) 
+                
+            if temp_dist > farthest:
+                farthest = temp_dist
+                farthest_stop = k
+        
+        print(StopNames.get_general_name_from_id(farthest_stop), farthest/1000/len(landmarks))
+        return farthest_stop
+    
+    landmarks = ['U876']
+
+    for i in range(5):
+        new_landmark = get_farthest(landmarks)
+        landmarks.append(new_landmark) 
+
+    '''
+    def get_longest(landmarks):
+        tmtb_sample = get_timetable()
+        stop_ids = tmtb_sample['stop_id'].unique().tolist()
+        main_station_ids = tmtb_sample['main_station_id'].unique().tolist()
+        edges = build_edges(tmtb_sample)
+        
+        dep_time = 10*60*60
+
+        trips = get_trip_service_days()
+        #landmarks = ['U5079']#, 'U9830', 'U9989', 'U6210']   #zatec, zaskmuky, komarov, bakov n. jizerou
+        end = 'U597'
+        preprocessed_paths = defaultdict(dict)
+
+        global using_star
+        global using_landmarks
+        using_star = False
+        using_landmarks = False
+        departure_day_dt = convert_str_to_datetime('20250610')
+
+        print(len(stop_ids))
+        farthest = 0
+        farthest_node = None
+        second_to_last = None
+
+        for landmark in landmarks: 
+            print('L', landmark)
+            evaluated_nodes, _ = time_dependent_pareto_dijkstra(start_station=landmark, target_station=end, start_time=dep_time,edges=edges,trip_service_days=trips, departure_day_dt=departure_day_dt)
+
+            for node, val in evaluated_nodes.items():
+                max_tr = max(val.keys())
+                if node in main_station_ids:
+                    if node != landmark:
+                        path = find_path_pareto(landmark, node, evaluated_nodes, num_of_transfers = max_tr)
+                        if path:
+                            travelTime = get_travel_time_in_mins(path)
+                            preprocessed_paths[node][landmark] = travelTime
+                    else:
+                        preprocessed_paths[node][landmark] = 0
+        
+        print(len(preprocessed_paths['U4821']))
+
+        for node, v in preprocessed_paths.items():
+            sum_across_landmarks = 0
+            for landmark, traveltime in v.items():
+                sum_across_landmarks += traveltime
+            if sum_across_landmarks > farthest:
+                farthest = sum_across_landmarks
+                farthest_node = node
+                break
+
+        print(StopNames.get_general_name_from_id(farthest_node), farthest)
+        return StopNames.get_main_id_from_node_id(farthest_node)
+    
+    for i in range(5):
+        new_landmark = get_longest(landmarks)
+        landmarks.append(new_landmark) 
+
+    '''
+    
+
     MAX_SPEED_PER_ZONE = defaultdict(lambda: (75)) | {'P': 35, '0': 35, 'B': 35, '1': 50}
 
 
-    global using_landmarks
-    global using_star
+    # global using_landmarks
+    # global using_star
     using_landmarks = False
     using_star = True
     main()
@@ -543,7 +629,6 @@ if __name__ == "__main__":
             time.sleep(0.02)
             print(name, stop)
             #print(already_landmarked[stop.split('Z')[0]])
-    exit()
     tmtb_sample = get_timetable_sample()
     main_stops_id = tmtb_sample['main_station_id'].unique().tolist()
     edges = build_edges(tmtb_sample)
@@ -562,23 +647,23 @@ if __name__ == "__main__":
     #global arrivals
     #departures = ['Palmovka','Lazarská',"Stadion Strahov",'Spořilov','Hůrka','Albertov','Sparta', 'Geologická','Nádraží Zahradní Město','Urxova']
     #arrivals = ['Lazarská',"Stadion Strahov",'Spořilov','Hůrka','Albertov','Sparta', 'Geologická','Nádraží Zahradní Město','Urxova', 'Palmovka']
-    landmark = 'U321' #paloucek530, #strazni714
+    #landmark = 'U321' #paloucek530, #strazni714
     start = random.choice(main_stops_id)
     end = random.choice(main_stops_id)
     dep_time = 10*60*60
 
-    preproces = False
+    preproces = True
     if preproces:
-        preprocessed_paths = preprocess()
-        save_cached_data(preprocessed_paths, 'preprocess_zatec_zasmuky_komarov_bakov_n_jizerou')
+        preprocessed_paths = preprocess(landmarks)
+        save_cached_data(preprocessed_paths, 'preprocess_farthest')
         print('Processed')
     else:
-        preprocessed_paths = load_cached_data('preprocess_zatec_zasmuky_komarov_bakov_n_jizerou')
+        preprocessed_paths = load_cached_data('preprocess_farthest')
 
     global dist_dest_to_L
     ONLY_FASTEST_TRIP = True
 
-    n = 100
+    n = 50
 
     departures = ['Nádraží Zahradní Město', 'Urxova','Palmovka','Lazarská',"Stadion Strahov",'Spořilov','Hůrka','Albertov','Sparta', 'Geologická',]
     arrivals = ['Lazarská',"Stadion Strahov",'Spořilov','Hůrka','Albertov','Sparta', 'Geologická','Nádraží Zahradní Město','Urxova', 'Palmovka']
@@ -619,6 +704,7 @@ if __name__ == "__main__":
 
     starttime = time.time()
     for i in range(n):
+        print(i)
         start = departures[i%len(departures)]
         end = arrivals[i%len(arrivals)]
         using_star = True
@@ -634,6 +720,7 @@ if __name__ == "__main__":
 
     starttime = time.time()
     for i in range(n):
+        print(i)
         start = departures[i%len(departures)]
         end = arrivals[i%len(arrivals)]
         using_star = False

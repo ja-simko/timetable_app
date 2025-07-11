@@ -56,7 +56,7 @@ def get_shifted_days_dicts(departure_day: str):
 
     return {k: (v.strftime('%Y%m%d'), v.weekday()) for k, v in shifted_dates.items()}
 
-def time_dependent_pareto_dijkstra(start_station, target_station, start_time, edges, trip_service_days, departure_day, tentative_best_path, pq, evaluated_nodes):
+def time_dependent_pareto_dijkstra(start_station, target_station, start_time, edges, trip_service_days, departure_day, tentative_best_path, pq, evaluated_nodes, gui = True if __name__ != "__main__" else False):
     """ Implements the modified Dijkstra's algorithm to find all Pareto-optimal paths iteratively. """
     if not pq:
         pq = [(0, start_time, 0, start_station)]  # (reduced cost, arrival_time, num_transfers, station)
@@ -168,7 +168,7 @@ def time_dependent_pareto_dijkstra(start_station, target_station, start_time, ed
                 if next_station not in evaluated_nodes:
                     evaluated_nodes[next_station] = {}
                 
-                if using_star:
+                if gui or using_star:
                     try:
                         curr_lat, curr_lon = StopNames.get_coordinates_lat_lon(next_station)
                     except:

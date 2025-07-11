@@ -3,7 +3,8 @@ from tkinter import ttk, messagebox
 from datetime import datetime, timedelta  # Ensure datetime is imported
 import joblib
 import time
-from pareto_main import *
+# from pareto_main import *
+from pareto_main_full_TD_with_transfers import *
 
 import threading
 import re
@@ -84,7 +85,7 @@ def process_route(iteration, departure_station_name, arrival_station_name, depar
         insert_results(all_paths, full_results_bool, output_area)
 
         # Schedule next iteration if not done
-        if iteration < NUM_OF_SOLUTIONS -1:
+        if iteration < NUM_OF_SOLUTIONS - 1:
             output_area.after(100, lambda: process_route(
                 iteration + 1,
                 departure_station_name,
@@ -334,7 +335,7 @@ output_frame.grid(row=5, column=0, columnspan=4, padx=10, pady=10, sticky="nsew"
 
 # Create 4 output areas arranged in a 1x4 grid
 output_areas = []
-NUM_OF_SOLUTIONS = 4
+NUM_OF_SOLUTIONS = 2
 for i in range(NUM_OF_SOLUTIONS):
     output_area = tk.Text(output_frame, wrap="word", relief="solid", borderwidth=1, height=35)
     output_area.grid(row=0, column=i, padx=5, pady=5, sticky="nsew")

@@ -55,7 +55,7 @@ def get_shifted_days_dicts(departure_day_dt):
 
     return {k: (v.strftime('%Y%m%d'), v.weekday()) for k, v in shifted_dates.items()}
 
-def time_dependent_pareto_dijkstra(start_station, target_station, start_time, edges, trip_service_days, departure_day_dt, complete_dijkstra = False):
+def time_dependent_pareto_dijkstra(start_station, target_station, start_time, edges, trip_service_days, departure_day_dt, complete_dijkstra = False, gui = True if __name__ != "__main__" else False):
     """ Implements the modified Dijkstra's algorithm to find all Pareto-optimal paths iteratively. """
 
     pq = [(start_time, start_time, 0, start_station)]  # (reduced cost, arrival_time, num_transfers, station)
@@ -76,9 +76,8 @@ def time_dependent_pareto_dijkstra(start_station, target_station, start_time, ed
     taken_from_pq = 0
     global settled
     settled = set()
-    ONLY_FASTEST_TRIP = True
 
-    if using_landmarks:
+    if not gui and using_landmarks:
         travel_time_to_landmarks_target = {landmark:dist for landmark, dist in preprocessed_paths[target_station].items()}
     
     start = time.time()
@@ -149,7 +148,7 @@ def time_dependent_pareto_dijkstra(start_station, target_station, start_time, ed
                 if next_station not in evaluated_nodes:
                     evaluated_nodes[next_station] = {}
                 
-                if using_star:
+                if gui or using_star:
                     try:
                         curr_lat, curr_lon = StopNames.get_coordinates_lat_lon(next_station)
                     except:
@@ -421,7 +420,7 @@ def main():
 MIN_TRANSFER_TIME = 120
 TIME_WINDOW = 23*60*60
 TRANSFER_BOUND = 12
-ONLY_FASTEST_TRIP = True
+ONLY_FASTEST_TRIP = False
 NUMBER_OF_DAYS_IN_ADVANCE = 14
 
 NUM_OF_SEARCHES = 1 #for testing, number of searches
@@ -611,7 +610,7 @@ if __name__ == "__main__":
 
 
     global dist_dest_to_L
-    ONLY_FASTEST_TRIP = True
+    ONLY_FASTEST_TRIP = False
     print('A', len(preprocessed_paths['U876']))
     print('B', len(preprocessed_paths['U321']))
     print('C', len(preprocessed_paths['U570']))

@@ -366,8 +366,8 @@ def get_default_station_names():
     else:
         #departure_station_name = "sidliste petriny"
         #arrival_station_name = "holesovicka trznice"
-        departure_station_name = "Postupice,Dobříčkov,rozc"
-        arrival_station_name = "tremosnice aut st"
+        departure_station_name = "albertov"
+        arrival_station_name = "prazskeho povstani"
         departure_time_str = '10:00:00'
 
     departure_day = '20250611'
@@ -515,16 +515,6 @@ def preprocess(landmarks):
     return preprocessed_paths
 
 if __name__ == "__main__":
-    # e = get_edges()
-    # Print all keys in 'e' that start with 'U530Z1P' (case-insensitive) and end with anything
-    # pattern = re.compile(r'^U693Z1P.*', re.IGNORECASE) #693
-    # for key, v in e.items():
-    #     if pattern.match(key):
-    #         for a, times in v.items():
-    #             print(key, e[key],'\n')
-
-    # exit()
-
     def get_farthest(landmarks):
         farthest = 0
         farthest_stop = None

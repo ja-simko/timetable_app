@@ -229,7 +229,7 @@ def extract_journey(journey_pointers, target):
         # Add the connection
         if exit_conn:
             journey.append((exit_conn.arr_stop, exit_conn.arr_time))
-            journey.append((first_conn.dep_stop, first_conn.dep_time, first_conn.trip_id))
+            journey.append((first_conn.dep_stop, first_conn.dep_time, first_conn.splittrip_id))
         
         # Move to the departure stop of the trip that got us here
         if first_conn:
@@ -246,7 +246,7 @@ def construct_final_path(path):
             if c%2 == 0:
                 print('')
             c += 1
-            print(StopNames.get_general_name_from_id(stop), convert_sec_to_hh_mm_ss(time), args)
+            print(StopNames.get_general_name_from_id(stop), convert_sec_to_hh_mm_ss(time), args, StopNames.get)
     else:
         print('No path')
 
@@ -266,7 +266,7 @@ def run_multiple_scans(edges, footpaths, start_time, start_station, end_station,
         )
 
         if ea_time:
-            journey = extract_full_journey(journey_pointers, end_station, edges)
+            journey = extract_journey(journey_pointers, end_station)
             print(journey)
             construct_final_path(journey)
     elapsed = (time.perf_counter() - start_clock)/n
@@ -297,11 +297,11 @@ if __name__ == "__main__":
     
     # end_station = 'klikovan'
     start_station = 'dvorce'
-    end_station = 'lihovar'
-    start_station = 'olsanksa'
-    end_station = 'vodickova'
     start_station = 'jablonec n jiz. zel st'
     end_station = 'trutnov'
+    end_station = 'vodickova'
+    start_station = 'olsanksa'
+    end_station = 'lihovar'
     # # end_station = 'prazskeho pvostani'
 
 

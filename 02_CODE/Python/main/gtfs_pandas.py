@@ -342,23 +342,6 @@ def build_edges(timetable):
             edges[out_node][in_node].sort()
 
 
-    # # Sort all edge lists in place
-    # new_edges = defaultdict(lambda: defaultdict(list))
-
-    # for out_node in edges:
-    #     for in_node in edges[out_node]:
-    #         if out_node == 'U693Z2P_R1003_176' and in_node == 'U168Z2P_R1003_176':
-    #             for i, connection in enumerate(edges[out_node][in_node]):
-    #                 dep_time = connection[0]
-    #                 arr_time = edges['U148Z2P_R1003_176']['U930Z2P_R1003_176'][i][1:]
-    #                 new_edges[out_node]['U930Z2P_R1003_176'].append((connection[0], *arr_time))
-    #         else:
-    #             new_edges[out_node][in_node] = edges[out_node][in_node]
-
-    # for out_node in new_edges:
-    #     for in_node in new_edges[out_node]:
-    #         new_edges[out_node][in_node].sort()
-
     edges = convert_nested_defaultdict(edges)
     return edges
 

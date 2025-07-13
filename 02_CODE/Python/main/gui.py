@@ -1,5 +1,6 @@
 import tkinter as tk
 from tkinter import ttk, messagebox
+from tktimepicker import AnalogPicker, AnalogThemes, SpinTimePickerModern, SpinTimePickerOld, SpinDatePickerModern
 from datetime import datetime, timedelta  # Ensure datetime is imported
 import joblib
 import time
@@ -46,7 +47,7 @@ def load_cache_async():
         submit_button.config(bg="#000000")  # Change to red if cache loading fails
 
 def process_route(iteration, departure_station_name, arrival_station_name, departure_time_str, departure_day):
-    output_area = output_areas[iteration]
+    #output_area = output_areas[iteration]
     global earliest_arrival
     global len_of_last_conn
     
@@ -61,6 +62,7 @@ def process_route(iteration, departure_station_name, arrival_station_name, depar
         )
 
         if not route_exists:
+            output_area = create_output_areas(iteration, None)[0]
             output_area.delete('1.0', tk.END)
             output_area.insert(tk.END, "Žádná trasa nenalezena.")
             return
@@ -82,17 +84,18 @@ def process_route(iteration, departure_station_name, arrival_station_name, depar
             earliest_arrival, len_of_last_conn = new_arrival_time, len_of_new_conn
         '''
         full_results_bool = bool(display_all_stops_var.get())
-        insert_results(all_paths, full_results_bool, output_area)
+
+        insert_results(all_paths, full_results_bool, iteration)
 
         # Schedule next iteration if not done
         if iteration < NUM_OF_SOLUTIONS - 1:
-            output_area.after(100, lambda: process_route(
+            process_route(
                 iteration + 1,
                 departure_station_name,
                 arrival_station_name,
                 next_departure_time,
                 departure_day
-            ))
+            )
     except Exception as e:
         messagebox.showerror("Chyba při hledání trasy", str(e))
 
@@ -100,10 +103,15 @@ def on_submit():
     start_time = time.time()
     departure_station_name = departure_combo.get() or get_default_station_names()[0]
     arrival_station_name = arrival_combo.get() or get_default_station_names()[1]
-    departure_time_str = time_entry.get() or get_default_station_names()[2]
-    departure_day = date_entry.get() or get_default_station_names()[3]
+    time_entry = time_picker.time()
+    departure_time_str = str(time_entry[0]) + ":" + str(time_entry[1]) or get_default_station_names()[2]
+
+    selected_index = date_combobox.current()
+    date_as_str = str(actual_dates[selected_index].strftime("%Y%m%d"))
+    departure_day = date_as_str or get_default_station_names()[3]
 
     try:
+        print(departure_time_str)
         if re.match(r"^\d{1,2}:\d{2}$", departure_time_str):
             departure_time_str += ":00"
         elif not re.match(r"^\d{1,2}:\d{2}:\d{2}$", departure_time_str):
@@ -112,18 +120,22 @@ def on_submit():
         messagebox.showerror("Chyba", "Zadej čas ve formátu HH:MM")
         return
 
-    for output_area in output_areas:
-        output_area.delete('1.0', tk.END)
+    #for output_area in output_areas:
+    #    output_area.delete('1.0', tk.END)
     process_route(0, departure_station_name, arrival_station_name, departure_time_str, departure_day)
     print('One Run Time:', round((time.time() - start_time)*1000, 2), 'ms')
 
 
 # Modify the insert_results function
-def insert_results(all_paths, full_results_bool, output_area):
+def insert_results(all_paths, full_results_bool, iteration):
+    
+    output_areas = create_output_areas(iteration, all_paths)
+    print(len(output_areas), iteration)
     #output_area.delete('1.0', tk.END)
     header = f"{'Stop':<25}{'Dep. Time':<15}{'Line':<10}{'Platform':<10}\n"
 
-    for complete_path in all_paths:
+    for i, complete_path in enumerate(all_paths):
+        output_area = output_areas[-len(all_paths) + i]
         output_area.insert(tk.END, header)
         output_area.insert(tk.END, "-" *60 + "\n")
         
@@ -234,7 +246,7 @@ y_offset = 85
 
 root.geometry(f"{width}x{height}+{x_offset}+{y_offset}")
 
-label_style = {"font": ("Arial", 10, "bold"), "anchor": "e", "padx": 5, "pady": 5}
+label_style = {"font": ("Arial", 11, "bold"), "anchor": "e", "padx": 5, "pady": 5}
 list_color = "#FFFFFF"
 
 # Departure Station
@@ -266,14 +278,42 @@ arrival_combo.bind('<Down>', lambda e: navigate_list(e, arrival_combo, arrival_l
 arrival_combo.bind('<Return>', lambda e: navigate_list(e, arrival_combo, arrival_listbox))
 
 #Čas odjezdu
-tk.Label(root, text="Čas odjezdu (HH:MM):", **label_style).grid(row=2, column=0, sticky="e")
-time_entry = tk.Entry(root, width=15)
-time_entry.grid(row=2, column=1, padx=5, pady=5)
+# Time picker frame and label
+tk.Label(root, text="Čas odjezdu:", **label_style).grid(row=2, column=0, sticky="e")
+time_frame = ttk.Frame(root)
+time_frame.grid(row=2, column=1, padx=5, pady=5)
+
+# Modern time picker with hours and minutes
+time_picker = SpinTimePickerModern(time_frame)
+time_picker.addAll(1)  # Adds hours and minutes spinners
+time_picker.pack(expand=False)
 
 #Den odjezdu
+START_DATE = 20250607
+
+# Convert START_DATE to datetime object
+start_date = datetime.strptime(str(START_DATE), "%Y%m%d")
+
+# Czech month abbreviations
+czech_months = ['led', 'úno', 'bře', 'dub', 'kvě', 'čvn', 'čvc', 'srp', 'zář', 'říj', 'lis', 'pro']
+
+# Generate date options (14 days in advance)
+date_options = []
+actual_dates =  []
+
+for i in range(14):
+    current_date = start_date + timedelta(days=i)
+    day = current_date.day
+    month_abbr = czech_months[current_date.month - 1]
+    date_options.append(f"{day}. {month_abbr}")
+    actual_dates.append(current_date)
+
+
 tk.Label(root, text="Datum", **label_style).grid(row=3, column=0, sticky="e")
-date_entry = tk.Entry(root, width=10)
-date_entry.grid(row=3, column=1, padx=5, pady=5)
+date_combobox = ttk.Combobox(root, values=date_options, state="readonly", width=8)
+date_combobox.current(0)  # Select first option by default
+date_combobox.grid(row=3, column=1, padx=5, pady=5)
+
 
 #Vyhledat trasu
 submit_button = tk.Button(
@@ -287,20 +327,20 @@ submit_button = tk.Button(
     padx=10, 
     pady=5
 )
-submit_button.grid(row=4, column=0, columnspan=2, pady=0)
+submit_button.grid(row=4, column=0, columnspan=2, pady=(5,0), sticky="n")  # Added sticky="n" and reduced top padding
 submit_button.bind('<Return>', lambda e: on_submit())
 
 #Soupis všech zastávek      
 display_all_stops_var = tk.IntVar()
 display_all_stops_button = tk.Checkbutton(
     root, 
-    text="Zobrazit všechny zastávky", 
+    text="Zobrazit všechny zastávky trasy", 
     variable=display_all_stops_var,
     font=("Arial", 10),
     padx=10, 
     pady=5
 )
-display_all_stops_button.grid(row=4, column=1, columnspan=2, pady=0)
+display_all_stops_button.grid(row=4, column=1, columnspan=2, pady=(20,0), sticky="n")
 
 #Zona P
 zone_p_var = tk.StringVar(value='')
@@ -314,7 +354,7 @@ zone_p_checkbox = tk.Checkbutton(
     padx=10, 
     pady=5
 )
-zone_p_checkbox.grid(row=4, column=2, columnspan=2, pady=0)
+zone_p_checkbox.grid(row=4, column=2, columnspan=2,padx=(0,25), sticky="n")
 
 def on_zone_change(zone):
     global station_names, stop_name_to_id
@@ -331,23 +371,40 @@ zone_p_var.trace_add('write', lambda *args: on_zone_change(zone_p_var.get()))
 
 #Output grame
 output_frame = tk.Frame(root)
-output_frame.grid(row=5, column=0, columnspan=4, padx=10, pady=10, sticky="nsew")
+output_frame.grid(row=5, column=0, columnspan=4, padx=10, pady=10, sticky="new")
 
 # Create 4 output areas arranged in a 1x4 grid
-output_areas = []
+#output_areas = []
 NUM_OF_SOLUTIONS = 2
-for i in range(NUM_OF_SOLUTIONS):
-    output_area = tk.Text(output_frame, wrap="word", relief="solid", borderwidth=1, height=35)
-    output_area.grid(row=0, column=i, padx=5, pady=5, sticky="nsew")
-    output_areas.append(output_area)
+
+
+def create_output_areas(solution_num, all_paths):
+    output_areas = []
+    if not all_paths:
+        height = 3
+        num_of_rows = 1
+    
+    else:
+        num_of_rows = len(all_paths) 
+
+    for i in range(num_of_rows):
+        if all_paths:
+            height = 3 + len(all_paths[i]) * 3
+        output_area = tk.Text(output_frame, wrap="word", relief="solid", borderwidth=1, height= height)
+        output_area.grid(row=i, column=solution_num, padx=5, pady=5, sticky="new")  # or remove sticky entirely
+        output_areas.append(output_area)
+        output_frame.grid_rowconfigure(i, weight=0)
+        output_frame.grid_columnconfigure(i, weight=1)
+    
+    return output_areas
 
 # Configure grid weights for output frame
-output_frame.grid_rowconfigure(0, weight=1)
-for i in range(NUM_OF_SOLUTIONS):
-    output_frame.grid_columnconfigure(i, weight=1)
+#output_frame.grid_rowconfigure(0, weight=1)
+#for i in range(NUM_OF_SOLUTIONS):
+#    output_frame.grid_columnconfigure(i, weight=1)
 
 # Configure grid weights to make the output area resize with the window
-root.grid_rowconfigure(4, weight=1)
+root.grid_rowconfigure(4, weight=0)
 root.grid_columnconfigure(0, weight=1)
 root.grid_columnconfigure(1, weight=1)
 

@@ -346,7 +346,7 @@ def run_program(departure_station_name, arrival_station_name, departure_time_str
         
         last_ev = evaluated_nodes #tady to chce mergnou a nechat to mensi kdyz je na vyber
         print('new tent', new_tentative_best_path)
-        if new_tentative_best_path < last_tentative_best_path and evaluated_nodes.get(arrival_station_id): #tohle je blbe naimplemenotvan nebo mozna ne
+        if new_tentative_best_path < last_tentative_best_path and evaluated_nodes.get(arrival_station_id):
             last_tentative_best_path = new_tentative_best_path
             best_eval_nodes = evaluated_nodes.copy()
             print('Best path', new_tentative_best_path//60)
@@ -361,7 +361,7 @@ def run_program(departure_station_name, arrival_station_name, departure_time_str
 
     path = find_path_pareto(departure_station_id, arrival_station_id, evaluated_nodes)
 
-#       if path:
+    #if path:
     connections = construct_final_path_table(path)
     all_found_connections.append(connections)
     full_results_bool = False
@@ -388,8 +388,8 @@ def get_default_station_names():
         departure_time_str = f"{random.randint(0,24):02}:{random.randint(0,60):02}:{random.randint(0,60):02}"
 
     else:
-        departure_station_name = "dedina"
-        arrival_station_name = "k juliane"
+        departure_station_name = "jenstejn, domov senioru"
+        arrival_station_name = "dedina"
         #departure_station_name = "ladvi"
         #arrival_station_name = "andelska hora,rozc"
         departure_time_str = '15:01:00'
@@ -447,7 +447,7 @@ TIME_WINDOW = 5*60*60
 TRANSFER_BOUND = 6
 ONLY_FASTEST_TRIP = False
 NUMBER_OF_DAYS_IN_ADVANCE = 14
-PROFILE_INTERVAL = 20*60 #seconds
+PROFILE_INTERVAL = 400*60 #seconds
 
 NUM_OF_SEARCHES = 1 #for testing, number of searches
 TO_PRINT_IN_TERMINAL = False if NUM_OF_SEARCHES > 1 or __name__ != "__main__" else True

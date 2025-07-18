@@ -1,0 +1,78 @@
+
+Start Landmarkspreprocess_6_random 20250614
+Median 0.5814
+Mean 0.687
+Not found paths 64
+
+
+Start Landmarkspreprocess_18_random_seed_2 20250614
+Median 0.5479
+Mean 0.6839
+Not found paths 64
+
+
+Start Landmarkspreprocess_6_farthest 20250614
+Median 0.6323
+Mean 0.7554
+Not found paths 64
+
+
+Start Landmarkspreprocess_18_farthest 20250614
+Median 0.5409
+Mean 0.6821
+Not found paths 64
+
+
+Start Landmarkspreprocess_6_random 20250614
+Median 0.9184
+Mean 0.9627
+Not found paths 5
+
+
+Start Landmarkspreprocess_18_random_seed_2 20250614
+Median 0.88
+Mean 0.9452
+Not found paths 5
+
+
+Start Landmarkspreprocess_6_farthest 20250614
+Median 0.8473
+Mean 0.9294
+Not found paths 5
+
+
+Start Landmarkspreprocess_18_farthest 20250614
+Median 0.7406
+Mean 0.8497
+Not found paths 5
+
+===================================================
+Start Landmarkspreprocess_18_random_seed_2 20250610
+Median 0.5226
+Mean 0.6361
+Not found paths 17
+
+
+Start Landmarkspreprocess_32_farthest 20250610
+Median 0.5285
+Mean 0.6179
+Not found paths 17
+
+
+Start Landmarkspreprocess_6_farthest 20250610
+Median 0.6292
+Mean 0.682
+Not found paths 17
+
+
+Start Landmarkspreprocess_18_farthest 20250610
+Median 0.5318
+Mean 0.6294
+Not found paths 17
+
+========================================================
+Start Landmarkspreprocess_18_random_seed_2 20250610P-nonP
+Median 0.3498
+Mean 0.7015
+Not found paths 3
+

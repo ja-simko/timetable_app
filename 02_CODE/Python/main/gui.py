@@ -408,12 +408,6 @@ def create_output_areas(solution_num, all_paths):
     return output_areas
 
 
-
-# Configure grid weights for output frame
-#output_frame.grid_rowconfigure(0, weight=1)
-#for i in range(NUM_OF_SOLUTIONS):
-#    output_frame.grid_columnconfigure(i, weight=1)
-
 # Configure grid weights to make the output area resize with the window
 root.grid_rowconfigure(4, weight=0)
 root.grid_columnconfigure(0, weight=1)

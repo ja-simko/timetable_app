@@ -93,19 +93,20 @@ def time_dependent_pareto_dijkstra(journey_info, edges, trip_service_days, is_sh
     start = time.time()
     global already_landmarked
     already_landmarked = {}
-    ONLY_FASTEST_TRIP = False if gui else ONLY_FASTEST_TRIP
+
+    find_pareto_paths = True if gui else ONLY_FASTEST_TRIP
 
     while max_transfers >= 0:  # Run until we reach -1 transfers
         while pq:
             _, current_time, current_transfers, current_station = heapq.heappop(pq)
 
-            if ONLY_FASTEST_TRIP: 
+            if find_pareto_paths: 
                 settled.add(current_station)
             else: # pareto-labels
                 settled.add((current_station, current_transfers))
 
             if not is_shortest_path_tree_search and current_station == journey_info.target_station:
-                max_transfers = -1 if ONLY_FASTEST_TRIP else current_transfers
+                max_transfers = -1 if find_pareto_paths else current_transfers
                 break
 
             if current_transfers > max_transfers:
@@ -136,7 +137,7 @@ def time_dependent_pareto_dijkstra(journey_info, edges, trip_service_days, is_sh
                 if new_transfers > max_transfers:
                     continue
                 
-                if not ONLY_FASTEST_TRIP:
+                if not find_pareto_paths:
                     # Check if this label is Pareto-optimal
                     if next_station not in labels:
                         labels[next_station] = []
@@ -345,8 +346,6 @@ def run_program(journey_info: JourneyInputInfo, edges, trip_service_days):
     all_found_connections = []
 
     evaluated_nodes, _ = time_dependent_pareto_dijkstra(journey_info, edges, trip_service_days)
-
-    print('eval',len(evaluated_nodes))
 
     if journey_info.target_station not in evaluated_nodes:
         print('No Route Found')
@@ -605,10 +604,10 @@ def testing(n, from_P):
 
 # Define constants
 MIN_TRANSFER_TIME = 180
-TIME_WINDOW = 16*60*60
-TRANSFER_BOUND = 10
-ONLY_FASTEST_TRIP = False
+TIME_WINDOW = 8*60*60
+TRANSFER_BOUND = 6
 NUMBER_OF_DAYS_IN_ADVANCE = 14
+ONLY_FASTEST_TRIP = False
 
 TO_PRINT_IN_TERMINAL = True
 RANDOM_INPUTS = False
@@ -620,8 +619,7 @@ dirpath = os.path.dirname(abspath)
 CACHE_FOLDER_PATH = os.path.join(dirpath, "cache")
 
 if __name__ == "__main__":
-    # main()
-    testing(25, False)
+    main()
 
    
 

@@ -400,7 +400,7 @@ def get_stops_df():
 abspath = os.path.abspath(__file__)
 dirpath = os.path.dirname(abspath)
 CACHE_FOLDER_PATH = os.path.join(dirpath, "cache")
-GTFS_FOLDER_PATH = os.path.normpath(os.path.join(dirpath, "..", "..", "PID_GTFS"))
+GTFS_FOLDER_PATH = os.path.normpath(os.path.join(dirpath, "..", "PID_GTFS"))
 MIN_TRANSFER_TIME = 120
 
 

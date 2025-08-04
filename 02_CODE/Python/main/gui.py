@@ -409,8 +409,6 @@ def create_output_areas(solution_num, all_paths):
 
 
 
-
-
 # Configure grid weights for output frame
 #output_frame.grid_rowconfigure(0, weight=1)
 #for i in range(NUM_OF_SOLUTIONS):

@@ -9,6 +9,7 @@ import string
 import math
 import os
 import timeit
+import statistics
 
 from collections import namedtuple
 import datetime as dt
@@ -18,7 +19,8 @@ from rapidfuzz import process, fuzz
 from unidecode import unidecode
 from sqlalchemy import create_engine, text
 from gtfs_pandas import *
-from pareto_main import convert_sec_to_hh_mm_ss, is_trip_service_day_valid, get_shifted_days_dicts
+from pareto_main import convert_sec_to_hh_mm_ss
+from pareto_main_full_TD_with_transfers import get_travel_time_in_mins, get_shifted_days_dicts, is_trip_service_day_valid
 
 def build_edges_csa(timetable = pd.DataFrame()):
     """
@@ -59,7 +61,6 @@ def build_edges_csa(timetable = pd.DataFrame()):
         prev_idx = i - 1
         
         out_node, in_node = node_ids[prev_idx], node_ids[i]
-
         main_out, main_in = main_stations[prev_idx], main_stations[i]
 
         dep_time, arr_time = departure_times[prev_idx], arrival_times[i]
@@ -76,7 +77,7 @@ def build_edges_csa(timetable = pd.DataFrame()):
     edges.sort(key = lambda edge: edge[0])
     return edges
 
-def build_footpaths(edges) -> list:
+def build_footpaths(edges) -> (list, dict):
     # Group stops by station
 
     station_stops = defaultdict(set)
@@ -90,9 +91,6 @@ def build_footpaths(edges) -> list:
     transfer_pairs_added = set()
     
     for station_id, stops in station_stops.items():
-        if len(stops) <= 1:
-            continue  # Skip stations with only one stop
-            
         # Create bidirectional footpaths between all stops in the station
         stops_list = list(stops)
         for i, stop1 in enumerate(stops_list):
@@ -107,9 +105,9 @@ def build_footpaths(edges) -> list:
                     else:
                         footpaths[stop1].append((stop2, MIN_TRANSFER_TIME))
                         footpaths[stop2].append((stop1, MIN_TRANSFER_TIME))
-    return footpaths
+    return footpaths, station_stops
 
-def scan_connections(connections, footpaths, starting_time, start_station, target_station, departure_day, trip_service_days):
+def scan_connections(connections, footpaths, starting_time, start_station, target_station, departure_day_dt, trip_service_days):
     index = bisect.bisect_left(connections, (starting_time,))
     trips = {}
     evaluated_stops = defaultdict(lambda: (2 * 24 * 60 * 60, 10))  # (earliest_arrival_time, min_transfers)
@@ -124,15 +122,26 @@ def scan_connections(connections, footpaths, starting_time, start_station, targe
 
     counter = 0
 
-    shifted_days = get_shifted_days_dicts(departure_day)
+    shifted_days = get_shifted_days_dicts(departure_day_dt)
 
     checked_trips = set()
 
     for conn in connections[index:]:
         counter += 1
+        
+        departure_day, weekday = shifted_days[conn.shift]
+    
+        # if not (conn.trip_id in checked_trips or is_trip_service_day_valid(departure_day, conn.trip_id, trip_service_days, weekday)):
+        #     continue
 
-        if not (conn.trip_id in checked_trips or is_trip_service_day_valid(conn.trip_id, trip_service_days, shifted_days, conn.shift)):
+        if conn.trip_id in checked_trips:
+            pass
+        
+        elif is_trip_service_day_valid(departure_day, conn.trip_id, trip_service_days, weekday):
             checked_trips.add(conn.trip_id)
+            pass
+
+        else:
             continue
 
         arr_time, arr_transfers = evaluated_stops[target_station]
@@ -219,8 +228,6 @@ def extract_journey(journey_pointers, target):
 
     first_conn, current_stop = journey_pointers[current_stop]
 
-    print(first_conn.dep_stop)
-    
     current_stop = target
 
     while journey_pointers.get(current_stop):
@@ -229,7 +236,7 @@ def extract_journey(journey_pointers, target):
         # Add the connection
         if exit_conn:
             journey.append((exit_conn.arr_stop, exit_conn.arr_time))
-            journey.append((first_conn.dep_stop, first_conn.dep_time, first_conn.splittrip_id))
+            journey.append((first_conn.dep_stop, first_conn.dep_time, first_conn.trip_id))
         
         # Move to the departure stop of the trip that got us here
         if first_conn:
@@ -246,7 +253,7 @@ def construct_final_path(path):
             if c%2 == 0:
                 print('')
             c += 1
-            print(StopNames.get_general_name_from_id(stop), convert_sec_to_hh_mm_ss(time), args, StopNames.get)
+            print(StopNames.get_general_name_from_id(stop), convert_sec_to_hh_mm_ss(time), args)
     else:
         print('No path')
 
@@ -261,7 +268,7 @@ def run_multiple_scans(edges, footpaths, start_time, start_station, end_station,
             starting_time = start_time + (i+2)*60, 
             start_station = start_station, 
             target_station = end_station,
-            departure_day = departure_day,
+            departure_day_dt = departure_day,
             trip_service_days = trip_service_days
         )
 
@@ -275,39 +282,128 @@ def run_multiple_scans(edges, footpaths, start_time, start_station, end_station,
     print(f"Seen connections: {seen_conns}")
     print(f"Earliest arrival time: {ea_time}")
 
+def testing(n, from_P):
+    random.seed(123)
+
+    timetable = get_timetable()
+    edges = build_edges_csa(timetable)
+    footpaths, valid_stops = build_footpaths(edges)
+    trip_service_days = get_trip_service_days()
+    dep_time = convert_str_to_sec('06:00:00')
+
+    # departures = [*(StopNames.get_stop_id_from_main_id(StopNames.get_id_from_fuzzy_input_name(StopNames.get_a_random_stop_name())) for i in range(n//2))] + [*(StopNames.get_stop_id_from_main_id(StopNames.get_id_from_fuzzy_input_name(StopNames.get_a_random_stop_name('P' if from_P else None))) for i in range(n//2))]
+
+    departures_main_id = [*(StopNames.get_id_from_fuzzy_input_name(StopNames.get_a_random_stop_name()) for i in range(n//2))] + [*(StopNames.get_id_from_fuzzy_input_name(StopNames.get_a_random_stop_name('P' if from_P else None)) for i in range(n//2))]
+
+    departures = [*(list(valid_stops[main_id])[0] for main_id in departures_main_id)]
+
+    arrival_main_id = [*(StopNames.get_id_from_fuzzy_input_name(StopNames.get_a_random_stop_name('P' if from_P else None)) for i in range(n//2))] + [*(StopNames.get_id_from_fuzzy_input_name(StopNames.get_a_random_stop_name()) for i in range(n//2))]
+    
+    arrivals = [*(list(valid_stops[main_id])[0] for main_id in arrival_main_id)]
+    
+    # arrivals = [*(StopNames.get_stop_id_from_main_id(StopNames.get_id_from_fuzzy_input_name(StopNames.get_a_random_stop_name('P' if from_P else None))) for i in range(n//2))] + [*(StopNames.get_stop_id_from_main_id(StopNames.get_id_from_fuzzy_input_name(StopNames.get_a_random_stop_name())) for i in range(n//2))]
+
+    departure_day_dt = convert_str_to_datetime("20250610")
+
+    for j in range(1):
+        times_list = []
+    
+        #    using_star = False
+        print('Start' + str(departure_day_dt))
+        counter_find_paths = 0
+
+        for i in range(n):
+            individual_time = time.time()
+            start = departures[i%len(departures)]
+            end = arrivals[i%len(arrivals)]
+            if start == end:
+                continue
+            
+            ea_time, tr, seen_conns, journey_pointers = scan_connections(
+                edges,
+                footpaths,
+                dep_time,
+                start,
+                end,
+                departure_day_dt,
+                trip_service_days
+            )
+
+            if not ea_time:
+                counter_find_paths += 1
+                times_list.append(time.time() - individual_time)
+                #print(start, end, StopNames.get_general_name_from_id(start), StopNames.get_general_name_from_id(end))
+                continue
+
+            path = extract_journey(journey_pointers, end)
+            times_list.append(time.time() - individual_time)
+            
+        with open('records_csa_official.txt', 'a') as file:
+            file.write('\nStart '  + ' 20250610' +' P-nonP\n' if from_P else ' random\n')
+            file.write('Median ' + str(round(statistics.median(times_list),4))+'\n')
+            file.write('Mean ' + str(round(statistics.mean(times_list),4)) +'\n')
+            file.write('Not found paths ' + str(counter_find_paths) +'\n\n')
+
+        print('Median', statistics.median(times_list))
+        print('Mean', statistics.mean(times_list))
+        print('Not found paths', counter_find_paths,'\n')
+
+def main():
+    timetable = get_timetable()
+    StopNames.initialize(get_stops_df(), timetable)
+
+    edges = build_edges_csa(timetable)
+    footpaths, valid_stops = build_footpaths(edges)
+    trip_service_days = get_trip_service_days()
+    departure_day = convert_str_to_datetime('20250610')
+    start_time = convert_str_to_sec('6:00:00')
+
+    start_station = 'korunovacni'
+    end_station = 'pankrac'
+    start_station = list(valid_stops[(StopNames.get_id_from_fuzzy_input_name(start_station))])[0]
+    end_station = list(valid_stops[(StopNames.get_id_from_fuzzy_input_name(end_station))])[0]
+    print(start_station, end_station)
+    
+    ea_time, tr, seen_conns, journey_pointers = scan_connections(
+        edges,
+        footpaths,
+        start_time,
+        start_station,
+        end_station,
+        departure_day,
+        trip_service_days
+        )
+    if ea_time:
+        path = extract_journey(journey_pointers, end_station)
+        construct_final_path(path)
+    else:
+        print('no path')
 
 if __name__ == "__main__":
     MIN_TRANSFER_TIME: int = 180
     MIN_TRANSFER_LOOP_TIME: int = 60
 
+    testing(n = 1000, from_P = True)
+    testing(n = 1000, from_P = False)
+    exit()
+    main()
     print('Building edges')
-    timetable = get_timetable()
-    StopNames.initialize(get_stops_df(), timetable)
 
-    edges = build_edges_csa(timetable)
-    footpaths = build_footpaths(edges)
-    trip_service_days = get_trip_service_days()
     print('start')
 
     # More precise timing
-    departure_day = '20250618'
-    start_time = '10:43:00'
     start_time = convert_str_to_sec(start_time)
-
     
     # end_station = 'klikovan'
     start_station = 'dvorce'
     start_station = 'jablonec n jiz. zel st'
     end_station = 'trutnov'
     end_station = 'vodickova'
-    start_station = 'olsanksa'
-    end_station = 'lihovar'
     # # end_station = 'prazskeho pvostani'
 
 
     start_station = StopNames.get_stop_id_from_main_id(StopNames.get_id_from_fuzzy_input_name(start_station))
     end_station = StopNames.get_stop_id_from_main_id(StopNames.get_id_from_fuzzy_input_name(end_station))
 
-
     run_multiple_scans(edges, footpaths, start_time, start_station, end_station, departure_day, trip_service_days, n = 1)
-  
+    

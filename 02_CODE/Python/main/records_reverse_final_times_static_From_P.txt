@@ -1,0 +1,52 @@
+
+==================================================
+
+Start Landmarkspreprocess_8_farthest_rev 20250610 No Transfer Labels
+Median 0.2801
+Mean 0.4257
+Not found paths 20
+
+
+Start Landmarkspreprocess_16_farthest_rev 20250610 No Transfer Labels
+Median 0.2386
+Mean 0.3987
+Not found paths 20
+
+
+Start Landmarkspreprocess_32_farthest_rev 20250610 No Transfer Labels
+Median 0.2389
+Mean 0.3943
+Not found paths 20
+
+
+Start Landmarkspreprocess_8_random_rev 20250610 No Transfer Labels
+Median 0.2698
+Mean 0.4166
+Not found paths 20
+
+
+Start Landmarkspreprocess_16_random_rev 20250610 No Transfer Labels
+Median 0.2386
+Mean 0.3935
+Not found paths 20
+
+
+Start Landmarkspreprocess_32_random_rev 20250610 No Transfer Labels
+Median 0.2128
+Mean 0.3849
+Not found paths 20
+
+
+Start Basic 20250610 No Transfer Labels
+Median 0.4514
+Mean 0.5717
+Not found paths 20
+
+
+Start Star 20250610 No Transfer Labels
+Median 0.3682
+Mean 0.5358
+Not found paths 20
+
+
+==================================================

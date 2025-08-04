@@ -1,23 +1,15 @@
-import heapq
-import joblib
-import pandas as pd
-import bisect
-import random
-import re
-import time
-import string
 import math
+import random
+import heapq
+import bisect
 import os
-import timeit
 import statistics
+import time
 
-
-import datetime as dt
 from datetime import timedelta, datetime
 from collections import defaultdict
 from rapidfuzz import process, fuzz
 from unidecode import unidecode
-from sqlalchemy import create_engine, text
 from gtfs_pandas import *
 
 class JourneyInputInfo():
@@ -59,10 +51,6 @@ def convert_sec_to_hh_mm_ss(time) -> str:
 def match_stop_name_and_id(key: str, stop_name_id_dict: dict) -> str:
     return stop_name_id_dict.get(key, None)
 
-def is_dominated(existing, new):
-    return (existing['arrival_time'] - existing['start_departure_time'] <= new['arrival_time'] - new['start_departure_time']) and \
-           (existing['transfers'] <= new['transfers'])
-
 def get_id_from_best_name_match(stop_name_to_id_ascii, user_input, threshold=80) -> str|None:
     """Find the best matching stop name using fuzzy search. Returns station ID, without Z and the the part after it."""
 
@@ -79,7 +67,7 @@ def get_shifted_days_dicts(departure_day_dt):
 
     return {k: (v.strftime('%Y%m%d'), v.weekday()) for k, v in shifted_dates.items()}
 
-def time_dependent_pareto_dijkstra(journey_info, edges, trip_service_days, complete_dijkstra = False, gui = True if __name__ != "__main__" else False):
+def time_dependent_pareto_dijkstra(journey_info, edges, trip_service_days, is_shortest_path_tree_search = False, gui = True if __name__ != "__main__" else False):
     """ Implements the modified Dijkstra's algorithm to find all Pareto-optimal paths iteratively. """
 
     pq = [(journey_info.origin_time, journey_info.origin_time, 0, journey_info.origin_station)]  # (reduced cost, arrival_time, num_transfers, station)
@@ -94,51 +82,49 @@ def time_dependent_pareto_dijkstra(journey_info, edges, trip_service_days, compl
     global checked_trips
     checked_trips = set()
 
-    #coordinates = build_stop_id_to_coordinates()
-
     t_lat, t_lon = StopNames.get_coordinates_lat_lon(journey_info.target_station)    
-    taken_from_pq = 0
     global settled
     settled = set()
 
-    if not gui and using_landmarks:
-        travel_time_to_landmarks_target = {landmark:dist for landmark, dist in preprocessed_paths[journey_info.target_station].items()}
+    if not gui and USING_LANDMARKS:
+        travel_time_from_landmarks_target = {landmark:dist for landmark, dist in preprocessed_paths_norm[journey_info.target_station].items()}
+        travel_time_to_landmarks_target = {landmark:dist for landmark, dist in preprocessed_paths_rev[journey_info.target_station].items()}
     
     start = time.time()
     global already_landmarked
-    discarded_cuz_settled = 0
     already_landmarked = {}
-    longer_than_tent_path = 0
-    already_evaluated = 0
-    
+    ONLY_FASTEST_TRIP = False if gui else ONLY_FASTEST_TRIP
+
     while max_transfers >= 0:  # Run until we reach -1 transfers
         while pq:
-            current_augmented_time, current_time, current_transfers, current_station = heapq.heappop(pq)
-            taken_from_pq += 1
-            #print(reduced_cost, current_time, current_transfers, StopNames.get_general_name_from_id(current_station.split('_')[0]))
+            _, current_time, current_transfers, current_station = heapq.heappop(pq)
 
-            settled.add(current_station)#settled.add((current_station, current_transfers))
+            if ONLY_FASTEST_TRIP: 
+                settled.add(current_station)
+            else: # pareto-labels
+                settled.add((current_station, current_transfers))
 
-            if not complete_dijkstra and current_station == journey_info.target_station:
+            if not is_shortest_path_tree_search and current_station == journey_info.target_station:
                 max_transfers = -1 if ONLY_FASTEST_TRIP else current_transfers
                 break
 
             if current_transfers > max_transfers:
-                continue  # Skip paths exceeding the allowed transfers
+                continue  #
 
-            if current_station not in edges: #if the station is always the end station
+            if current_station not in edges:
                 continue
-
-            #line_num = current_station.split('_')[-1] if '_' in current_station else None
 
             is_start_station = current_station == journey_info.origin_station
 
             for next_station, connections in edges[current_station].items():
                 
-                if next_station in settled:#if (next_station, current_transfers) in settled:
+                if next_station in settled or (next_station, current_transfers) in settled:
                     continue
                 
-                dep_time, arr_time, transfer = binary_search_next_edge(connections, current_time, is_start_station, trip_service_days, shifted_dates)
+                if is_shortest_path_tree_search: # preprocessing static graph
+                    dep_time, arr_time, transfer = binary_search_next_edge_static(connections, current_time, is_start_station)
+                else:
+                    dep_time, arr_time, transfer = binary_search_next_edge(connections, current_time, is_start_station, trip_service_days, shifted_dates)
 
                 if arr_time is None or arr_time > journey_info.origin_time + TIME_WINDOW:
                     continue
@@ -149,30 +135,39 @@ def time_dependent_pareto_dijkstra(journey_info, edges, trip_service_days, compl
 
                 if new_transfers > max_transfers:
                     continue
+                
+                if not ONLY_FASTEST_TRIP:
+                    # Check if this label is Pareto-optimal
+                    if next_station not in labels:
+                        labels[next_station] = []
 
-                # Check if this label is Pareto-optimal
-                if next_station not in labels:
-                    labels[next_station] = []
+                    else:
+                        dominated = False  # Initialize the variable before use
 
+                        for prev_time, prev_transfers in labels[next_station]:
+                            if prev_time <= arr_time and prev_transfers <= new_transfers:
+                                dominated = True
+                                break  # The new label is dominated, discard it
+
+                        if dominated:
+                            continue
+
+                        labels[next_station] = [(time, transfer) for (time, transfer) in labels[next_station] if not (time >= arr_time and transfer >= new_transfers)]
+
+                    labels[next_station].append((arr_time, new_transfers))
+                
                 else:
-                    dominated = False  # Initialize the variable before use
-
-                    for prev_time, prev_transfers in labels[next_station]:
-                        if prev_time <= arr_time and prev_transfers <= new_transfers:
-                            dominated = True
-                            break  # The new label is dominated, discard it
-
-                    if dominated:
+                    if next_station not in labels:
+                        labels[next_station] = arr_time
+                    elif arr_time < labels[next_station]:
+                        labels[next_station] = arr_time
+                    else:
                         continue
-
-                    labels[next_station] = [(time, transfer) for (time, transfer) in labels[next_station] if not (time >= arr_time and transfer >= new_transfers)] #prolly a bit faster without this step (40ms per run?)
-
-                labels[next_station].append((arr_time, new_transfers))
 
                 if next_station not in evaluated_nodes:
                     evaluated_nodes[next_station] = {}
                 
-                if gui or using_star:
+                if gui or USING_STAR: # GUI uses A* by default
                     try:
                         curr_lat, curr_lon = StopNames.get_coordinates_lat_lon(next_station)
                     except:
@@ -189,17 +184,24 @@ def time_dependent_pareto_dijkstra(journey_info, edges, trip_service_days, compl
                     else:
                         new_augmented_time = current_time + edge_travel_time
                 
-                elif using_landmarks:
-                    #curr_lat, curr_lon = coordinates.get(next_station.split('Z')[0], (None, None))
+                elif USING_LANDMARKS:
                     main_id = StopNames.get_main_id_from_node_id(current_station)
-
                     if main_id in already_landmarked:
                         new_augmented_time = current_time + edge_travel_time + already_landmarked[main_id]
 
-                    elif main_id in preprocessed_paths:
-                        this_node = preprocessed_paths[main_id]
-                        max_lower_bound = max(abs(int(current_to_landmark) - int(travel_time_to_landmarks_target.get(landmark, current_to_landmark)))
+                    elif main_id in preprocessed_paths_rev or main_id in preprocessed_paths_norm:
+                        #normal
+                        this_node = preprocessed_paths_norm[main_id]
+                        max_lower_bound_norm = max(int(travel_time_from_landmarks_target.get(landmark, landmark_to_current)) - int(landmark_to_current)
+                        for landmark, landmark_to_current in this_node.items()) if this_node.items() else 0
+
+                        #reverse
+                        this_node = preprocessed_paths_rev[main_id]
+                        max_lower_bound_rev = max(int(current_to_landmark) - int(travel_time_to_landmarks_target.get(landmark, current_to_landmark))
                         for landmark, current_to_landmark in this_node.items()) if this_node.items() else 0
+                        
+                        max_lower_bound = max(max_lower_bound_norm, max_lower_bound_rev)
+
                         if max_lower_bound > 0:
                             new_augmented_time = current_time + edge_travel_time + max_lower_bound*60
                             already_landmarked[main_id] = max_lower_bound*60
@@ -223,17 +225,14 @@ def time_dependent_pareto_dijkstra(journey_info, edges, trip_service_days, compl
 
                 heapq.heappush(pq, (new_augmented_time, arr_time, new_transfers, next_station))
         max_transfers -= 1
-    #print('discarded_cuz_settled',discarded_cuz_settled)
-    #print('longer_than_tent_path',longer_than_tent_path)
-    #print('already_eval',already_evaluated)
+
     global dijkstra_time
     dijkstra_time = round(time.time() - start,3)*1000
-    #print(dijkstra_time)
-    #print('counter',counter)
     return evaluated_nodes, settled
 
 def is_trip_service_day_valid(departure_day, trip_id, trip_service_days, weekday):
     trip_info = trip_service_days[trip_id]
+        
     return (weekday in trip_info['service_days'] and 
             trip_info['start_date'] <= departure_day <= trip_info['end_date'])
 
@@ -246,7 +245,7 @@ def binary_search_next_edge(edges, current_time, zero_transfer_cost, trip_servic
     
     if edges[0][0] == 'T':
         return (current_time, current_time + MIN_TRANSFER_TIME, 1)
-    
+
     
     index = bisect.bisect_left(edges, (current_time,))
 
@@ -267,7 +266,7 @@ def binary_search_next_edge(edges, current_time, zero_transfer_cost, trip_servic
         
         index += 1
 
-def binary_search_next_edge_static(edges, current_time, zero_transfer_cost, trip_service_days, shifted_dates) -> tuple[float, float, int]:
+def binary_search_next_edge_static(edges, current_time, zero_transfer_cost) -> tuple[float, float, int]:
     """Return next edge departure time, arrival time and transfer 0 or 1 
     Finds the next train connection using binary search 
     """
@@ -280,7 +279,6 @@ def binary_search_next_edge_static(edges, current_time, zero_transfer_cost, trip
     edge = min(edges, key=lambda item: item[1] - item[0])
     min_edge_travel_time = edge[1] - edge[0]
     return (current_time, current_time + min_edge_travel_time, 0)
-
 
 def is_transit_edge(edge) -> bool:
     return True if edge['line_num'] == None else False
@@ -322,7 +320,7 @@ def construct_final_path_table(path):
     return connections
 
 def get_travel_time_in_mins(path):
-    return (path[-1]['arrival_time'] - path[1]['departure_time'])//60
+    return math.floor((path[-1]['arrival_time'] - path[1]['departure_time'])/60)
 
 def get_random_station(zone = None):
     return (StopNames.get_a_random_stop_name(zone))
@@ -349,12 +347,6 @@ def run_program(journey_info: JourneyInputInfo, edges, trip_service_days):
     evaluated_nodes, _ = time_dependent_pareto_dijkstra(journey_info, edges, trip_service_days)
 
     print('eval',len(evaluated_nodes))
-    # for node, v in evaluated_nodes.items():
-    #     for tr, info in v.items():
-    #         try:
-    #             print(node, convert_sec_to_hh_mm_ss(info['departure_time']))
-    #         except:
-    #             continue
 
     if journey_info.target_station not in evaluated_nodes:
         print('No Route Found')
@@ -364,10 +356,9 @@ def run_program(journey_info: JourneyInputInfo, edges, trip_service_days):
     seen_arrival_times = []
     num_of_transfers_per_path = []
 
-    print(evaluated_nodes[journey_info.target_station].items())
     for transfers, edge in sorted(evaluated_nodes[journey_info.target_station].items(), reverse = True):
         arrival_time = edge['arrival_time']
-        if seen_arrival_times and arrival_time < seen_arrival_times[-1]:
+        if seen_arrival_times and arrival_time <= seen_arrival_times[-1]:
             num_of_transfers_per_path[-1] = transfers
         else:
             num_of_transfers_per_path.append(transfers)
@@ -376,7 +367,6 @@ def run_program(journey_info: JourneyInputInfo, edges, trip_service_days):
     for num_of_transfers in num_of_transfers_per_path: #paths with that many transfers
         path = find_path_pareto(journey_info.origin_station, journey_info.target_station, evaluated_nodes, num_of_transfers)
 
-#       if path:
         connections = construct_final_path_table(path)
         all_found_connections.append(connections)
         full_results_bool = False
@@ -391,19 +381,14 @@ def run_program(journey_info: JourneyInputInfo, edges, trip_service_days):
                 print('')
             print('')
             print('Travel time', get_travel_time_in_mins(path),'min')
-        else:
-            continue
-            print("Route Exists")
 
     return True, all_found_connections
 
 def get_default_journey_info():
-    departure_station_name = "sidliste petriny"
-    departure_station_name = "Jenstejn, domov senioru"
-    arrival_station_name = "malvazinky"
-    arrival_station_name = "Svojšice,Nová Ves III"
-    departure_time = '10:30:00'
-    departure_day = '20250611'
+    departure_station_name = "Malvazinky"
+    arrival_station_name = "K Juliane"
+    departure_time = '6:00:00'
+    departure_day = '20250610'
 
     return departure_time, departure_day, departure_station_name, arrival_station_name
 
@@ -414,57 +399,28 @@ def convert_str_to_datetime(day: str):
 def main():
     edges = get_edges()
     trip_service_days = get_trip_service_days()
-    print("Trips loaded")
-    global_time = time.time()
-    departures = ['Palmovka','Lazarská',"Stadion Strahov",'Spořilov','Hůrka','Albertov','Sparta', 'Geologická','Nádraží Zahradní Město','Urxova']
-    arrivals = ['Lazarská',"Stadion Strahov",'Spořilov','Hůrka','Albertov','Sparta', 'Geologická','Nádraží Zahradní Město','Urxova', 'Palmovka']
-    muj_set = set()
-
+    print("Trips loaded.")
+    timetable = get_timetable()
+    print("Timetable loaded.")
+    StopNames.initialize(get_stops_df(), timetable)
+    
     journey_info = JourneyInputInfo(None, None, None, None)
     journey_info.set_origin_day()
     journey_info.set_origin_time(random = RANDOM_INPUTS)  
     journey_info.set_origin_station(random = RANDOM_INPUTS)
     journey_info.set_target_station(random = RANDOM_INPUTS)
 
-    #departure_time_str, departure_day, departure_station_name, arrival_station_name  = get_default_journey_info()
-    tmtb = get_timetable()
-    global spec_node_to_main
-    spec_node_to_main = {node: main for node, main in zip(tmtb['node_id'], tmtb['main_station_id'])}
-    #departure_station_name = departures[j]
-    #arrival_station_name = arrivals[j]
-    StopNames.initialize(get_stops_df(), tmtb)
-    
+    if USING_LANDMARKS:
+        global preprocessed_paths_norm
+        global preprocessed_paths_rev
+        preprocessed_paths_norm = load_cached_data('ALLfinal_preprocess_8_farthest_normal_mathfloor')
+        preprocessed_paths_rev = load_cached_data('ALLfinal_preprocess_8_farthest_rev_mathfloor')
+
     start_time = time.time()
-    _, all_found_connections = run_program(journey_info, edges, trip_service_days)
+    _ = run_program(journey_info, edges, trip_service_days)
     
-    #connections_str = str(all_found_connections)  # Convert to string to make hashable
-    #if i != 0:
-        #print(connections_str in muj_set, modifier)
-    #muj_set.add(connections_str)
-
-    print('Dijkstra Time',dijkstra_time)
+    print('Just Dijkstra Time:', dijkstra_time, 'ms')
     print('One RunTime:', round((time.time() - start_time)*1000, 2), 'ms')
-    print('Global Avg Run Time:', round((time.time() - global_time)*1000/NUM_OF_SEARCHES, 2), 'ms')
-    print(len(muj_set))
-
-
-### experiment with multpiple runs, the next run stars second after the fastest or something 
-
-# Define constants
-MIN_TRANSFER_TIME = 120
-TIME_WINDOW = 23*60*60
-TRANSFER_BOUND = 12
-ONLY_FASTEST_TRIP = True
-NUMBER_OF_DAYS_IN_ADVANCE = 14
-
-NUM_OF_SEARCHES = 1 #for testing, number of searches
-TO_PRINT_IN_TERMINAL = False if NUM_OF_SEARCHES > 1 or __name__ != "__main__" else True
-
-RANDOM_INPUTS = False
-
-abspath = os.path.abspath(__file__)
-dirpath = os.path.dirname(abspath)
-CACHE_FOLDER_PATH = os.path.join(dirpath, "cache")
 
 def euclidean_distance(lat1, lon1, lat2, lon2):
     # Převod na radiány
@@ -479,40 +435,11 @@ def euclidean_distance(lat1, lon1, lat2, lon2):
     r = 6371000  # Poloměr Země v metrech
     return c * r
 
-def calculate_transit_time(distance, platform_diff=0):
-    WALKING_SPEED = 1.4  # meters per second (5 km/h)
-    BASE_PLATFORM_CHANGE_TIME = 60  # seconds for changing platforms
-    
-    # Basic walking time
-    walking_time = distance / WALKING_SPEED + BASE_PLATFORM_CHANGE_TIME
-
-    return int(walking_time)
-
-def edges_between_stations():
-    result = load_stop_name_id_dicts(ENGINE)[-1]
-
-    stops_coordinates = {}
-
-    for _, row in result.iterrows():
-        stop_id = row['stop_id']
-        stops_coordinates[stop_id] = (row['stop_lat'], row['stop_lon'])
-
-    lat, lon = stops_coordinates['U482Z1P']
-    for stop_id, (stop_lat, stop_lon) in stops_coordinates.items():
-        if 'U482Z' in stop_id:
-            stop_lat = result.loc[result['stop_id'] == stop_id, 'stop_lat'].values[0]
-            stop_lon = result.loc[result['stop_id'] == stop_id, 'stop_lon'].values[0]
-            distance = euclidean_distance(lat, lon, stop_lat, stop_lon)
-
-            platform = result.loc[result['stop_id'] == stop_id, 'platform_code'].values[0]
-            transit_time = calculate_transit_time(distance)
-            print(f"Distance: {distance} meters, Platform: {platform}, ID: {stop_id}", transit_time)
-
-def preprocess(landmarks):
-    tmtb_sample = get_timetable()
-    stop_ids = tmtb_sample['stop_id'].unique().tolist()
-    main_station_ids = tmtb_sample['main_station_id'].unique().tolist()
-    edges = build_edges(tmtb_sample)
+def preprocess_landmarks(landmarks, reverse):
+    timetable = get_timetable()
+    stop_ids = timetable['stop_id'].unique().tolist()
+    main_station_ids = timetable['main_station_id'].unique().tolist()
+    edges = build_edges(timetable, reverse = reverse)
     
     dep_time = 10*60*60
 
@@ -521,10 +448,10 @@ def preprocess(landmarks):
     end = 'U597'
     preprocessed_paths = defaultdict(dict)
 
-    global using_star
-    global using_landmarks
-    using_star = False
-    using_landmarks = False
+    global USING_STAR
+    global USING_LANDMARKS
+    USING_STAR = False
+    USING_LANDMARKS = False
     departure_day_dt = convert_str_to_datetime('20250610')
 
     print(len(stop_ids))
@@ -532,15 +459,17 @@ def preprocess(landmarks):
     for landmark in landmarks:
         print('L', landmark)
         journey_info = JourneyInputInfo(dep_time, departure_day_dt, landmark, end)
-        evaluated_nodes, _ = time_dependent_pareto_dijkstra(journey_info, edges=edges,trip_service_days=trips, complete_dijkstra = True)
+        evaluated_nodes, _ = time_dependent_pareto_dijkstra(journey_info, edges=edges,trip_service_days=trips, is_shortest_path_tree_search = True)
 
         for node, val in evaluated_nodes.items():
             max_tr = max(val.keys())
             if node in main_station_ids:
                 if node != landmark:
                     path = find_path_pareto(landmark, node, evaluated_nodes, num_of_transfers = max_tr)
-                    if path:
+                    if path and len(path) > 1:
                         travelTime = get_travel_time_in_mins(path)
+                        if node in preprocessed_paths and landmark in preprocessed_paths[node]:
+                            print(preprocessed_paths.get[node][landmark])
                         preprocessed_paths[node][landmark] = travelTime
                 else:
                     preprocessed_paths[node][landmark] = 0
@@ -548,6 +477,24 @@ def preprocess(landmarks):
     print(preprocessed_paths)
 
     return preprocessed_paths
+
+def select_landmarks():
+    for i in range(6):
+        if i < 3:
+            landmarks = ['U876']
+            for lndm in range(2**(3+i)):
+                new_landmark = get_farthest(landmarks)
+                landmarks.append(new_landmark) 
+            landmarks = landmarks[1:]
+            filename_processed_landmarks= f'preprocess_{2**(3+i)}_farthest_rev'
+        else:
+            random.seed(1)
+            landmarks = [*(StopNames.get_id_from_fuzzy_input_name(StopNames.get_a_random_stop_name()) for i in range(2**(i)))]
+            filename_processed_landmarks= f'preprocess_{2**(i)}_random_rev_'
+        
+        preprocessed_paths = preprocess_landmarks(landmarks, reverse = True)
+        save_cached_data(preprocessed_paths, filename_processed_landmarks)
+        print('Processed')
 
 def get_farthest(landmarks):
         farthest = 0
@@ -574,49 +521,57 @@ def get_farthest(landmarks):
         print(StopNames.get_general_name_from_id(farthest_stop), farthest/1000/len(landmarks))
         return farthest_stop
 
-def testing(n):
-    departures = ['Nádraží Zahradní Město', 'Urxova','Palmovka','Lazarská',"Stadion Strahov",'Spořilov','Hůrka','Albertov','Sparta', 'Geologická',]
-    arrivals = ['Lazarská',"Stadion Strahov",'Spořilov','Hůrka','Albertov','Sparta', 'Geologická','Nádraží Zahradní Město','Urxova', 'Palmovka']
-    
+def testing(n, from_P):
     random.seed(123)
-    departures = [*(StopNames.get_id_from_fuzzy_input_name(StopNames.get_a_random_stop_name()) for i in range(n//2))] + [*(StopNames.get_id_from_fuzzy_input_name(StopNames.get_a_random_stop_name('P')) for i in range(n//2))]
-    arrivals = [*(StopNames.get_id_from_fuzzy_input_name(StopNames.get_a_random_stop_name('P')) for i in range(n//2))] + [*(StopNames.get_id_from_fuzzy_input_name(StopNames.get_a_random_stop_name()) for i in range(n//2))]
+
+    departures = [*(StopNames.get_id_from_fuzzy_input_name(StopNames.get_a_random_stop_name('P' if from_P else None)) for i in range(n//2))] + [*(StopNames.get_id_from_fuzzy_input_name(StopNames.get_a_random_stop_name()) for i in range(n//2))]
+
+    arrivals = [*(StopNames.get_id_from_fuzzy_input_name(StopNames.get_a_random_stop_name()) for i in range(n//2))] + [*(StopNames.get_id_from_fuzzy_input_name(StopNames.get_a_random_stop_name('P' if from_P else None)) for i in range(n//2))]
 
     edges = get_edges()
     trips = get_trip_service_days()
     dep_time = convert_str_to_sec(get_random_time_in_string())
     dep_time = convert_str_to_sec('06:00:00')
     departure_day_dt = convert_str_to_datetime("20250610")
-    global using_star
-    global using_landmarks
-    using_star = False
-    using_landmarks = True
-    mode = ['Landmarks','Star','Basic']
 
-    for j in range(4):
-        otherlist = []
+    global USING_STAR
+    global USING_LANDMARKS
+    USING_STAR = False
+    USING_LANDMARKS = True
+
+    loops = 3
+
+    with open('Results_Execution_Time_Dijkstra.txt', 'a') as file:
+        file.write('\n==================================================\n')
+    counter = 0
+
+    for j in range(loops):
         times_list = []
+        list_of_EA = []
+
         global preprocessed_paths
+        global preprocessed_paths_norm
+        global preprocessed_paths_rev
+
         if j == 0:
-            filename_processed_landmarks= 'preprocess_18_random_seed_2'
-            preprocessed_paths = load_cached_data(filename_processed_landmarks)
+            mode = 'Landmarks'
+            filename_processed_landmarks_norm = f'ALLfinal_preprocess_16_farthest_normal_mathfloor'
+            filename_processed_landmarks_rev = f'ALLfinal_preprocess_16_farthest_rev_mathfloor'
+            preprocessed_paths_norm = load_cached_data(filename_processed_landmarks_norm)
+            preprocessed_paths_rev = load_cached_data(filename_processed_landmarks_rev)
 
-        if j == 1:
-            filename_processed_landmarks= 'preprocess_32_farthest'
-            preprocessed_paths = load_cached_data(filename_processed_landmarks)
+        elif j == 1:
+            mode = 'Basic'
+            USING_LANDMARKS = False
+            USING_STAR = False
 
-        if j == 2:
-            filename_processed_landmarks= 'preprocess_6_farthest'
-            preprocessed_paths = load_cached_data(filename_processed_landmarks)
+        elif j == 2:
+            mode = 'A Star'
+            USING_LANDMARKS = False
+            USING_STAR = True
 
-         #   using_landmarks = False
-          #  using_star = True
-        elif j == 3:
-            filename_processed_landmarks= 'preprocess_18_farthest'
-            preprocessed_paths = load_cached_data(filename_processed_landmarks)
-        #    using_star = False
-        print('Start',mode[0], filename_processed_landmarks if using_landmarks else '', departure_day_dt)
-        counter_find_paths = 0
+        print('Start', mode, '' if not USING_LANDMARKS else filename_processed_landmarks_norm, departure_day_dt)
+        counter_not_found_paths = 0
 
         for i in range(n):
             individual_time = time.time()
@@ -628,112 +583,45 @@ def testing(n):
             journey_info = JourneyInputInfo(dep_time, departure_day_dt, start, end)
             evaluated_nodes, _ = time_dependent_pareto_dijkstra(journey_info, edges, trips)
             if end not in evaluated_nodes:
-                counter_find_paths += 1
+                counter_not_found_paths += 1
                 times_list.append(time.time() - individual_time)
-                print(start, end, dep_time)
                 continue
             max_transfers = max(evaluated_nodes[end].keys())
             path = find_path_pareto(start, end, evaluated_nodes, num_of_transfers=max_transfers)
-            otherlist.append(get_travel_time_in_mins(path))
+            list_of_EA.append(path[-1]['arrival_time'])
             times_list.append(time.time() - individual_time)
 
-        with open('records2.txt', 'a') as file:
-            file.write('\nStart ' + mode[0] + (filename_processed_landmarks if using_landmarks else '') + ' 20250610' +'P-nonP\n')
-            file.write('Median ' + str(round(statistics.median(times_list),4))+'\n')
-            file.write('Mean ' + str(round(statistics.mean(times_list),4)) +'\n')
-            file.write('Not found paths ' + str(counter_find_paths) +'\n\n')
+        with open('Results_Execution_Time_Dijkstra.txt', 'a') as file:
+            file.write('\nStart ' + mode[j%len(mode)] + ('' if not USING_LANDMARKS else filename_processed_landmarks_norm) + ' 20250610 No Transfer Labels\n')
+            file.write('Median ' + str(round(statistics.median(times_list), 4))+'\n')
+            file.write('Mean ' + str(round(statistics.mean(times_list), 4)) +'\n')
+            file.write('Not found paths ' + str(counter_not_found_paths) +'\n\n')
 
         print('Median', statistics.median(times_list))
         print('Mean', statistics.mean(times_list))
-        print('Not found paths', counter_find_paths,'\n')
+        print('Not found paths', counter_not_found_paths,'\n')
+        print(list_of_EA)
+    print('Counter', counter)
 
+# Define constants
+MIN_TRANSFER_TIME = 180
+TIME_WINDOW = 16*60*60
+TRANSFER_BOUND = 10
+ONLY_FASTEST_TRIP = False
+NUMBER_OF_DAYS_IN_ADVANCE = 14
+
+TO_PRINT_IN_TERMINAL = True
+RANDOM_INPUTS = False
+USING_LANDMARKS = False
+USING_STAR = False
+
+abspath = os.path.abspath(__file__)
+dirpath = os.path.dirname(abspath)
+CACHE_FOLDER_PATH = os.path.join(dirpath, "cache")
 
 if __name__ == "__main__":
-    global preprocessed_paths
-    is_preprocess = False
-    filename_processed_landmarks= 'preprocess_32_farthest'
-    if is_preprocess:
-        random.seed(2)
-        landmarks = [*(StopNames.get_id_from_fuzzy_input_name(StopNames.get_a_random_stop_name()) for i in range(18))]
-        
-        landmarks = ['U876']
-        for i in range(34):
-            new_landmark = get_farthest(landmarks)
-            landmarks.append(new_landmark) 
-        landmarks = landmarks[3:]
-        print(len(landmarks))
-
-        preprocessed_paths = preprocess(landmarks)
-        save_cached_data(preprocessed_paths, filename_processed_landmarks)
-        print('Processed')
-    else:
-        preprocessed_paths = load_cached_data(filename_processed_landmarks)
-
-    testing(n = 150)
-    exit()
     # main()
-        
-    
-    landmarks = ['U876']
-    for i in range(7):
-        new_landmark = get_farthest(landmarks)
-        landmarks.append(new_landmark) 
-
-    landmarks = landmarks[1:]
-
-    print(len(landmarks))
-
-   
-    # main()
-    # id_to_name = get_stop_id_to_name()
-    # for stop, tr in settled:
-    #     name = StopNames._stop_id_to_names.get(stop.split('_')[0], None)
-    #     if name:
-    #         continue
-    #         time.sleep(0.02)
-    #         print(name, stop)
-    #         #print(already_landmarked[stop.split('Z')[0]])
-    tmtb_sample = get_timetable_sample()
-    main_stops_id = tmtb_sample['main_station_id'].unique().tolist()
-    edges = build_edges(tmtb_sample)
-    
-    dep_time = 10*60*60
-
-    trips = get_trip_service_days()
-
-    start = random.choice(main_stops_id)
-    end = random.choice(main_stops_id)
-    dep_time = 10*60*60
-
-    # preproces = True
-    # filename_process= 'preprocess_farthest_32_random'
-    # global preprocessed_paths
-    # random.seed(3)
-    # landmarks = [*(random.choice(main_stops_id) for i in range(32))]
-    # if preproces:
-    #     preprocessed_paths = preprocess(landmarks)
-    #     save_cached_data(preprocessed_paths, filename_process)
-    #     print('Processed')
-    # else:
-    #     preprocessed_paths = load_cached_data(filename_process)
-
-
-    global dist_dest_to_L
-    ONLY_FASTEST_TRIP = False
-    print('A', len(preprocessed_paths['U876']))
-    print('B', len(preprocessed_paths['U321']))
-    print('C', len(preprocessed_paths['U570']))
-    n = 10
-
-    random.seed(10)
-
-    
-    stop_name_to_id = get_stop_name_to_id()
-    stop_name_to_id_ascii = {unidecode(name).lower(): v for name, v in stop_name_to_id.items()}
-
-    #departures = [get_id_from_best_name_match(stop_name_to_id_ascii,name) for name in departures]
-    #arrivals = [get_id_from_best_name_match(stop_name_to_id_ascii,name) for name in arrivals]
-    departure_day_dt=convert_str_to_datetime('20250610')
+    testing(25, False)
 
    
 

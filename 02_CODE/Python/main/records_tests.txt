@@ -1,0 +1,105 @@
+
+==================================================
+
+==================================================
+
+==================================================
+
+Start Landmarkspreprocess_6_random 20250610 No Transfer Labels
+Mean 0.788
+Not found paths 37
+
+Median TIMETRAVEL184
+Mean TIMETRAVEL204
+
+Start Landmarkspreprocess_18_random_seed_2 20250610 No Transfer Labels
+Mean 0.7691
+Not found paths 37
+
+Median TIMETRAVEL184
+Mean TIMETRAVEL204
+
+==================================================
+
+Start Landmarkspreprocess_6_random 20250610 No Transfer Labels
+Mean 0.7749
+Not found paths 37
+
+Median TIMETRAVEL184
+Mean TIMETRAVEL204
+
+Start Landmarkspreprocess_18_random_seed_2 20250610 No Transfer Labels
+Mean 0.8526
+Not found paths 37
+
+Median TIMETRAVEL184
+Mean TIMETRAVEL204
+
+==================================================
+
+Start Landmarkspreprocess_8_random_seed_1_rev 20250610 No Transfer Labels
+Mean 0.9259
+Not found paths 2
+
+Median TIMETRAVEL288.5
+Mean TIMETRAVEL332
+
+Start Landmarkspreprocess_8_random_seed_1_rev 20250610 No Transfer Labels
+Mean 0.9481
+Not found paths 2
+
+Median TIMETRAVEL288.5
+Mean TIMETRAVEL332
+
+==================================================
+
+Start Landmarkspreprocess_6_random 20250610 No Transfer Labels
+Mean 0.7425
+Not found paths 3
+
+Median TIMETRAVEL184
+Mean TIMETRAVEL202
+
+==================================================
+
+Start Landmarkspreprocess_6_random 20250610 No Transfer Labels
+Mean 1.0238
+Not found paths 2
+
+Median TIMETRAVEL208.5
+Mean TIMETRAVEL251
+
+Start Landmarkspreprocess_8_random_seed_1_rev 20250610 No Transfer Labels
+Mean 1.0739
+Not found paths 2
+
+Median TIMETRAVEL288.5
+Mean TIMETRAVEL332
+
+Start Landmarkspreprocess_32_random_seed_3 20250610 No Transfer Labels
+Mean 1.4517
+Not found paths 2
+
+Median TIMETRAVEL208.5
+Mean TIMETRAVEL251
+
+Start Landmarkspreprocess_6_farthest 20250610 No Transfer Labels
+Mean 1.2374
+Not found paths 2
+
+Median TIMETRAVEL208.5
+Mean TIMETRAVEL251
+
+Start Landmarkspreprocess_18_farthest 20250610 No Transfer Labels
+Mean 1.0551
+Not found paths 2
+
+Median TIMETRAVEL208.5
+Mean TIMETRAVEL251
+
+Start Landmarkspreprocess_32_farthest 20250610 No Transfer Labels
+Mean 1.276
+Not found paths 2
+
+Median TIMETRAVEL208.5
+Mean TIMETRAVEL251

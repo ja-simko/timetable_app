@@ -1,0 +1,64 @@
+
+==================================================
+
+Start LALLfinal_preprocess_16_farthest_normal_mathfloor 20250610 No Transfer Labels
+Median 0.5926
+Mean 1.1948
+Not found paths 1
+
+
+Start a 20250610 No Transfer Labels
+Median 1.072
+Mean 1.53
+Not found paths 1
+
+
+Start S 20250610 No Transfer Labels
+Median 0.5429
+Mean 1.4772
+Not found paths 1
+
+
+==================================================
+
+Start LALLfinal_preprocess_16_farthest_normal_mathfloor 20250610 No Transfer Labels
+Median 1.5717
+Mean 1.8866
+Not found paths 1
+
+
+Start a 20250610 No Transfer Labels
+Median 2.3692
+Mean 2.295
+Not found paths 1
+
+
+Start S 20250610 No Transfer Labels
+Median 2.0892
+Mean 2.2254
+Not found paths 1
+
+
+==================================================
+
+Start LALLfinal_preprocess_16_farthest_normal_mathfloor 20250610 No Transfer Labels
+Median 1.4686
+Mean 1.9001
+Not found paths 1
+
+
+Start a 20250610 No Transfer Labels
+Median 2.6726
+Mean 2.7276
+Not found paths 1
+
+
+Start S 20250610 No Transfer Labels
+Median 2.1613
+Mean 2.3658
+Not found paths 1
+
+
+==================================================
+
+==================================================

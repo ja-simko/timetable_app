@@ -1,0 +1,44 @@
+
+Start  20250610 P-nonP
+Median 0.2143
+Mean 0.5634
+Not found paths 1
+
+ random
+Median 1.7234
+Mean 1.5054
+Not found paths 0
+
+
+Start  20250610 P-nonP
+Median 0.234
+Mean 0.6108
+Not found paths 1
+
+ random
+Median 1.9874
+Mean 1.5865
+Not found paths 0
+
+
+Start  20250610 P-nonP
+Median 0.2148
+Mean 0.6001
+Not found paths 1
+
+ random
+Median 1.7774
+Mean 1.418
+Not found paths 0
+
+
+Start  20250610 P-nonP
+Median 0.8992
+Mean 1.8043
+Not found paths 13
+
+ random
+Median 1.3494
+Mean 1.9432
+Not found paths 15
+

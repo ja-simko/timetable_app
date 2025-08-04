@@ -1,15 +1,15 @@
 import pandas as pd
-import datetime as dt
-from datetime import datetime, timedelta
-import os
-import time
 import numpy as np
-from collections import defaultdict
+import random
+import joblib
+import os
 import re
 import timeit
-import joblib
+import time
+
+from datetime import datetime, timedelta
+from collections import defaultdict
 from unidecode import unidecode
-import random
 from rapidfuzz import process, fuzz
 
 class StopNames:
@@ -32,24 +32,25 @@ class StopNames:
             stops_df.loc[:, 'zone_id'] = stops_df['zone_id'].astype(str)
 
             for zone in stops_df['zone_id'].unique():
-                print(zone)
                 if len(zone) <= 2 and zone != '-':
                     cls._zones[zone] = stops_df[stops_df['zone_id'].str.contains(zone)]['unique_name'].tolist()
-
-                    cache_data = cls._zones
-                    save_cached_data(cache_data, 'zones')
+                    save_cached_data(cls._zones, 'zones')
 
         stops_df.loc[:, 'zone_id'] = stops_df['zone_id'].astype(str)
         cls._stop_zone = dict(zip(stops_df['main_station_id'], (stops_df['zone_id'].str.split(','))))
 
         cls._platforms = dict(zip(stops_df['stop_id'], stops_df['platform_code']))
+
         cls._stop_id_to_names = dict(zip(stops_df['stop_id'], stops_df['stop_name'])) | dict(zip(stops_df['main_station_id'], stops_df['stop_name']))
+
         cls._node_id_to_main_st_id = dict(zip(timetable['node_id'], timetable['main_station_id']))
 
         cls._name_to_main_ids = dict(zip(stops_df['unique_name'], stops_df['main_station_id']))
+
         cls._main_id_to_stop_ids = dict(zip(stops_df['main_station_id'], stops_df['stop_id']))
 
         cls._coordinates = dict(zip(stops_df['main_station_id'], zip(stops_df['stop_lat'], stops_df['stop_lon'])))
+
         cls._ascii_names_dict = {unidecode(name).lower(): v for name, v in cls._name_to_main_ids.items()}
 
 
@@ -117,10 +118,9 @@ class StopNames:
         cls._ensure_initialized()
         return list(cls._zones.keys())
     
-def convert_str_to_datetime(day):
-    origin = datetime(2000, 1, 1)
-    day = datetime.strptime(str(day), '%Y%m%d')
-    return (day - origin).total_seconds() / (24 * 3600)
+def convert_str_to_datetime(day: str):
+    day = datetime.strptime(day, '%Y%m%d')
+    return day
 
 def read_json_extra_info_stops():
     data = pd.read_json(os.path.join(CACHE_FOLDER_PATH, 'zastavky_names.json'))
@@ -175,6 +175,7 @@ def build_timetable_df():
         ['trip_id', 'stop_id', 'node_id', 'main_station_id', 'departure_time', 'arrival_time', 'stop_sequence', 'route_short_name', 'route_type' 
         ]
     ].sort_values(by=['trip_id', 'stop_sequence'])
+    
     return timetable
 
 def build_stop_name_to_id(zone = None):
@@ -186,41 +187,8 @@ def build_stop_name_to_id(zone = None):
  
 def build_stop_id_to_name_and_platform():
     stops = get_stops_df()
-    # Initialize all data at once
     StopNames.initialize(stops, get_timetable())
     return stops
-
-def build_stop_id_to_name_and_platform_2():
-    stops = get_stops_df()
-    # full_node_ids = timetable['node_id']
-    # route_names = timetable['route_short_name']
-    # node_to_route = dict(zip(full_node_ids, route_names))
-    # print(len(full_node_ids))
-    # print(len(stops['stop_id']))
-    # d = defaultdict(tuple)
-    # stopname = dict(zip(stops['stop_id'], map(list, zip(stops['stop_name'], stops['platform_code']))))
-
-    # for node_id in full_node_ids:
-    #     split_node = node_id.split('_')[0]
-    #     d[node_id] = stopname[split_node] + [node_to_route[node_id]]
-
-    # Create StopNames objects for all stops and store in a dictionary
-    stop_objects = {
-        stop_id: StopNames(
-            id=stop_id,
-            name=row['stop_name'],
-            unique_name=row['unique_name'],
-            lat=row['stop_lat'],
-            lon=row['stop_lon'],
-            platform=row['platform_code']
-        )
-        for stop_id, row in stops.set_index('stop_id').iterrows()
-        }
-    
-    print(StopNames.get_platform_code('U321Z1P'))
-
-    return stop_objects# dict(zip(stops['stop_id'], zip(stops['stop_name'], stops['platform_code'])))
-
 
 def build_stop_id_to_coordinates():
     stops = get_stops_df()
@@ -279,7 +247,7 @@ def build_trip_service_days():
 
     return trip_service_dict
 
-def build_edges(timetable):
+def build_edges(timetable, reverse = False):
     """
     Optimized version of build_edges with better performance and cleaner logic.
     """
@@ -318,6 +286,10 @@ def build_edges(timetable):
         out_node, in_node = node_ids[prev_idx], node_ids[i]
 
         out_main_station, in_main_station = main_stations[prev_idx], main_stations[i]
+
+        if reverse:
+            out_node, in_node = in_node, out_node
+            out_main_station, in_main_station = in_main_station, out_main_station
         
         dep_time, arr_time = departure_times[prev_idx], arrival_times[i]
         
@@ -340,7 +312,6 @@ def build_edges(timetable):
     for out_node in edges:
         for in_node in edges[out_node]:
             edges[out_node][in_node].sort()
-
 
     edges = convert_nested_defaultdict(edges)
     return edges
@@ -400,34 +371,22 @@ def get_timetable():
     return timetable
 
 def get_edges(timetable = pd.DataFrame()):
-    print('Fetching edges')
+    print('Fetching edges.')
     st = time.time()
     edges = build_edges(timetable)
     print('Edges loaded in:', round(time.time() - st, 2), "s")
     return edges
 
 def get_trip_service_days():
-    #filename = 'trip_service_days'
-    #if os.path.exists(os.path.join(CACHE_FOLDER_PATH, filename)):
-     #   return load_cached_data(filename)
     trip_service_days = build_trip_service_days() 
-    #save_cached_data(trip_service_days, filename)
     return trip_service_days
 
 def get_stop_id_to_name():
-    #filename = 'stop_id_to_name'
-    #if os.path.exists(os.path.join(CACHE_FOLDER_PATH, filename)):
-    #    return load_cached_data(filename)
     stop_id_to_name = build_stop_id_to_name_and_platform() 
-    #save_cached_data(stop_id_to_name, filename)
     return stop_id_to_name
 
 def get_stop_name_to_id(zone = None):
-    #filename = 'stop_name_to_id'
-    #if os.path.exists(os.path.join(CACHE_FOLDER_PATH, filename)):
-    #    return load_cached_data(filename)
     stop_name_to_id = build_stop_name_to_id(zone) 
-    #save_cached_data(stop_name_to_id, filename)
     return stop_name_to_id
 
 def get_stops_df():
@@ -438,72 +397,10 @@ def get_stops_df():
     save_cached_data(stops_df, filename)
     return stops_df
 
-def test_functions(function, *att, **kwargs):
-    if kwargs:
-        n = kwargs['n'] 
-    else:
-        n = 10
-
-    if att:
-        elapsed = timeit.timeit(partial(function, *att), number = n)
-    else:
-        elapsed = timeit.timeit(partial(function), number = n)
-    print(function.__name__, round(elapsed/n, 10))
-
 abspath = os.path.abspath(__file__)
 dirpath = os.path.dirname(abspath)
 CACHE_FOLDER_PATH = os.path.join(dirpath, "cache")
 GTFS_FOLDER_PATH = os.path.normpath(os.path.join(dirpath, "..", "..", "PID_GTFS"))
 MIN_TRANSFER_TIME = 120
-from functools import partial
 
-
-if __name__ == "__main__": 
-    #StopNames.initialize(get_stops_df(), get_timetable())
-    #print(StopNames._node_id_to_stop_id)
-    #a = StopNames.get_coordinates_lat_lon('U126Z1P_R79_107')
-    #print(a)
-    StopNames.initialize( get_stops_df(), get_timetable())
-    build_timetable_df()
-    exit()
-    evaluated_nodes = get_edges()
-    # Print all keys in 'e' that start with 'U530Z1P' (case-insensitive) and end with anything
-    pattern = re.compile(r'^U693Z2P.*', re.IGNORECASE) #693
-    for key in evaluated_nodes:
-        if pattern.match(key):
-            print(key, evaluated_nodes[key],'\n')
-
-    pattern = re.compile(r'^U168Z2P.*', re.IGNORECASE) #693
-    for key in evaluated_nodes:
-        if pattern.match(key):
-            print(key, evaluated_nodes[key].keys(),'\n')
-            
-
-    a = build_stop_id_to_name_and_platform()
-    #save_cached_data(a, 'stop_id_class')
-    fce = load_cached_data
-    att = 'stop_id_class'
-    test_functions(fce, att, n=25)
-
-    test_functions(build_stop_id_to_name_and_platform, n=25)
-
-
-    #import timeit
-    #import cProfile
-    #cProfile.run("build_edges_optimized_numpy()",sort='cumtime')
-    # a = timeit.timeit(lambda: build_edges_optimized_numpy(), number=3)
-    # print(a/3)
-
-    # test_functions(fce)
-    '''
-    build_stops_df()
-    build_stop_name_to_id()
-    exit()
-    fce = load_cached_data
-    att = 'trip_service_days'
-    test_functions(fce, att)
-
-    fce = build_stop_id_to_name_and_platform
-    test_functions(fce)
-    '''
 

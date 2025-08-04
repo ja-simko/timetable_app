@@ -31,9 +31,6 @@ edges = None
 trip_service_days = None
 display_all_stops_var = None
 
-CACHE_EDGES_DIR = r"C:\Users\Jachym\OneDrive - České vysoké učení technické v Praze\Bakalářská_práce\02_CODE\cache\edges"
-CACHE_PATH = r"C:\Users\Jachym\OneDrive - České vysoké učení technické v Praze\Bakalářská_práce\02_CODE\cache"
-
 def load_cache_async():
     global edges
     global trip_service_days
@@ -51,12 +48,11 @@ def process_route(iteration, departure_station_name, arrival_station_name, depar
     global earliest_arrival
     global len_of_last_conn
 
+    journey_info = JourneyInputInfo(departure_time_str, departure_day, departure_station_name, arrival_station_name)
+
     try:
         route_exists, all_paths = run_program(
-            departure_station_name,
-            arrival_station_name,
-            departure_time_str,
-            departure_day,
+            journey_info,
             edges,
             trip_service_days
         )
@@ -105,8 +101,8 @@ def on_submit():
     arrival_station_name = arrival_combo.get() or get_default_journey_info()[3]
 
     time_entry = time_picker.time()
-    departure_time_str = str(time_entry[0]) + ":" + str(time_entry[1])
-
+    departure_time_str = str(time_entry[0]) + ":" + (str(time_entry[1]) if len(str(time_entry[1])) == 2 else "0" + str(time_entry[1]))
+    print(len(str(time_entry[1])), str(time_entry[1]))
     selected_index = date_combobox.current()
     departure_day = str(actual_dates[selected_index].strftime("%Y%m%d"))
 
@@ -231,9 +227,6 @@ def navigate_list(event, entry, listbox):
 # Load cache
 start_time = time.time()
 
-CACHE_FILE = r"C:\Users\Jachym\OneDrive - České vysoké učení technické v Praze\Bakalářská_práce\02_CODE\cache\timetable_cache.pkl"
-CACHE_FILE_STOP_NAME_ID = r"C:\Users\Jachym\OneDrive - České vysoké učení technické v Praze\Bakalářská_práce\02_CODE\cache\stop_name_id.pkl"
-
 root = tk.Tk()
 
 stop_name_to_id = build_stop_name_to_id()
@@ -256,7 +249,7 @@ list_color = "#FFFFFF"
 tk.Label(root, text="Výchozí stanice:", **label_style).grid(row=0, column=0, sticky="e")
 departure_combo = tk.Entry(root, width=30)
 departure_combo.grid(row=0, column=1, padx=5, pady=5)
-departure_combo.insert(index = 0, string = StopNames.get_a_random_stop_name('P'))
+#departure_combo.insert(index = 0, string = StopNames.get_a_random_stop_name('P'))
 
 departure_listbox = tk.Listbox(root, width=30, relief="flat", bg=list_color)
 departure_listbox.place_forget()  # Initially hidden
@@ -273,7 +266,7 @@ departure_combo.bind('<Return>', lambda e: navigate_list(e, departure_combo, dep
 tk.Label(root, text="Cílová stanice:", **label_style).grid(row=1, column=0, sticky="e")
 arrival_combo = tk.Entry(root, width=30)
 arrival_combo.grid(row=1, column=1, padx=(0,0), pady=5)
-arrival_combo.insert(index = 0, string = StopNames.get_a_random_stop_name('P'))
+#arrival_combo.insert(index = 0, string = StopNames.get_a_random_stop_name('P'))
 
 arrival_listbox = tk.Listbox(root, width=30, relief="flat", bg=list_color)
 arrival_listbox.place_forget()  # Initially hidden

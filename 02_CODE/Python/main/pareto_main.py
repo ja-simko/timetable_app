@@ -1,23 +1,17 @@
 #profile
 import heapq
-import joblib
-import pandas as pd
 import bisect
 import random
-import re
 import time
-import string
 import math
 import os
-import timeit
 
-import datetime as dt
 from datetime import timedelta, datetime
 from collections import defaultdict
 from rapidfuzz import process, fuzz
 from unidecode import unidecode
-from sqlalchemy import create_engine, text
 from gtfs_pandas import *
+from pareto_main_full_TD_with_transfers import get_default_journey_info
 
 #Helper Functions
 
@@ -344,7 +338,6 @@ def run_program(departure_station_name, arrival_station_name, departure_time_str
 
     path = find_path_pareto(departure_station_id, arrival_station_id, evaluated_nodes)
 
-    #if path:
     connections = construct_final_path_table(path)
     all_found_connections.append(connections)
     full_results_bool = False
@@ -364,23 +357,6 @@ def run_program(departure_station_name, arrival_station_name, departure_time_str
 
     return True, all_found_connections
 
-def get_default_station_names():
-    if RANDOM_STATIONS:
-        departure_station_name, arrival_station_name = select_random_stations()
-        print(  departure_station_name, arrival_station_name )
-        departure_time_str = f"{random.randint(0,24):02}:{random.randint(0,60):02}:{random.randint(0,60):02}"
-
-    else:
-        departure_station_name = "jenstejn, domov senioru"
-        arrival_station_name = "dedina"
-        #departure_station_name = "ladvi"
-        #arrival_station_name = "andelska hora,rozc"
-        departure_time_str = '15:01:00'
-
-    departure_day = '20250616'
-
-    return departure_station_name, arrival_station_name, departure_time_str, departure_day
-
 def convert_str_to_datetime(day: str):
     day = datetime.strptime(day, '%Y%m%d')
     return day
@@ -388,16 +364,13 @@ def convert_str_to_datetime(day: str):
 def main():
     trip_service_days = get_trip_service_days()
     print("Trips loaded")
-    muj_set = set()
-    #for j in range(len(departures)):
-     #   print(departures[j],arrivals[j])
     tmtb = get_timetable()
     edges = get_edges(tmtb)
     StopNames.initialize(get_stops_df(), tmtb)
     global_time = time.time()
 
     for i in range(NUM_OF_SEARCHES):
-        departure_station_name, arrival_station_name, departure_time_str, departure_day = get_default_station_names()
+        departure_time_str, departure_day, departure_station_name, arrival_station_name,  = get_default_journey_info()
         global spec_node_to_main
         spec_node_to_main = {node: main for node, main in zip(tmtb['node_id'], tmtb['main_station_id'])}
         
@@ -408,9 +381,6 @@ def main():
         print('Dijkstra Time',dijkstra_time)
         print('One RunTime:', round((time.time() - start_time)*1000, 2), 'ms')
     print('Global Avg Run Time:', round((time.time() - global_time)*1000/NUM_OF_SEARCHES, 2), 'ms')
-    print(len(muj_set))
-
-
 
 
 def euclidean_distance(lat1, lon1, lat2, lon2):
@@ -426,80 +396,14 @@ def euclidean_distance(lat1, lon1, lat2, lon2):
     r = 6371000  # Poloměr Země v metrech
     return c * r
 
-def calculate_transit_time(distance, platform_diff=0):
-    WALKING_SPEED = 1.4  # meters per second (5 km/h)
-    BASE_PLATFORM_CHANGE_TIME = 60  # seconds for changing platforms
-    
-    # Basic walking time
-    walking_time = distance / WALKING_SPEED + BASE_PLATFORM_CHANGE_TIME
-
-    return int(walking_time)
-
-def edges_between_stations():
-    result = load_stop_name_id_dicts(ENGINE)[-1]
-
-    stops_coordinates = {}
-
-    for _, row in result.iterrows():
-        stop_id = row['stop_id']
-        stops_coordinates[stop_id] = (row['stop_lat'], row['stop_lon'])
-
-    lat, lon = stops_coordinates['U482Z1P']
-    for stop_id, (stop_lat, stop_lon) in stops_coordinates.items():
-        if 'U482Z' in stop_id:
-            stop_lat = result.loc[result['stop_id'] == stop_id, 'stop_lat'].values[0]
-            stop_lon = result.loc[result['stop_id'] == stop_id, 'stop_lon'].values[0]
-            distance = euclidean_distance(lat, lon, stop_lat, stop_lon)
-
-            platform = result.loc[result['stop_id'] == stop_id, 'platform_code'].values[0]
-            transit_time = calculate_transit_time(distance)
-            print(f"Distance: {distance} meters, Platform: {platform}, ID: {stop_id}", transit_time)
-
-def preprocess():
-    tmtb_sample = get_timetable()
-    stop_ids = tmtb_sample['stop_id'].unique().tolist()
-    main_station_ids = tmtb_sample['main_station_id'].unique().tolist()
-    edges = build_edges(tmtb_sample)
-    
-    dep_time = 10*60*60
-
-    trips = get_trip_service_days()
-    landmarks = ['U5079', 'U9830', 'U9989', 'U6210']   #zatec, zaskmuky, komarov, bakov n. jizerou
-    end = 'U597'
-    preprocessed_paths = defaultdict(dict)
-
-    global using_star
-    global using_landmarks
-    using_star = False
-    using_landmarks = False
-    departure_day_dt = convert_str_to_datetime('20250610')
-
-    print(len(stop_ids))
-
-    for landmark in landmarks:
-        print('L', landmark)
-        evaluated_nodes, _ = time_dependent_pareto_dijkstra(start_station=landmark, target_station=end, start_time=dep_time,edges=edges,trip_service_days=trips, departure_day=departure_day_dt)
-
-        for node, val in evaluated_nodes.items():
-            max_tr = max(val.keys())
-            if node in main_station_ids:
-                if node != landmark:
-                    path = find_path_pareto(landmark, node, evaluated_nodes, num_of_transfers = max_tr)
-                    if path:
-                        travelTime = get_travel_time_in_mins(path)
-                        preprocessed_paths[node][landmark] = travelTime
-                else:
-                    preprocessed_paths[node][landmark] = 0
-        
-    return preprocessed_paths
 
 # Define constants
-MIN_TRANSFER_TIME = 120
-TIME_WINDOW = 5*60*60
+MIN_TRANSFER_TIME = 180
+TIME_WINDOW = 8*60*60
 TRANSFER_BOUND = 6
 ONLY_FASTEST_TRIP = False
 NUMBER_OF_DAYS_IN_ADVANCE = 14
-PROFILE_INTERVAL = 400*60 #seconds
+PROFILE_INTERVAL = 120*60 #seconds
 
 NUM_OF_SEARCHES = 1 #for testing, number of searches
 TO_PRINT_IN_TERMINAL = False if NUM_OF_SEARCHES > 1 or __name__ != "__main__" else True

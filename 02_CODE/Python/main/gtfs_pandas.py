@@ -3,11 +3,9 @@ import numpy as np
 import random
 import joblib
 import os
-import re
-import timeit
 import time
 
-from datetime import datetime, timedelta
+from datetime import datetime
 from collections import defaultdict
 from unidecode import unidecode
 from rapidfuzz import process, fuzz
@@ -323,37 +321,6 @@ def generate_route_ids(timetable):
     
     return {trip_id: unique_sequences[seq] for trip_id, seq in trip_sequences.items()}
 
-def convert_edge_times_to_timedelta(edges):
-    start_time = time.time()
-    for out_node in edges:
-        for in_node in edges[out_node]:
-            new_edge_list = []
-            for edge in edges[out_node][in_node]:
-                if len(edge) == 4:
-                    dep_seconds, arr_seconds, trip_id, shifted_day = edge
-                else:
-                    dep_seconds, arr_seconds, trip_id = edge
-                    shifted_day = 0
-                service_day_shift = timedelta(days = shifted_day)
-
-                if isinstance(dep_seconds, (int, float)) and isinstance(arr_seconds, (int, float)):
-                    dep_time = timedelta(seconds = dep_seconds)
-                    arr_time = timedelta(seconds = arr_seconds)
-                else:
-                    dep_time = dep_seconds
-                    arr_time = arr_seconds
-
-                new_edge_list.append((dep_time, arr_time, trip_id, service_day_shift))
-
-            edges[out_node][in_node] = new_edge_list
-
-    for out_node in edges:
-        for in_node in edges[out_node]:
-            edges[out_node][in_node].sort()
-    
-    print(time.time() - start_time,'Converting edges to td')
-    return edges
-
 def convert_nested_defaultdict(d):
     return {k: convert_nested_defaultdict(v) for k, v in d.items()} if isinstance(d, defaultdict) else d
 
@@ -400,7 +367,6 @@ def get_stops_df():
 abspath = os.path.abspath(__file__)
 dirpath = os.path.dirname(abspath)
 CACHE_FOLDER_PATH = os.path.join(dirpath, "cache")
-GTFS_FOLDER_PATH = os.path.normpath(os.path.join(dirpath, "..", "PID_GTFS"))
-MIN_TRANSFER_TIME = 120
-
-
+START_DATE = 20250731
+GTFS_FOLDER_PATH = os.path.normpath(os.path.join(dirpath, "..", f"PID_GTFS_{START_DATE}"))
+MIN_TRANSFER_TIME = 180

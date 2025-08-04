@@ -1,20 +1,16 @@
 import tkinter as tk
-from tkinter import ttk, messagebox
-from tktimepicker import AnalogPicker, AnalogThemes, SpinTimePickerModern, SpinTimePickerOld, SpinDatePickerModern
-from datetime import datetime, timedelta  # Ensure datetime is imported
-import joblib
 import time
-# from pareto_main import *
-from pareto_main_full_TD_with_transfers import *
-
 import threading
 import re
-import random
-from unidecode import unidecode
-import os
-
 import locale
-from functools import partial
+
+from pareto_main_full_TD_with_transfers import *
+from tkinter import ttk, messagebox
+from tktimepicker import SpinTimePickerModern
+from datetime import datetime, timedelta  # Ensure datetime is imported
+from unidecode import unidecode
+
+
 
 # Set Czech locale (try 'cs_CZ.UTF-8', or fallback options below)
 try:
@@ -295,7 +291,7 @@ time_picker.setMins(30)
 time_picker.pack(expand=False)
 
 #Den odjezdu
-START_DATE = 20250610
+START_DATE = 20250731
 
 # Convert START_DATE to datetime object
 start_date = datetime.strptime(str(START_DATE), "%Y%m%d")

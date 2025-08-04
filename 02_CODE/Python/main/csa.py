@@ -1,26 +1,14 @@
-import heapq
-import joblib
 import pandas as pd
 import bisect
 import random
-import re
 import time
-import string
-import math
-import os
-import timeit
 import statistics
 
 from collections import namedtuple
-import datetime as dt
-from datetime import timedelta, datetime
 from collections import defaultdict
-from rapidfuzz import process, fuzz
-from unidecode import unidecode
-from sqlalchemy import create_engine, text
 from gtfs_pandas import *
 from pareto_main import convert_sec_to_hh_mm_ss
-from pareto_main_full_TD_with_transfers import get_travel_time_in_mins, get_shifted_days_dicts, is_trip_service_day_valid
+from pareto_main_full_TD_with_transfers import get_shifted_days_dicts, is_trip_service_day_valid, get_default_journey_info
 
 def build_edges_csa(timetable = pd.DataFrame()):
     """
@@ -131,15 +119,11 @@ def scan_connections(connections, footpaths, starting_time, start_station, targe
         
         departure_day, weekday = shifted_days[conn.shift]
     
-        # if not (conn.trip_id in checked_trips or is_trip_service_day_valid(departure_day, conn.trip_id, trip_service_days, weekday)):
-        #     continue
-
         if conn.trip_id in checked_trips:
             pass
         
         elif is_trip_service_day_valid(departure_day, conn.trip_id, trip_service_days, weekday):
             checked_trips.add(conn.trip_id)
-            pass
 
         else:
             continue
@@ -351,23 +335,25 @@ def testing(n, from_P):
 def main():
     timetable = get_timetable()
     StopNames.initialize(get_stops_df(), timetable)
-
+    
     edges = build_edges_csa(timetable)
     footpaths, valid_stops = build_footpaths(edges)
     trip_service_days = get_trip_service_days()
-    departure_day = convert_str_to_datetime('20250610')
-    start_time = convert_str_to_sec('6:00:00')
 
-    start_station = 'korunovacni'
-    end_station = 'pankrac'
+    departure_time, departure_day, start_station, end_station = get_default_journey_info()
+
+    departure_day = convert_str_to_datetime(departure_day)
+    departure_time = convert_str_to_sec(departure_time)
+
     start_station = list(valid_stops[(StopNames.get_id_from_fuzzy_input_name(start_station))])[0]
     end_station = list(valid_stops[(StopNames.get_id_from_fuzzy_input_name(end_station))])[0]
+
     print(start_station, end_station)
     
     ea_time, tr, seen_conns, journey_pointers = scan_connections(
         edges,
         footpaths,
-        start_time,
+        departure_time,
         start_station,
         end_station,
         departure_day,
@@ -383,27 +369,6 @@ if __name__ == "__main__":
     MIN_TRANSFER_TIME: int = 180
     MIN_TRANSFER_LOOP_TIME: int = 60
 
-    testing(n = 1000, from_P = True)
-    testing(n = 1000, from_P = False)
-    exit()
     main()
-    print('Building edges')
 
-    print('start')
-
-    # More precise timing
-    start_time = convert_str_to_sec(start_time)
-    
-    # end_station = 'klikovan'
-    start_station = 'dvorce'
-    start_station = 'jablonec n jiz. zel st'
-    end_station = 'trutnov'
-    end_station = 'vodickova'
-    # # end_station = 'prazskeho pvostani'
-
-
-    start_station = StopNames.get_stop_id_from_main_id(StopNames.get_id_from_fuzzy_input_name(start_station))
-    end_station = StopNames.get_stop_id_from_main_id(StopNames.get_id_from_fuzzy_input_name(end_station))
-
-    run_multiple_scans(edges, footpaths, start_time, start_station, end_station, departure_day, trip_service_days, n = 1)
     

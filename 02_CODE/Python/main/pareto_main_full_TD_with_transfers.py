@@ -94,19 +94,19 @@ def time_dependent_pareto_dijkstra(journey_info, edges, trip_service_days, is_sh
     global already_landmarked
     already_landmarked = {}
 
-    find_pareto_paths = True if gui else ONLY_FASTEST_TRIP
+    find_fastest_trip = False if gui else ONLY_FASTEST_TRIP
 
     while max_transfers >= 0:  # Run until we reach -1 transfers
         while pq:
             _, current_time, current_transfers, current_station = heapq.heappop(pq)
 
-            if find_pareto_paths: 
+            if find_fastest_trip: 
                 settled.add(current_station)
             else: # pareto-labels
                 settled.add((current_station, current_transfers))
 
             if not is_shortest_path_tree_search and current_station == journey_info.target_station:
-                max_transfers = -1 if find_pareto_paths else current_transfers
+                max_transfers = -1 if find_fastest_trip else current_transfers
                 break
 
             if current_transfers > max_transfers:
@@ -137,7 +137,7 @@ def time_dependent_pareto_dijkstra(journey_info, edges, trip_service_days, is_sh
                 if new_transfers > max_transfers:
                     continue
                 
-                if not find_pareto_paths:
+                if not find_fastest_trip:
                     # Check if this label is Pareto-optimal
                     if next_station not in labels:
                         labels[next_station] = []
@@ -385,9 +385,9 @@ def run_program(journey_info: JourneyInputInfo, edges, trip_service_days):
 
 def get_default_journey_info():
     departure_station_name = "Malvazinky"
-    arrival_station_name = "K Juliane"
-    departure_time = '6:00:00'
-    departure_day = '20250610'
+    arrival_station_name = "K Juliáně"
+    departure_time = '7:35:00'
+    departure_day = str(START_DATE)
 
     return departure_time, departure_day, departure_station_name, arrival_station_name
 
@@ -613,6 +613,7 @@ TO_PRINT_IN_TERMINAL = True
 RANDOM_INPUTS = False
 USING_LANDMARKS = False
 USING_STAR = False
+START_DATE = 20250731
 
 abspath = os.path.abspath(__file__)
 dirpath = os.path.dirname(abspath)

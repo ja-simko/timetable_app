@@ -412,8 +412,8 @@ def main():
     if USING_LANDMARKS:
         global preprocessed_paths_norm
         global preprocessed_paths_rev
-        preprocessed_paths_norm = load_cached_data('ALLfinal_preprocess_8_farthest_normal_mathfloor')
-        preprocessed_paths_rev = load_cached_data('ALLfinal_preprocess_8_farthest_rev_mathfloor')
+        preprocessed_paths_norm = load_preprocessed_landmarks_file('ALLfinal_preprocess_8_farthest_normal_mathfloor')
+        preprocessed_paths_rev = load_preprocessed_landmarks_file('ALLfinal_preprocess_8_farthest_rev_mathfloor')
 
     start_time = time.time()
     _ = run_program(journey_info, edges, trip_service_days)
@@ -520,7 +520,7 @@ def get_farthest(landmarks):
         print(StopNames.get_general_name_from_id(farthest_stop), farthest/1000/len(landmarks))
         return farthest_stop
 
-def testing(n, from_P):
+def run_experiments(n, from_P: bool):
     random.seed(123)
 
     departures = [*(StopNames.get_id_from_fuzzy_input_name(StopNames.get_a_random_stop_name('P' if from_P else None)) for i in range(n//2))] + [*(StopNames.get_id_from_fuzzy_input_name(StopNames.get_a_random_stop_name()) for i in range(n//2))]
@@ -531,7 +531,7 @@ def testing(n, from_P):
     trips = get_trip_service_days()
     dep_time = convert_str_to_sec(get_random_time_in_string())
     dep_time = convert_str_to_sec('06:00:00')
-    departure_day_dt = convert_str_to_datetime("20250610")
+    departure_day_dt = convert_str_to_datetime(str(START_DATE))
 
     global USING_STAR
     global USING_LANDMARKS
@@ -548,26 +548,27 @@ def testing(n, from_P):
         times_list = []
         list_of_EA = []
 
-        global preprocessed_paths
         global preprocessed_paths_norm
         global preprocessed_paths_rev
 
         if j == 0:
             mode = 'Landmarks'
-            filename_processed_landmarks_norm = f'ALLfinal_preprocess_16_farthest_normal_mathfloor'
-            filename_processed_landmarks_rev = f'ALLfinal_preprocess_16_farthest_rev_mathfloor'
-            preprocessed_paths_norm = load_cached_data(filename_processed_landmarks_norm)
-            preprocessed_paths_rev = load_cached_data(filename_processed_landmarks_rev)
+            filename_processed_landmarks_norm = f'Preprocessed_SPT_landmarks_16_random_normal'
+            filename_processed_landmarks_rev = f'Preprocessed_SPT_landmarks_16_random_reverse'
+            preprocessed_paths_norm = load_preprocessed_landmarks_file(filename_processed_landmarks_norm)
+            preprocessed_paths_rev = load_preprocessed_landmarks_file(filename_processed_landmarks_rev)
 
         elif j == 1:
-            mode = 'Basic'
+            mode = 'A Star'
             USING_LANDMARKS = False
             USING_STAR = False
 
         elif j == 2:
-            mode = 'A Star'
-            USING_LANDMARKS = False
-            USING_STAR = True
+            mode = 'Landmarks'
+            filename_processed_landmarks_norm = f'Preprocessed_SPT_landmarks_16_farthest_normal'
+            filename_processed_landmarks_rev = f'Preprocessed_SPT_landmarks_16_farthest_normal'
+            preprocessed_paths_norm = load_preprocessed_landmarks_file(filename_processed_landmarks_norm)
+            preprocessed_paths_rev = load_preprocessed_landmarks_file(filename_processed_landmarks_rev)
 
         print('Start', mode, '' if not USING_LANDMARKS else filename_processed_landmarks_norm, departure_day_dt)
         counter_not_found_paths = 0
@@ -607,7 +608,7 @@ MIN_TRANSFER_TIME = 180
 TIME_WINDOW = 8*60*60
 TRANSFER_BOUND = 6
 NUMBER_OF_DAYS_IN_ADVANCE = 14
-ONLY_FASTEST_TRIP = False
+ONLY_FASTEST_TRIP = True
 
 TO_PRINT_IN_TERMINAL = True
 RANDOM_INPUTS = False
@@ -621,6 +622,7 @@ CACHE_FOLDER_PATH = os.path.join(dirpath, "cache")
 
 if __name__ == "__main__":
     main()
+
 
    
 

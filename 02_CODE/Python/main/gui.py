@@ -4,15 +4,12 @@ import threading
 import re
 import locale
 
-from pareto_main_full_TD_with_transfers import *
+from main_pareto_paths import *
 from tkinter import ttk, messagebox
 from tktimepicker import SpinTimePickerModern
 from datetime import datetime, timedelta  # Ensure datetime is imported
 from unidecode import unidecode
 
-
-
-# Set Czech locale (try 'cs_CZ.UTF-8', or fallback options below)
 try:
     locale.setlocale(locale.LC_COLLATE, 'cs_CZ.UTF-8')
 except locale.Error:
@@ -20,7 +17,6 @@ except locale.Error:
         locale.setlocale(locale.LC_COLLATE, 'cs_CZ')
     except locale.Error:
         print("Czech locale not available on your system.")
-        # Optional fallback or custom sort
 
 # Define the cache as global or part of a class if you refactor
 edges = None
@@ -64,17 +60,7 @@ def process_route(iteration, departure_station_name, arrival_station_name, depar
         stop = connection[0]
         next_departure_time = convert_sec_to_hh_mm_ss(int(stop[1]) + 30*60)
 
-        '''
-        new_arrival_time = fastest_path[-1][-1][1]
-        len_of_new_conn = len(fastest_path)
 
-        if iteration != 0 and new_arrival_time == earliest_arrival and len_of_new_conn == len_of_last_conn:
-            iteration -= 1
-            output_area = output_areas[iteration]
-            output_area.delete('1.0', tk.END)
-        else:
-            earliest_arrival, len_of_last_conn = new_arrival_time, len_of_new_conn
-        '''
         full_results_bool = bool(display_all_stops_var.get())
 
         insert_results(all_paths, full_results_bool, iteration)
@@ -112,8 +98,6 @@ def on_submit():
         messagebox.showerror("Chyba", "Zadej čas ve formátu HH:MM")
         return
 
-    # for output_area in output_areas:
-    #     output_area.delete('1.0', tk.END)
     process_route(0, departure_station_name, arrival_station_name, departure_time_str, departure_day)
     print('One Run Time:', round((time.time() - start_time)*1000, 2), 'ms')
 
@@ -123,7 +107,6 @@ def insert_results(all_paths, full_results_bool, iteration):
 
     output_areas = create_output_areas(iteration, all_paths)
     print(len(output_areas), iteration)
-    #output_area.delete('1.0', tk.END)
     header = f"{'Zastávka':<25}{'Čas odjezdu':<15}{'Linka':<10}{'Stanoviště':<10}\n"
 
     for i, complete_path in enumerate(all_paths):

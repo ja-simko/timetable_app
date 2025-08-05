@@ -7,8 +7,8 @@ import statistics
 from collections import namedtuple
 from collections import defaultdict
 from gtfs_pandas import *
-from pareto_main import convert_sec_to_hh_mm_ss
-from pareto_main_full_TD_with_transfers import get_shifted_days_dicts, is_trip_service_day_valid, get_default_journey_info
+from profile_paths import convert_sec_to_hh_mm_ss
+from main_pareto_paths import get_shifted_days_dicts, is_trip_service_day_valid, get_default_journey_info
 
 def build_edges_csa(timetable = pd.DataFrame()):
     """
@@ -275,8 +275,6 @@ def testing(n, from_P):
     trip_service_days = get_trip_service_days()
     dep_time = convert_str_to_sec('06:00:00')
 
-    # departures = [*(StopNames.get_stop_id_from_main_id(StopNames.get_id_from_fuzzy_input_name(StopNames.get_a_random_stop_name())) for i in range(n//2))] + [*(StopNames.get_stop_id_from_main_id(StopNames.get_id_from_fuzzy_input_name(StopNames.get_a_random_stop_name('P' if from_P else None))) for i in range(n//2))]
-
     departures_main_id = [*(StopNames.get_id_from_fuzzy_input_name(StopNames.get_a_random_stop_name()) for i in range(n//2))] + [*(StopNames.get_id_from_fuzzy_input_name(StopNames.get_a_random_stop_name('P' if from_P else None)) for i in range(n//2))]
 
     departures = [*(list(valid_stops[main_id])[0] for main_id in departures_main_id)]
@@ -285,14 +283,11 @@ def testing(n, from_P):
     
     arrivals = [*(list(valid_stops[main_id])[0] for main_id in arrival_main_id)]
     
-    # arrivals = [*(StopNames.get_stop_id_from_main_id(StopNames.get_id_from_fuzzy_input_name(StopNames.get_a_random_stop_name('P' if from_P else None))) for i in range(n//2))] + [*(StopNames.get_stop_id_from_main_id(StopNames.get_id_from_fuzzy_input_name(StopNames.get_a_random_stop_name())) for i in range(n//2))]
-
     departure_day_dt = convert_str_to_datetime("20250610")
 
     for j in range(1):
         times_list = []
     
-        #    using_star = False
         print('Start' + str(departure_day_dt))
         counter_find_paths = 0
 
@@ -316,7 +311,6 @@ def testing(n, from_P):
             if not ea_time:
                 counter_find_paths += 1
                 times_list.append(time.time() - individual_time)
-                #print(start, end, StopNames.get_general_name_from_id(start), StopNames.get_general_name_from_id(end))
                 continue
 
             path = extract_journey(journey_pointers, end)

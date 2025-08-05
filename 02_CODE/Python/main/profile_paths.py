@@ -11,7 +11,7 @@ from collections import defaultdict
 from rapidfuzz import process, fuzz
 from unidecode import unidecode
 from gtfs_pandas import *
-from pareto_main_full_TD_with_transfers import get_default_journey_info
+from main_pareto_paths import get_default_journey_info
 
 #Helper Functions
 

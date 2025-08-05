@@ -121,7 +121,7 @@ def convert_str_to_datetime(day: str):
     return day
 
 def read_json_extra_info_stops():
-    data = pd.read_json(os.path.join(CACHE_FOLDER_PATH, 'zastavky_names.json'))
+    data = pd.read_json(os.path.join(GTFS_FOLDER_PATH, f'zastavky_names_{START_DATE}.json'))
     return data['stopGroups']
 
 def read_stops_file():
@@ -327,6 +327,9 @@ def convert_nested_defaultdict(d):
 def load_cached_data(filename):
     return joblib.load(os.path.join(CACHE_FOLDER_PATH, filename))
 
+def load_preprocessed_landmarks_file(filename):
+    return joblib.load(os.path.join(LANDMARKS_FOLDER_PATH, filename))
+
 def save_cached_data(data, filename):
     return joblib.dump(data, os.path.join(CACHE_FOLDER_PATH, filename))
 
@@ -366,7 +369,8 @@ def get_stops_df():
 
 abspath = os.path.abspath(__file__)
 dirpath = os.path.dirname(abspath)
-CACHE_FOLDER_PATH = os.path.join(dirpath, "cache")
 START_DATE = 20250731
+CACHE_FOLDER_PATH = os.path.join(dirpath, "cache")
 GTFS_FOLDER_PATH = os.path.normpath(os.path.join(dirpath, "..", f"PID_GTFS_{START_DATE}"))
+LANDMARKS_FOLDER_PATH = os.path.join(dirpath, "preprocessed_landmarks")
 MIN_TRANSFER_TIME = 180

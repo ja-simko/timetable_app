@@ -1,64 +1,62 @@
 
 ==================================================
 
-Start LALLfinal_preprocess_16_farthest_normal_mathfloor 20250610 No Transfer Labels
-Median 0.5926
-Mean 1.1948
+==================================================
+
+Start LPreprocessed_SPT_landmarks_16_random_normal 20250610 No Transfer Labels
+Median 0.0758
+Mean 0.0758
+Not found paths 0
+
+
+Start   20250610 No Transfer Labels
+Median 0.2731
+Mean 0.2731
+Not found paths 0
+
+
+Start n 20250610 No Transfer Labels
+Median 0.1914
+Mean 0.1914
+Not found paths 0
+
+
+==================================================
+
+Start LPreprocessed_SPT_landmarks_16_random_normal 20250610 No Transfer Labels
+Median 0.1626
+Mean 0.3108
 Not found paths 1
 
 
-Start a 20250610 No Transfer Labels
-Median 1.072
-Mean 1.53
+Start   20250610 No Transfer Labels
+Median 0.3166
+Mean 0.4397
 Not found paths 1
 
 
-Start S 20250610 No Transfer Labels
-Median 0.5429
-Mean 1.4772
+Start n 20250610 No Transfer Labels
+Median 0.3034
+Mean 0.4818
 Not found paths 1
 
 
 ==================================================
 
-Start LALLfinal_preprocess_16_farthest_normal_mathfloor 20250610 No Transfer Labels
-Median 1.5717
-Mean 1.8866
-Not found paths 1
+Start LPreprocessed_SPT_landmarks_16_random_normal 20250610 No Transfer Labels
+Median 0.1497
+Mean 0.3699
+Not found paths 2
 
 
-Start a 20250610 No Transfer Labels
-Median 2.3692
-Mean 2.295
-Not found paths 1
+Start   20250610 No Transfer Labels
+Median 0.4364
+Mean 0.5072
+Not found paths 2
 
 
-Start S 20250610 No Transfer Labels
-Median 2.0892
-Mean 2.2254
-Not found paths 1
+Start n 20250610 No Transfer Labels
+Median 0.3095
+Mean 0.4909
+Not found paths 2
 
-
-==================================================
-
-Start LALLfinal_preprocess_16_farthest_normal_mathfloor 20250610 No Transfer Labels
-Median 1.4686
-Mean 1.9001
-Not found paths 1
-
-
-Start a 20250610 No Transfer Labels
-Median 2.6726
-Mean 2.7276
-Not found paths 1
-
-
-Start S 20250610 No Transfer Labels
-Median 2.1613
-Mean 2.3658
-Not found paths 1
-
-
-==================================================
-
-==================================================

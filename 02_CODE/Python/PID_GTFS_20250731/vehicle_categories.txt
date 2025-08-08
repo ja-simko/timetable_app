@@ -1,0 +1,4 @@
+vehicle_category_id
+metro_vlak
+metro_vuz_ridici
+metro_vuz_stred

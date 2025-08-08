@@ -1,0 +1,92 @@
+Parameters: 20250610, 6:00:00 RANDOM CHOICE of STATIONS
+
+======
+
+Basic
+Median 0.9369
+Mean 0.8832
+
+Star
+Median 0.7546
+Mean 0.8136
+
+---
+
+ALT 8 RANDOM
+Median 0.5926
+Mean 0.6345
+
+ALT 16 RANDOM
+Median 0.5760
+Mean 0.6068
+
+ALT 32 RANDOM
+Median 0.5663
+Mean 0.6089
+
+ALT 6 FARTHEST
+Median 0.5973
+Mean 0.6455
+
+ALT 16 FARTHEST
+Median 0.5814
+Mean 0.6133
+
+ALT 32 FARTHEST
+Median 0.5628
+Mean 0.6099
+
+---
+
+CSA
+Median 0.6000
+Mean 0.7119
+
+======
+
+Parameters: 20250610, 6:00:00 ZONE P CHOICE of STATIONS
+
+======
+
+Basic
+Median 0.4595
+Mean 0.5830
+
+Star
+Median 0.3687
+Mean 0.5492
+
+---
+
+ALT 8 RANDOM
+Median 0.2698
+Mean 0.4166
+
+ALT 16 RANDOM
+Median 0.2386
+Mean 0.3935
+
+ALT 32 RANDOM
+Median 0.2128
+Mean 0.3849
+
+
+ALT 8 FARTHEST
+Median 0.2801
+Mean 0.4257
+
+ALT 16 FARTHEST
+Median 0.2386
+Mean 0.3987
+
+ALT 32 FARTHEST
+Median 0.2389
+Mean 0.3943
+
+---
+
+CSA
+Median 0.3833
+Mean 0.5287
+
+======

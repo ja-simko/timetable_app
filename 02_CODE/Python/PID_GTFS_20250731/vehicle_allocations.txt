@@ -1,0 +1,4 @@
+route_id,vehicle_category_id
+L991,metro_vlak
+L992,metro_vlak
+L993,metro_vlak

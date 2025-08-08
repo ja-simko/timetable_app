@@ -1,0 +1,6 @@
+parent_id,child_id,child_sequence
+metro_vlak,metro_vuz_ridici,1
+metro_vlak,metro_vuz_stred,2
+metro_vlak,metro_vuz_stred,3
+metro_vlak,metro_vuz_stred,4
+metro_vlak,metro_vuz_ridici,5

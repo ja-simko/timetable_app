@@ -1,0 +1,1624 @@
+% $ biblatex auxiliary file $
+% $ biblatex bbl format version 3.2 $
+% Do not modify the above lines!
+%
+% This is an auxiliary file used by the 'biblatex' package.
+% This file may safely be deleted. It will be recreated by
+% biber as required.
+%
+\begingroup
+\makeatletter
+\@ifundefined{ver@biblatex.sty}
+  {\@latex@error
+     {Missing 'biblatex' package}
+     {The bibliography requires the 'biblatex' package.}
+      \aftergroup\endinput}
+  {}
+\endgroup
+
+
+\refsection{0}
+  \datalist[entry]{nyt/global//global/global}
+    \entry{BatzTDCH}{inproceedings}{}
+      \name{author}{4}{}{%
+        {{hash=34c497704402924bd5a5f0c20129ee2c}{%
+           family={Batz},
+           familyi={B\bibinitperiod},
+           given={Gernot\bibnamedelima Veit},
+           giveni={G\bibinitperiod\bibinitdelim V\bibinitperiod}}}%
+        {{hash=d304bbf1a7d34c7a7f3d2b0e6bdcbea8}{%
+           family={Geisberger},
+           familyi={G\bibinitperiod},
+           given={Robert},
+           giveni={R\bibinitperiod}}}%
+        {{hash=a3132157aaf1c812ef05f3bc885c2dfb}{%
+           family={Neubauer},
+           familyi={N\bibinitperiod},
+           given={Sabine},
+           giveni={S\bibinitperiod}}}%
+        {{hash=be6c7f12620ef1a8d1d85d96d476a158}{%
+           family={Sanders},
+           familyi={S\bibinitperiod},
+           given={Peter},
+           giveni={P\bibinitperiod}}}%
+      }
+      \list{publisher}{1}{%
+        {Springer Berlin Heidelberg}%
+      }
+      \strng{namehash}{fd12824c21310a608958ccb717814313}
+      \strng{fullhash}{fd12824c21310a608958ccb717814313}
+      \strng{bibnamehash}{fd12824c21310a608958ccb717814313}
+      \strng{authorbibnamehash}{fd12824c21310a608958ccb717814313}
+      \strng{authornamehash}{fd12824c21310a608958ccb717814313}
+      \strng{authorfullhash}{fd12824c21310a608958ccb717814313}
+      \field{sortinit}{B}
+      \field{sortinithash}{d7095fff47cda75ca2589920aae98399}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{booktitle}{Experimental Algorithms}
+      \field{isbn}{978-3-642-13193-6}
+      \field{title}{Time-Dependent Contraction Hierarchies and Approximation}
+      \field{year}{2010}
+      \field{pages}{166\bibrangedash 177}
+      \range{pages}{12}
+      \verb{doi}
+      \verb 10.1007/978-3-642-13193-6_15
+      \endverb
+    \endentry
+    \entry{bauer2011experimental}{article}{}
+      \name{author}{3}{}{%
+        {{hash=ff60de32d37f57e756655033b3e705a8}{%
+           family={Bauer},
+           familyi={B\bibinitperiod},
+           given={Reinhard},
+           giveni={R\bibinitperiod}}}%
+        {{hash=bc775b0bfe2f5eba2c0d55106a052b55}{%
+           family={Delling},
+           familyi={D\bibinitperiod},
+           given={Daniel},
+           giveni={D\bibinitperiod}}}%
+        {{hash=f2f741491852a3b5c3ad17d40825e753}{%
+           family={Wagner},
+           familyi={W\bibinitperiod},
+           given={Dorothea},
+           giveni={D\bibinitperiod}}}%
+      }
+      \list{publisher}{1}{%
+        {Wiley Online Library}%
+      }
+      \strng{namehash}{f0e39487c3cf946943bce31402f73735}
+      \strng{fullhash}{f0e39487c3cf946943bce31402f73735}
+      \strng{bibnamehash}{f0e39487c3cf946943bce31402f73735}
+      \strng{authorbibnamehash}{f0e39487c3cf946943bce31402f73735}
+      \strng{authornamehash}{f0e39487c3cf946943bce31402f73735}
+      \strng{authorfullhash}{f0e39487c3cf946943bce31402f73735}
+      \field{sortinit}{B}
+      \field{sortinithash}{d7095fff47cda75ca2589920aae98399}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{journaltitle}{Networks}
+      \field{number}{1}
+      \field{title}{Experimental study of speed up techniques for timetable information systems}
+      \field{volume}{57}
+      \field{year}{2011}
+      \field{pages}{38\bibrangedash 52}
+      \range{pages}{15}
+      \verb{doi}
+      \verb 10.1002/net.20382
+      \endverb
+    \endentry
+    \entry{CMUBinHeaps}{incollection}{}
+      \name{author}{1}{}{%
+        {{hash=18c3fbc7eb699bd9c3d8a8e578474507}{%
+           family={Carnegie\bibnamedelimb Mellon\bibnamedelima University},
+           familyi={C\bibinitperiod\bibinitdelim M\bibinitperiod\bibinitdelim U\bibinitperiod},
+           given={Computer\bibnamedelimb Science\bibnamedelima Department},
+           giveni={C\bibinitperiod\bibinitdelim S\bibinitperiod\bibinitdelim D\bibinitperiod}}}%
+      }
+      \strng{namehash}{18c3fbc7eb699bd9c3d8a8e578474507}
+      \strng{fullhash}{18c3fbc7eb699bd9c3d8a8e578474507}
+      \strng{bibnamehash}{18c3fbc7eb699bd9c3d8a8e578474507}
+      \strng{authorbibnamehash}{18c3fbc7eb699bd9c3d8a8e578474507}
+      \strng{authornamehash}{18c3fbc7eb699bd9c3d8a8e578474507}
+      \strng{authorfullhash}{18c3fbc7eb699bd9c3d8a8e578474507}
+      \field{sortinit}{C}
+      \field{sortinithash}{4d103a86280481745c9c897c925753c0}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{booktitle}{Introduction to Data Structures}
+      \field{howpublished}{Materiál k přednášce}
+      \field{title}{Binary Heaps}
+      \field{urlday}{10}
+      \field{urlmonth}{7}
+      \field{urlyear}{2025}
+      \field{year}{2011}
+      \field{urldateera}{ce}
+      \verb{urlraw}
+      \verb https://www.andrew.cmu.edu/course/15-121/lectures/Binary%20Heaps/heaps.html
+      \endverb
+      \verb{url}
+      \verb https://www.andrew.cmu.edu/course/15-121/lectures/Binary%20Heaps/heaps.html
+      \endverb
+    \endentry
+    \entry{XiaoPCGames}{article}{}
+      \name{author}{2}{}{%
+        {{hash=86c812b1cfdf0bee260b4e16dfd410c0}{%
+           family={Cui},
+           familyi={C\bibinitperiod},
+           given={Xiao},
+           giveni={X\bibinitperiod}}}%
+        {{hash=bd856a3b71fd9af902c1afb5c55eccb8}{%
+           family={Shi},
+           familyi={S\bibinitperiod},
+           given={Hao},
+           giveni={H\bibinitperiod}}}%
+      }
+      \list{publisher}{2}{%
+        {International Journal of Computer Science}%
+        {Network Security (IJCSNS)}%
+      }
+      \strng{namehash}{253ba9621b07b42d69a7c6eae87f7a90}
+      \strng{fullhash}{253ba9621b07b42d69a7c6eae87f7a90}
+      \strng{bibnamehash}{253ba9621b07b42d69a7c6eae87f7a90}
+      \strng{authorbibnamehash}{253ba9621b07b42d69a7c6eae87f7a90}
+      \strng{authornamehash}{253ba9621b07b42d69a7c6eae87f7a90}
+      \strng{authorfullhash}{253ba9621b07b42d69a7c6eae87f7a90}
+      \field{sortinit}{C}
+      \field{sortinithash}{4d103a86280481745c9c897c925753c0}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{journaltitle}{International Journal of Computer Science and Network Security}
+      \field{number}{1}
+      \field{title}{A*-based pathfinding in modern computer games}
+      \field{volume}{11}
+      \field{year}{2011}
+      \field{pages}{125\bibrangedash 130}
+      \range{pages}{6}
+    \endentry
+    \entry{dechter1985generalized}{article}{}
+      \name{author}{2}{}{%
+        {{hash=78938a198b4931e837a6994d729d36f1}{%
+           family={Dechter},
+           familyi={D\bibinitperiod},
+           given={Rina},
+           giveni={R\bibinitperiod}}}%
+        {{hash=809f695b398afbb54b544c49e8d1bbbb}{%
+           family={Pearl},
+           familyi={P\bibinitperiod},
+           given={Judea},
+           giveni={J\bibinitperiod}}}%
+      }
+      \list{location}{1}{%
+        {New York, NY, USA}%
+      }
+      \list{publisher}{1}{%
+        {Association for Computing Machinery}%
+      }
+      \strng{namehash}{fb4065c11c6e1e59181f990e0657fe9a}
+      \strng{fullhash}{fb4065c11c6e1e59181f990e0657fe9a}
+      \strng{bibnamehash}{fb4065c11c6e1e59181f990e0657fe9a}
+      \strng{authorbibnamehash}{fb4065c11c6e1e59181f990e0657fe9a}
+      \strng{authornamehash}{fb4065c11c6e1e59181f990e0657fe9a}
+      \strng{authorfullhash}{fb4065c11c6e1e59181f990e0657fe9a}
+      \field{sortinit}{D}
+      \field{sortinithash}{6f385f66841fb5e82009dc833c761848}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{issn}{0004-5411}
+      \field{journaltitle}{J. ACM}
+      \field{month}{7}
+      \field{number}{3}
+      \field{title}{Generalized best-first search strategies and the optimality of A*}
+      \field{volume}{32}
+      \field{year}{1985}
+      \field{pages}{505\bibrangedash 536}
+      \range{pages}{32}
+      \verb{doi}
+      \verb 10.1145/3828.3830
+      \endverb
+      \verb{urlraw}
+      \verb https://doi.org/10.1145/3828.3830
+      \endverb
+      \verb{url}
+      \verb https://doi.org/10.1145/3828.3830
+      \endverb
+    \endentry
+    \entry{dellingRAPTOR}{article}{}
+      \name{author}{3}{}{%
+        {{hash=bc775b0bfe2f5eba2c0d55106a052b55}{%
+           family={Delling},
+           familyi={D\bibinitperiod},
+           given={Daniel},
+           giveni={D\bibinitperiod}}}%
+        {{hash=58fb32d0e500e97fc503f4e75953eaaf}{%
+           family={Pajor},
+           familyi={P\bibinitperiod},
+           given={Thomas},
+           giveni={T\bibinitperiod}}}%
+        {{hash=8839683a16ad350312493c2e29f35b86}{%
+           family={Werneck},
+           familyi={W\bibinitperiod},
+           given={Renato\bibnamedelima F.},
+           giveni={R\bibinitperiod\bibinitdelim F\bibinitperiod}}}%
+      }
+      \strng{namehash}{db1be0529168d659399b5e94286411e9}
+      \strng{fullhash}{db1be0529168d659399b5e94286411e9}
+      \strng{bibnamehash}{db1be0529168d659399b5e94286411e9}
+      \strng{authorbibnamehash}{db1be0529168d659399b5e94286411e9}
+      \strng{authornamehash}{db1be0529168d659399b5e94286411e9}
+      \strng{authorfullhash}{db1be0529168d659399b5e94286411e9}
+      \field{sortinit}{D}
+      \field{sortinithash}{6f385f66841fb5e82009dc833c761848}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{journaltitle}{Transportation Science}
+      \field{number}{3}
+      \field{title}{Round-Based Public Transit Routing}
+      \field{volume}{49}
+      \field{year}{2015}
+      \field{pages}{591\bibrangedash 604}
+      \range{pages}{14}
+      \verb{doi}
+      \verb 10.1287/trsc.2014.0534
+      \endverb
+    \endentry
+    \entry{Delling2009enginneringRoute}{inbook}{}
+      \name{author}{4}{}{%
+        {{hash=bc775b0bfe2f5eba2c0d55106a052b55}{%
+           family={Delling},
+           familyi={D\bibinitperiod},
+           given={Daniel},
+           giveni={D\bibinitperiod}}}%
+        {{hash=be6c7f12620ef1a8d1d85d96d476a158}{%
+           family={Sanders},
+           familyi={S\bibinitperiod},
+           given={Peter},
+           giveni={P\bibinitperiod}}}%
+        {{hash=29b0627d9ddb65dcdfd14ddc22291e93}{%
+           family={Schultes},
+           familyi={S\bibinitperiod},
+           given={Dominik},
+           giveni={D\bibinitperiod}}}%
+        {{hash=f2f741491852a3b5c3ad17d40825e753}{%
+           family={Wagner},
+           familyi={W\bibinitperiod},
+           given={Dorothea},
+           giveni={D\bibinitperiod}}}%
+      }
+      \list{publisher}{1}{%
+        {Springer Berlin Heidelberg}%
+      }
+      \strng{namehash}{274c575b0970f83a1bcd81d41b76d380}
+      \strng{fullhash}{274c575b0970f83a1bcd81d41b76d380}
+      \strng{bibnamehash}{274c575b0970f83a1bcd81d41b76d380}
+      \strng{authorbibnamehash}{274c575b0970f83a1bcd81d41b76d380}
+      \strng{authornamehash}{274c575b0970f83a1bcd81d41b76d380}
+      \strng{authorfullhash}{274c575b0970f83a1bcd81d41b76d380}
+      \field{sortinit}{D}
+      \field{sortinithash}{6f385f66841fb5e82009dc833c761848}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{booktitle}{Algorithmics of Large and Complex Networks: Design, Analysis, and Simulation}
+      \field{isbn}{978-3-642-02094-0}
+      \field{title}{Engineering Route Planning Algorithms}
+      \field{year}{2009}
+      \field{pages}{117\bibrangedash 139}
+      \range{pages}{23}
+      \verb{doi}
+      \verb 10.1007/978-3-642-02094-0_7
+      \endverb
+      \verb{urlraw}
+      \verb https://doi.org/10.1007/978-3-642-02094-0_7
+      \endverb
+      \verb{url}
+      \verb https://doi.org/10.1007/978-3-642-02094-0_7
+      \endverb
+    \endentry
+    \entry{dellingLandmarkRouting}{inproceedings}{}
+      \name{author}{2}{}{%
+        {{hash=bc775b0bfe2f5eba2c0d55106a052b55}{%
+           family={Delling},
+           familyi={D\bibinitperiod},
+           given={Daniel},
+           giveni={D\bibinitperiod}}}%
+        {{hash=f2f741491852a3b5c3ad17d40825e753}{%
+           family={Wagner},
+           familyi={W\bibinitperiod},
+           given={Dorothea},
+           giveni={D\bibinitperiod}}}%
+      }
+      \list{publisher}{1}{%
+        {Springer Berlin Heidelberg}%
+      }
+      \strng{namehash}{82156a462e7743fffa6a70094bca05ec}
+      \strng{fullhash}{82156a462e7743fffa6a70094bca05ec}
+      \strng{bibnamehash}{82156a462e7743fffa6a70094bca05ec}
+      \strng{authorbibnamehash}{82156a462e7743fffa6a70094bca05ec}
+      \strng{authornamehash}{82156a462e7743fffa6a70094bca05ec}
+      \strng{authorfullhash}{82156a462e7743fffa6a70094bca05ec}
+      \field{sortinit}{D}
+      \field{sortinithash}{6f385f66841fb5e82009dc833c761848}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{booktitle}{Experimental Algorithms}
+      \field{isbn}{978-3-540-72845-0}
+      \field{title}{Landmark-Based Routing in Dynamic Graphs}
+      \field{year}{2007}
+      \field{pages}{52\bibrangedash 65}
+      \range{pages}{14}
+      \verb{doi}
+      \verb 10.1007/978-3-540-72845-0_5
+      \endverb
+    \endentry
+    \entry{dibbelt2017CSA}{article}{}
+      \name{author}{4}{}{%
+        {{hash=9a6b53c76ad354be4f8adeda3265771f}{%
+           family={Dibbelt},
+           familyi={D\bibinitperiod},
+           given={Julian},
+           giveni={J\bibinitperiod}}}%
+        {{hash=58fb32d0e500e97fc503f4e75953eaaf}{%
+           family={Pajor},
+           familyi={P\bibinitperiod},
+           given={Thomas},
+           giveni={T\bibinitperiod}}}%
+        {{hash=4ddd12af5ddfc9740dffd2b6610159ce}{%
+           family={Strasser},
+           familyi={S\bibinitperiod},
+           given={Ben},
+           giveni={B\bibinitperiod}}}%
+        {{hash=f2f741491852a3b5c3ad17d40825e753}{%
+           family={Wagner},
+           familyi={W\bibinitperiod},
+           given={Dorothea},
+           giveni={D\bibinitperiod}}}%
+      }
+      \strng{namehash}{d3961ef8d3f71db029e4a226e4463fa6}
+      \strng{fullhash}{d3961ef8d3f71db029e4a226e4463fa6}
+      \strng{bibnamehash}{d3961ef8d3f71db029e4a226e4463fa6}
+      \strng{authorbibnamehash}{d3961ef8d3f71db029e4a226e4463fa6}
+      \strng{authornamehash}{d3961ef8d3f71db029e4a226e4463fa6}
+      \strng{authorfullhash}{d3961ef8d3f71db029e4a226e4463fa6}
+      \field{sortinit}{D}
+      \field{sortinithash}{6f385f66841fb5e82009dc833c761848}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{journaltitle}{Journal of Experimental Algorithmics}
+      \field{title}{Connection Scan Algorithm}
+      \field{volume}{23}
+      \field{year}{2017}
+      \verb{doi}
+      \verb 10.1145/3274661
+      \endverb
+    \endentry
+    \entry{Dijkstra59}{article}{}
+      \name{author}{1}{}{%
+        {{hash=fa6182769b69c9f7b1559f8430d88929}{%
+           family={Dijkstra},
+           familyi={D\bibinitperiod},
+           given={E.\bibnamedelimi W.},
+           giveni={E\bibinitperiod\bibinitdelim W\bibinitperiod}}}%
+      }
+      \list{location}{1}{%
+        {Berlin, Heidelberg}%
+      }
+      \list{publisher}{1}{%
+        {Springer-Verlag}%
+      }
+      \strng{namehash}{fa6182769b69c9f7b1559f8430d88929}
+      \strng{fullhash}{fa6182769b69c9f7b1559f8430d88929}
+      \strng{bibnamehash}{fa6182769b69c9f7b1559f8430d88929}
+      \strng{authorbibnamehash}{fa6182769b69c9f7b1559f8430d88929}
+      \strng{authornamehash}{fa6182769b69c9f7b1559f8430d88929}
+      \strng{authorfullhash}{fa6182769b69c9f7b1559f8430d88929}
+      \field{sortinit}{D}
+      \field{sortinithash}{6f385f66841fb5e82009dc833c761848}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{issn}{0029-599X}
+      \field{journaltitle}{Numer. Math.}
+      \field{month}{12}
+      \field{number}{1}
+      \field{title}{A note on two problems in connexion with graphs}
+      \field{volume}{1}
+      \field{year}{1959}
+      \field{pages}{269\bibrangedash 271}
+      \range{pages}{3}
+      \verb{doi}
+      \verb 10.1007/BF01386390
+      \endverb
+      \verb{urlraw}
+      \verb https://doi.org/10.1007/BF01386390
+      \endverb
+      \verb{url}
+      \verb https://doi.org/10.1007/BF01386390
+      \endverb
+    \endentry
+    \entry{DPPvDatech}{online}{}
+      \name{author}{1}{}{%
+        {{hash=3c3673f38d16bc9613249e038adeefa5}{%
+           family={{Dopravní podnik hlavního města Prahy}},
+           familyi={D\bibinitperiod}}}%
+      }
+      \strng{namehash}{3c3673f38d16bc9613249e038adeefa5}
+      \strng{fullhash}{3c3673f38d16bc9613249e038adeefa5}
+      \strng{bibnamehash}{3c3673f38d16bc9613249e038adeefa5}
+      \strng{authorbibnamehash}{3c3673f38d16bc9613249e038adeefa5}
+      \strng{authornamehash}{3c3673f38d16bc9613249e038adeefa5}
+      \strng{authorfullhash}{3c3673f38d16bc9613249e038adeefa5}
+      \field{sortinit}{D}
+      \field{sortinithash}{6f385f66841fb5e82009dc833c761848}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{title}{DPP v datech}
+      \field{urlday}{2}
+      \field{urlmonth}{8}
+      \field{urlyear}{2025}
+      \field{year}{2024}
+      \field{urldateera}{ce}
+      \verb{urlraw}
+      \verb https://www.dpp.cz/spolecnost/o-spolecnosti/dpp-v-datech
+      \endverb
+      \verb{url}
+      \verb https://www.dpp.cz/spolecnost/o-spolecnosti/dpp-v-datech
+      \endverb
+    \endentry
+    \entry{Edelkamp05}{inproceedings}{}
+      \name{author}{3}{}{%
+        {{hash=9cd6a78147b770972e2605a4b8322aa4}{%
+           family={Edelkamp},
+           familyi={E\bibinitperiod},
+           given={Stefan},
+           giveni={S\bibinitperiod}}}%
+        {{hash=2da913733a31a9d922709cab5eddfa98}{%
+           family={Jabbar},
+           familyi={J\bibinitperiod},
+           given={Shahid},
+           giveni={S\bibinitperiod}}}%
+        {{hash=69b90e46e4cab01ede182afeb53144ea}{%
+           family={{Lluch-Lafuente}},
+           familyi={L\bibinitperiod},
+           given={Alberto},
+           giveni={A\bibinitperiod}}}%
+      }
+      \list{publisher}{1}{%
+        {AAAI Press}%
+      }
+      \strng{namehash}{65b583864a6cbf051e14a71bc707ecb1}
+      \strng{fullhash}{65b583864a6cbf051e14a71bc707ecb1}
+      \strng{bibnamehash}{65b583864a6cbf051e14a71bc707ecb1}
+      \strng{authorbibnamehash}{65b583864a6cbf051e14a71bc707ecb1}
+      \strng{authornamehash}{65b583864a6cbf051e14a71bc707ecb1}
+      \strng{authorfullhash}{65b583864a6cbf051e14a71bc707ecb1}
+      \field{sortinit}{E}
+      \field{sortinithash}{8da8a182d344d5b9047633dfc0cc9131}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{booktitle}{Proceedings of the National Conference on Artificial Intelligence}
+      \field{isbn}{157735236x}
+      \field{langid}{english}
+      \field{month}{01}
+      \field{title}{Cost-Algebraic Heuristic Search}
+      \field{volume}{3}
+      \field{year}{2005}
+      \field{pages}{1362\bibrangedash 1367}
+      \range{pages}{6}
+      \verb{urlraw}
+      \verb https://dl.acm.org/doi/abs/10.5555/1619499.1619552
+      \endverb
+      \verb{url}
+      \verb https://dl.acm.org/doi/abs/10.5555/1619499.1619552
+      \endverb
+    \endentry
+    \entry{ericksonShortestPaths}{inbook}{}
+      \name{author}{1}{}{%
+        {{hash=5bc705fbb2f250ed1b9e6e0878e5c89f}{%
+           family={Erickson},
+           familyi={E\bibinitperiod},
+           given={Jeff},
+           giveni={J\bibinitperiod}}}%
+      }
+      \strng{namehash}{5bc705fbb2f250ed1b9e6e0878e5c89f}
+      \strng{fullhash}{5bc705fbb2f250ed1b9e6e0878e5c89f}
+      \strng{bibnamehash}{5bc705fbb2f250ed1b9e6e0878e5c89f}
+      \strng{authorbibnamehash}{5bc705fbb2f250ed1b9e6e0878e5c89f}
+      \strng{authornamehash}{5bc705fbb2f250ed1b9e6e0878e5c89f}
+      \strng{authorfullhash}{5bc705fbb2f250ed1b9e6e0878e5c89f}
+      \field{sortinit}{E}
+      \field{sortinithash}{8da8a182d344d5b9047633dfc0cc9131}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{booktitle}{Algorithms}
+      \field{chapter}{08}
+      \field{isbn}{1792644833}
+      \field{title}{Shortest Paths}
+      \field{year}{2019}
+    \endentry
+    \entry{geisberger2008CHDiploma}{thesis}{}
+      \name{author}{1}{}{%
+        {{hash=d304bbf1a7d34c7a7f3d2b0e6bdcbea8}{%
+           family={Geisberger},
+           familyi={G\bibinitperiod},
+           given={Robert},
+           giveni={R\bibinitperiod}}}%
+      }
+      \list{institution}{1}{%
+        {Karlsruher Institut für Technologie}%
+      }
+      \strng{namehash}{d304bbf1a7d34c7a7f3d2b0e6bdcbea8}
+      \strng{fullhash}{d304bbf1a7d34c7a7f3d2b0e6bdcbea8}
+      \strng{bibnamehash}{d304bbf1a7d34c7a7f3d2b0e6bdcbea8}
+      \strng{authorbibnamehash}{d304bbf1a7d34c7a7f3d2b0e6bdcbea8}
+      \strng{authornamehash}{d304bbf1a7d34c7a7f3d2b0e6bdcbea8}
+      \strng{authorfullhash}{d304bbf1a7d34c7a7f3d2b0e6bdcbea8}
+      \field{extraname}{1}
+      \field{sortinit}{G}
+      \field{sortinithash}{32d67eca0634bf53703493fb1090a2e8}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{title}{Contraction Hierarchies: Faster and Simpler Hierarchical Routing in Road Networks}
+      \field{type}{Diplomová práce}
+      \field{year}{2008}
+    \endentry
+    \entry{geisberger2010TDOneToAll}{article}{}
+      \name{author}{1}{}{%
+        {{hash=d304bbf1a7d34c7a7f3d2b0e6bdcbea8}{%
+           family={Geisberger},
+           familyi={G\bibinitperiod},
+           given={Robert},
+           giveni={R\bibinitperiod}}}%
+      }
+      \strng{namehash}{d304bbf1a7d34c7a7f3d2b0e6bdcbea8}
+      \strng{fullhash}{d304bbf1a7d34c7a7f3d2b0e6bdcbea8}
+      \strng{bibnamehash}{d304bbf1a7d34c7a7f3d2b0e6bdcbea8}
+      \strng{authorbibnamehash}{d304bbf1a7d34c7a7f3d2b0e6bdcbea8}
+      \strng{authornamehash}{d304bbf1a7d34c7a7f3d2b0e6bdcbea8}
+      \strng{authorfullhash}{d304bbf1a7d34c7a7f3d2b0e6bdcbea8}
+      \field{extraname}{2}
+      \field{sortinit}{G}
+      \field{sortinithash}{32d67eca0634bf53703493fb1090a2e8}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{title}{Engineering Time-dependent One-To-All Computation}
+      \field{year}{2010}
+      \verb{doi}
+      \verb 10.48550/arXiv.1010.0809
+      \endverb
+      \verb{urlraw}
+      \verb https://arxiv.org/abs/1010.0809
+      \endverb
+      \verb{url}
+      \verb https://arxiv.org/abs/1010.0809
+      \endverb
+    \endentry
+    \entry{geisberger2008CHFaster}{inproceedings}{}
+      \name{author}{4}{}{%
+        {{hash=d304bbf1a7d34c7a7f3d2b0e6bdcbea8}{%
+           family={Geisberger},
+           familyi={G\bibinitperiod},
+           given={Robert},
+           giveni={R\bibinitperiod}}}%
+        {{hash=be6c7f12620ef1a8d1d85d96d476a158}{%
+           family={Sanders},
+           familyi={S\bibinitperiod},
+           given={Peter},
+           giveni={P\bibinitperiod}}}%
+        {{hash=29b0627d9ddb65dcdfd14ddc22291e93}{%
+           family={Schultes},
+           familyi={S\bibinitperiod},
+           given={Dominik},
+           giveni={D\bibinitperiod}}}%
+        {{hash=bc775b0bfe2f5eba2c0d55106a052b55}{%
+           family={Delling},
+           familyi={D\bibinitperiod},
+           given={Daniel},
+           giveni={D\bibinitperiod}}}%
+      }
+      \list{publisher}{1}{%
+        {Springer Berlin Heidelberg}%
+      }
+      \strng{namehash}{a32eba686734a2bd671868e8108841ae}
+      \strng{fullhash}{a32eba686734a2bd671868e8108841ae}
+      \strng{bibnamehash}{a32eba686734a2bd671868e8108841ae}
+      \strng{authorbibnamehash}{a32eba686734a2bd671868e8108841ae}
+      \strng{authornamehash}{a32eba686734a2bd671868e8108841ae}
+      \strng{authorfullhash}{a32eba686734a2bd671868e8108841ae}
+      \field{sortinit}{G}
+      \field{sortinithash}{32d67eca0634bf53703493fb1090a2e8}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{booktitle}{Experimental Algorithms}
+      \field{isbn}{978-3-540-68552-4}
+      \field{title}{Contraction Hierarchies: Faster and Simpler Hierarchical Routing in Road Networks}
+      \field{year}{2008}
+      \field{pages}{319\bibrangedash 333}
+      \range{pages}{15}
+      \verb{doi}
+      \verb 10.1007/978-3-540-68552-4_24
+      \endverb
+    \endentry
+    \entry{goldberg03AMeetsGT}{inproceedings}{}
+      \name{author}{2}{}{%
+        {{hash=4fd950036c2ebe0835e6b88be61af1b7}{%
+           family={Goldberg},
+           familyi={G\bibinitperiod},
+           given={Andrew},
+           giveni={A\bibinitperiod}}}%
+        {{hash=1bdb7c1c10755d6d6124c768e4b2c815}{%
+           family={Harrelson},
+           familyi={H\bibinitperiod},
+           given={Chris},
+           giveni={C\bibinitperiod}}}%
+      }
+      \strng{namehash}{5db885b5ac861c0cdd5df9cfd6009375}
+      \strng{fullhash}{5db885b5ac861c0cdd5df9cfd6009375}
+      \strng{bibnamehash}{5db885b5ac861c0cdd5df9cfd6009375}
+      \strng{authorbibnamehash}{5db885b5ac861c0cdd5df9cfd6009375}
+      \strng{authornamehash}{5db885b5ac861c0cdd5df9cfd6009375}
+      \strng{authorfullhash}{5db885b5ac861c0cdd5df9cfd6009375}
+      \field{sortinit}{G}
+      \field{sortinithash}{32d67eca0634bf53703493fb1090a2e8}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{booktitle}{Proceedings of the Annual ACM-SIAM Symposium on Discrete Algorithms}
+      \field{isbn}{978-0-89871-585-9}
+      \field{title}{Computing the shortest path: A\ search meets graph theory}
+      \field{volume}{5}
+      \field{year}{2003}
+      \field{pages}{156\bibrangedash 165}
+      \range{pages}{10}
+    \endentry
+    \entry{goldberg05PointToPoint}{article}{}
+      \name{author}{2}{}{%
+        {{hash=575546439bd6e9b2cbc49d9c92ced13f}{%
+           family={Goldberg},
+           familyi={G\bibinitperiod},
+           given={Andrew\bibnamedelima V},
+           giveni={A\bibinitperiod\bibinitdelim V\bibinitperiod}}}%
+        {{hash=98ada2558ea8e36bef8c4dd3c8b19c91}{%
+           family={Werneck},
+           familyi={W\bibinitperiod},
+           given={Renato\bibnamedelimb Fonseca\bibnamedelima F},
+           giveni={R\bibinitperiod\bibinitdelim F\bibinitperiod\bibinitdelim F\bibinitperiod}}}%
+      }
+      \strng{namehash}{2ce286e1f32f92a985e126d8fe867c67}
+      \strng{fullhash}{2ce286e1f32f92a985e126d8fe867c67}
+      \strng{bibnamehash}{2ce286e1f32f92a985e126d8fe867c67}
+      \strng{authorbibnamehash}{2ce286e1f32f92a985e126d8fe867c67}
+      \strng{authornamehash}{2ce286e1f32f92a985e126d8fe867c67}
+      \strng{authorfullhash}{2ce286e1f32f92a985e126d8fe867c67}
+      \field{sortinit}{G}
+      \field{sortinithash}{32d67eca0634bf53703493fb1090a2e8}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{isbn}{0-89871-596-2}
+      \field{journaltitle}{ALENEX/ANALCO}
+      \field{title}{Computing Point-to-Point Shortest Paths from External Memory}
+      \field{volume}{2}
+      \field{year}{2005}
+    \endentry
+    \entry{HartAstar}{article}{}
+      \name{author}{3}{}{%
+        {{hash=a9ce6ce2ae6a0f1ac64e4efe810d622c}{%
+           family={Hart},
+           familyi={H\bibinitperiod},
+           given={Peter\bibnamedelima E.},
+           giveni={P\bibinitperiod\bibinitdelim E\bibinitperiod}}}%
+        {{hash=91c95ed3e3f572f27346b1131492bb8b}{%
+           family={Nilsson},
+           familyi={N\bibinitperiod},
+           given={Nils\bibnamedelima J.},
+           giveni={N\bibinitperiod\bibinitdelim J\bibinitperiod}}}%
+        {{hash=253a4de6b29f96e30136e368e9af44d0}{%
+           family={Raphael},
+           familyi={R\bibinitperiod},
+           given={Bertram},
+           giveni={B\bibinitperiod}}}%
+      }
+      \strng{namehash}{9a03bc90212dd8a91661d34cb6ae8c15}
+      \strng{fullhash}{9a03bc90212dd8a91661d34cb6ae8c15}
+      \strng{bibnamehash}{9a03bc90212dd8a91661d34cb6ae8c15}
+      \strng{authorbibnamehash}{9a03bc90212dd8a91661d34cb6ae8c15}
+      \strng{authornamehash}{9a03bc90212dd8a91661d34cb6ae8c15}
+      \strng{authorfullhash}{9a03bc90212dd8a91661d34cb6ae8c15}
+      \field{sortinit}{H}
+      \field{sortinithash}{23a3aa7c24e56cfa16945d55545109b5}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{journaltitle}{IEEE Transactions on Systems Science and Cybernetics}
+      \field{number}{2}
+      \field{title}{A Formal Basis for the Heuristic Determination of Minimum Cost Paths}
+      \field{volume}{4}
+      \field{year}{1968}
+      \field{pages}{100\bibrangedash 107}
+      \range{pages}{8}
+      \verb{doi}
+      \verb 10.1109/TSSC.1968.300136
+      \endverb
+    \endentry
+    \entry{hilger2008fast}{article}{}
+      \name{author}{4}{}{%
+        {{hash=392d209a07f5d3b3ae90757415572139}{%
+           family={Hilger},
+           familyi={H\bibinitperiod},
+           given={Moritz},
+           giveni={M\bibinitperiod}}}%
+        {{hash=4c1d02d2b1e065dd6131218e3956afce}{%
+           family={Köhler},
+           familyi={K\bibinitperiod},
+           given={Ekkehard},
+           giveni={E\bibinitperiod}}}%
+        {{hash=009208d647b13242cba02e269412af1b}{%
+           family={Möhring},
+           familyi={M\bibinitperiod},
+           given={Rolf\bibnamedelima H},
+           giveni={R\bibinitperiod\bibinitdelim H\bibinitperiod}}}%
+        {{hash=cde9dcebaf643a08523ada0e620a6c19}{%
+           family={Schilling},
+           familyi={S\bibinitperiod},
+           given={Heiko},
+           giveni={H\bibinitperiod}}}%
+      }
+      \strng{namehash}{d2fba29b3402741a69e2d17f15131e07}
+      \strng{fullhash}{d2fba29b3402741a69e2d17f15131e07}
+      \strng{bibnamehash}{d2fba29b3402741a69e2d17f15131e07}
+      \strng{authorbibnamehash}{d2fba29b3402741a69e2d17f15131e07}
+      \strng{authornamehash}{d2fba29b3402741a69e2d17f15131e07}
+      \strng{authorfullhash}{d2fba29b3402741a69e2d17f15131e07}
+      \field{sortinit}{H}
+      \field{sortinithash}{23a3aa7c24e56cfa16945d55545109b5}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{journaltitle}{DIMACS Series in Discrete Mathematics and Theoretical Computer Science}
+      \field{title}{Fast point-to-point shortest path computations with arc-flags}
+      \field{volume}{74}
+      \field{year}{2009}
+      \verb{doi}
+      \verb 10.1090/dimacs/074
+      \endverb
+    \endentry
+    \entry{heimerl1988german}{report}{}
+      \name{author}{1}{}{%
+        {{hash=edb6ade37379b5ef8307230efb05bfac}{%
+           family={{Intraplan Consult GmbH}},
+           familyi={I\bibinitperiod}}}%
+      }
+      \list{institution}{1}{%
+        {Ministerstvo dopravy a digitální infrastruktury}%
+      }
+      \list{language}{1}{%
+        {german}%
+      }
+      \strng{namehash}{edb6ade37379b5ef8307230efb05bfac}
+      \strng{fullhash}{edb6ade37379b5ef8307230efb05bfac}
+      \strng{bibnamehash}{edb6ade37379b5ef8307230efb05bfac}
+      \strng{authorbibnamehash}{edb6ade37379b5ef8307230efb05bfac}
+      \strng{authornamehash}{edb6ade37379b5ef8307230efb05bfac}
+      \strng{authorfullhash}{edb6ade37379b5ef8307230efb05bfac}
+      \field{sortinit}{I}
+      \field{sortinithash}{8d291c51ee89b6cd86bf5379f0b151d8}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{langid}{german}
+      \field{number}{FE 70.976/2019}
+      \field{subtitle}{Verfahrensanleitung}
+      \field{title}{Standardisierte {B}ewertung von {V}erkehrswegeinvestitionen im öffentlichen {P}ersonennahverkehr: {V}ersion 2016+}
+      \field{type}{techreport}
+      \field{year}{2023}
+    \endentry
+    \entry{kohler2005acceleration}{inproceedings}{}
+      \name{author}{3}{}{%
+        {{hash=4c1d02d2b1e065dd6131218e3956afce}{%
+           family={Köhler},
+           familyi={K\bibinitperiod},
+           given={Ekkehard},
+           giveni={E\bibinitperiod}}}%
+        {{hash=009208d647b13242cba02e269412af1b}{%
+           family={Möhring},
+           familyi={M\bibinitperiod},
+           given={Rolf\bibnamedelima H},
+           giveni={R\bibinitperiod\bibinitdelim H\bibinitperiod}}}%
+        {{hash=cde9dcebaf643a08523ada0e620a6c19}{%
+           family={Schilling},
+           familyi={S\bibinitperiod},
+           given={Heiko},
+           giveni={H\bibinitperiod}}}%
+      }
+      \list{organization}{1}{%
+        {Springer}%
+      }
+      \strng{namehash}{e2389225b5cd934ea15dfa53623a4846}
+      \strng{fullhash}{e2389225b5cd934ea15dfa53623a4846}
+      \strng{bibnamehash}{e2389225b5cd934ea15dfa53623a4846}
+      \strng{authorbibnamehash}{e2389225b5cd934ea15dfa53623a4846}
+      \strng{authornamehash}{e2389225b5cd934ea15dfa53623a4846}
+      \strng{authorfullhash}{e2389225b5cd934ea15dfa53623a4846}
+      \field{sortinit}{K}
+      \field{sortinithash}{c02bf6bff1c488450c352b40f5d853ab}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{booktitle}{International Workshop on Experimental and Efficient Algorithms}
+      \field{isbn}{978-3-540-25920-6}
+      \field{title}{Acceleration of shortest path and constrained shortest path computation}
+      \field{year}{2005}
+      \field{pages}{126\bibrangedash 138}
+      \range{pages}{13}
+      \verb{doi}
+      \verb 10.1007/11427186_13
+      \endverb
+    \endentry
+    \entry{mffDijkstraKucera}{article}{}
+      \name{author}{1}{}{%
+        {{hash=63fc39fdfaea5308521376d98eaa29b8}{%
+           family={Kučera},
+           familyi={K\bibinitperiod},
+           given={Luděk},
+           giveni={L\bibinitperiod}}}%
+      }
+      \strng{namehash}{63fc39fdfaea5308521376d98eaa29b8}
+      \strng{fullhash}{63fc39fdfaea5308521376d98eaa29b8}
+      \strng{bibnamehash}{63fc39fdfaea5308521376d98eaa29b8}
+      \strng{authorbibnamehash}{63fc39fdfaea5308521376d98eaa29b8}
+      \strng{authornamehash}{63fc39fdfaea5308521376d98eaa29b8}
+      \strng{authorfullhash}{63fc39fdfaea5308521376d98eaa29b8}
+      \field{sortinit}{K}
+      \field{sortinithash}{c02bf6bff1c488450c352b40f5d853ab}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{month}{3}
+      \field{subtitle}{Hledání nejkratší cesty v nezáporně hranově ohodnoceném grafu}
+      \field{title}{Dijkstrův algoritmus}
+      \field{urlday}{10}
+      \field{urlmonth}{7}
+      \field{urlyear}{2025}
+      \field{year}{2010}
+      \field{urldateera}{ce}
+      \verb{urlraw}
+      \verb https://kam.mff.cuni.cz/~ludek/NTIN060texty/Dijkstra.pdf
+      \endverb
+      \verb{url}
+      \verb https://kam.mff.cuni.cz/~ludek/NTIN060texty/Dijkstra.pdf
+      \endverb
+    \endentry
+    \entry{lauther05Arcs}{inbook}{}
+      \name{author}{1}{}{%
+        {{hash=376e72420cde87e7798538b9e5c4641f}{%
+           family={Lauther},
+           familyi={L\bibinitperiod},
+           given={Ulrich},
+           giveni={U\bibinitperiod}}}%
+      }
+      \list{publisher}{1}{%
+        {IfGI prints, Institut fuer Geoinformatik}%
+      }
+      \strng{namehash}{376e72420cde87e7798538b9e5c4641f}
+      \strng{fullhash}{376e72420cde87e7798538b9e5c4641f}
+      \strng{bibnamehash}{376e72420cde87e7798538b9e5c4641f}
+      \strng{authorbibnamehash}{376e72420cde87e7798538b9e5c4641f}
+      \strng{authornamehash}{376e72420cde87e7798538b9e5c4641f}
+      \strng{authorfullhash}{376e72420cde87e7798538b9e5c4641f}
+      \field{sortinit}{L}
+      \field{sortinithash}{7c47d417cecb1f4bd38d1825c427a61a}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{booktitle}{Geoinformation und Mobilitaet – von der Forschung zurpraktischen Anwendung}
+      \field{title}{An Extremely Fast, Exact Algorithm for Finding Shortest Paths in Static Networks with Geographical Background}
+      \field{volume}{22}
+      \field{year}{2004}
+      \field{pages}{219\bibrangedash 230}
+      \range{pages}{12}
+    \endentry
+    \entry{lazarsfeldGuide}{online}{}
+      \name{author}{1}{}{%
+        {{hash=97e7def1c1842803139857d0c4b536b7}{%
+           family={Lazarsfeld},
+           familyi={L\bibinitperiod},
+           given={John},
+           giveni={J\bibinitperiod}}}%
+      }
+      \strng{namehash}{97e7def1c1842803139857d0c4b536b7}
+      \strng{fullhash}{97e7def1c1842803139857d0c4b536b7}
+      \strng{bibnamehash}{97e7def1c1842803139857d0c4b536b7}
+      \strng{authorbibnamehash}{97e7def1c1842803139857d0c4b536b7}
+      \strng{authornamehash}{97e7def1c1842803139857d0c4b536b7}
+      \strng{authorfullhash}{97e7def1c1842803139857d0c4b536b7}
+      \field{sortinit}{L}
+      \field{sortinithash}{7c47d417cecb1f4bd38d1825c427a61a}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{note}{Univerzitní projekt}
+      \field{title}{Contraction Hierarchies: An Illustrative Guide}
+      \field{year}{2008}
+      \verb{urlraw}
+      \verb https://jlazarsfeld.github.io/ch.150.project/contents/
+      \endverb
+      \verb{url}
+      \verb https://jlazarsfeld.github.io/ch.150.project/contents/
+      \endverb
+    \endentry
+    \entry{madkour2017survey}{article}{}
+      \name{author}{5}{}{%
+        {{hash=ccf7909d57767d3887a1b5b60da18da8}{%
+           family={Madkour},
+           familyi={M\bibinitperiod},
+           given={Amgad},
+           giveni={A\bibinitperiod}}}%
+        {{hash=a8d5ea71749c2e7294a0cad6f4ef58f9}{%
+           family={Aref},
+           familyi={A\bibinitperiod},
+           given={Walid\bibnamedelima G.},
+           giveni={W\bibinitperiod\bibinitdelim G\bibinitperiod}}}%
+        {{hash=9c003e8c963c34bdf9ade3220ed7e76b}{%
+           family={Rehman},
+           familyi={R\bibinitperiod},
+           given={Faizan\bibnamedelima Ur},
+           giveni={F\bibinitperiod\bibinitdelim U\bibinitperiod}}}%
+        {{hash=779428a72deb5e5f1da0e57f5aa9e3e7}{%
+           family={Rahman},
+           familyi={R\bibinitperiod},
+           given={Mohamed\bibnamedelima Abdur},
+           giveni={M\bibinitperiod\bibinitdelim A\bibinitperiod}}}%
+        {{hash=268b5c661665eab2cbd36339619b2ffa}{%
+           family={Basalamah},
+           familyi={B\bibinitperiod},
+           given={Saleh},
+           giveni={S\bibinitperiod}}}%
+      }
+      \strng{namehash}{0f9ed00b8cfbc782b3954e9a742f680e}
+      \strng{fullhash}{0f9ed00b8cfbc782b3954e9a742f680e}
+      \strng{bibnamehash}{0f9ed00b8cfbc782b3954e9a742f680e}
+      \strng{authorbibnamehash}{0f9ed00b8cfbc782b3954e9a742f680e}
+      \strng{authornamehash}{0f9ed00b8cfbc782b3954e9a742f680e}
+      \strng{authorfullhash}{0f9ed00b8cfbc782b3954e9a742f680e}
+      \field{sortinit}{M}
+      \field{sortinithash}{4625c616857f13d17ce56f7d4f97d451}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{title}{A Survey of Shortest-Path Algorithms}
+      \field{year}{2017}
+      \verb{doi}
+      \verb 10.48550/arXiv.1705.02044
+      \endverb
+    \endentry
+    \entry{gtfsDocumentation}{online}{}
+      \name{author}{1}{}{%
+        {{hash=482115ec6c7431f529efe5346b55a34b}{%
+           family={{MobilityData}},
+           familyi={M\bibinitperiod}}}%
+      }
+      \strng{namehash}{482115ec6c7431f529efe5346b55a34b}
+      \strng{fullhash}{482115ec6c7431f529efe5346b55a34b}
+      \strng{bibnamehash}{482115ec6c7431f529efe5346b55a34b}
+      \strng{authorbibnamehash}{482115ec6c7431f529efe5346b55a34b}
+      \strng{authornamehash}{482115ec6c7431f529efe5346b55a34b}
+      \strng{authorfullhash}{482115ec6c7431f529efe5346b55a34b}
+      \field{extraname}{1}
+      \field{sortinit}{M}
+      \field{sortinithash}{4625c616857f13d17ce56f7d4f97d451}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{title}{General Transit Feed Specification (GTFS)}
+      \field{urlday}{2}
+      \field{urlmonth}{8}
+      \field{urlyear}{2025}
+      \field{year}{2025}
+      \field{urldateera}{ce}
+      \verb{urlraw}
+      \verb https://gtfs.org/getting-started/why-use-GTFS/
+      \endverb
+      \verb{url}
+      \verb https://gtfs.org/getting-started/why-use-GTFS/
+      \endverb
+    \endentry
+    \entry{gtfsStarted}{online}{}
+      \name{author}{1}{}{%
+        {{hash=482115ec6c7431f529efe5346b55a34b}{%
+           family={{MobilityData}},
+           familyi={M\bibinitperiod}}}%
+      }
+      \strng{namehash}{482115ec6c7431f529efe5346b55a34b}
+      \strng{fullhash}{482115ec6c7431f529efe5346b55a34b}
+      \strng{bibnamehash}{482115ec6c7431f529efe5346b55a34b}
+      \strng{authorbibnamehash}{482115ec6c7431f529efe5346b55a34b}
+      \strng{authornamehash}{482115ec6c7431f529efe5346b55a34b}
+      \strng{authorfullhash}{482115ec6c7431f529efe5346b55a34b}
+      \field{extraname}{2}
+      \field{sortinit}{M}
+      \field{sortinithash}{4625c616857f13d17ce56f7d4f97d451}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{title}{Reach more riders and improve public transit with GTFS}
+      \field{urlday}{2}
+      \field{urlmonth}{8}
+      \field{urlyear}{2025}
+      \field{year}{2025}
+      \field{urldateera}{ce}
+      \verb{urlraw}
+      \verb https://gtfs.org/getting-started/why-use-GTFS/
+      \endverb
+      \verb{url}
+      \verb https://gtfs.org/getting-started/why-use-GTFS/
+      \endverb
+    \endentry
+    \entry{mohring2005partitioning}{inproceedings}{}
+      \name{author}{5}{}{%
+        {{hash=009208d647b13242cba02e269412af1b}{%
+           family={Möhring},
+           familyi={M\bibinitperiod},
+           given={Rolf\bibnamedelima H.},
+           giveni={R\bibinitperiod\bibinitdelim H\bibinitperiod}}}%
+        {{hash=cde9dcebaf643a08523ada0e620a6c19}{%
+           family={Schilling},
+           familyi={S\bibinitperiod},
+           given={Heiko},
+           giveni={H\bibinitperiod}}}%
+        {{hash=9afc3fa20d37504a65c0eae02f08ca1c}{%
+           family={Schütz},
+           familyi={S\bibinitperiod},
+           given={Birk},
+           giveni={B\bibinitperiod}}}%
+        {{hash=f2f741491852a3b5c3ad17d40825e753}{%
+           family={Wagner},
+           familyi={W\bibinitperiod},
+           given={Dorothea},
+           giveni={D\bibinitperiod}}}%
+        {{hash=6f0db50b789a90fa1faf39a81ef403c1}{%
+           family={Willhalm},
+           familyi={W\bibinitperiod},
+           given={Thomas},
+           giveni={T\bibinitperiod}}}%
+      }
+      \list{publisher}{1}{%
+        {Springer Berlin Heidelberg}%
+      }
+      \strng{namehash}{7fce2082ed69d1d8c84f30967f4d887e}
+      \strng{fullhash}{7fce2082ed69d1d8c84f30967f4d887e}
+      \strng{bibnamehash}{7fce2082ed69d1d8c84f30967f4d887e}
+      \strng{authorbibnamehash}{7fce2082ed69d1d8c84f30967f4d887e}
+      \strng{authornamehash}{7fce2082ed69d1d8c84f30967f4d887e}
+      \strng{authorfullhash}{7fce2082ed69d1d8c84f30967f4d887e}
+      \field{sortinit}{M}
+      \field{sortinithash}{4625c616857f13d17ce56f7d4f97d451}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{booktitle}{Experimental and Efficient Algorithms}
+      \field{isbn}{978-3-540-32078-4}
+      \field{title}{Partitioning Graphs to Speed Up Dijkstra's Algorithm}
+      \field{year}{2005}
+      \field{pages}{189\bibrangedash 202}
+      \range{pages}{14}
+      \verb{doi}
+      \verb 10.1007/11427186_18
+      \endverb
+    \endentry
+    \entry{NanniciniBiDiA}{inproceedings}{}
+      \name{author}{4}{}{%
+        {{hash=1ccb72a0277d1c46e408c20097b5e865}{%
+           family={Nannicini},
+           familyi={N\bibinitperiod},
+           given={Giacomo},
+           giveni={G\bibinitperiod}}}%
+        {{hash=bc775b0bfe2f5eba2c0d55106a052b55}{%
+           family={Delling},
+           familyi={D\bibinitperiod},
+           given={Daniel},
+           giveni={D\bibinitperiod}}}%
+        {{hash=6c501b106a067f9390ed721e696a5ae9}{%
+           family={Liberti},
+           familyi={L\bibinitperiod},
+           given={Leo},
+           giveni={L\bibinitperiod}}}%
+        {{hash=e5e8f592ff8ff99dd0d39411af8d2b9d}{%
+           family={Schultes},
+           familyi={S\bibinitperiod},
+           given={Dominik"},
+           giveni={D\bibinitperiod}}}%
+      }
+      \list{publisher}{1}{%
+        {Springer Berlin Heidelberg}%
+      }
+      \strng{namehash}{6bd3daa261864808767ec4a5c3645301}
+      \strng{fullhash}{6bd3daa261864808767ec4a5c3645301}
+      \strng{bibnamehash}{6bd3daa261864808767ec4a5c3645301}
+      \strng{authorbibnamehash}{6bd3daa261864808767ec4a5c3645301}
+      \strng{authornamehash}{6bd3daa261864808767ec4a5c3645301}
+      \strng{authorfullhash}{6bd3daa261864808767ec4a5c3645301}
+      \field{sortinit}{N}
+      \field{sortinithash}{22369a73d5f88983a108b63f07f37084}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{booktitle}{Experimental Algorithms}
+      \field{isbn}{978-3-540-68552-4}
+      \field{title}{Bidirectional A{\thinspace}*{\thinspace} Search for Time-Dependent Fast Paths}
+      \field{year}{2008}
+      \field{pages}{334\bibrangedash 346}
+      \range{pages}{13}
+      \verb{doi}
+      \verb 10.1007/978-3-540-68552-4_25
+      \endverb
+    \endentry
+    \entry{NanniciniRoadNetw}{article}{}
+      \name{author}{4}{}{%
+        {{hash=1ccb72a0277d1c46e408c20097b5e865}{%
+           family={Nannicini},
+           familyi={N\bibinitperiod},
+           given={Giacomo},
+           giveni={G\bibinitperiod}}}%
+        {{hash=bc775b0bfe2f5eba2c0d55106a052b55}{%
+           family={Delling},
+           familyi={D\bibinitperiod},
+           given={Daniel},
+           giveni={D\bibinitperiod}}}%
+        {{hash=29b0627d9ddb65dcdfd14ddc22291e93}{%
+           family={Schultes},
+           familyi={S\bibinitperiod},
+           given={Dominik},
+           giveni={D\bibinitperiod}}}%
+        {{hash=6c501b106a067f9390ed721e696a5ae9}{%
+           family={Liberti},
+           familyi={L\bibinitperiod},
+           given={Leo},
+           giveni={L\bibinitperiod}}}%
+      }
+      \strng{namehash}{0e8e8df1a477254fa74567fe14d1e6ea}
+      \strng{fullhash}{0e8e8df1a477254fa74567fe14d1e6ea}
+      \strng{bibnamehash}{0e8e8df1a477254fa74567fe14d1e6ea}
+      \strng{authorbibnamehash}{0e8e8df1a477254fa74567fe14d1e6ea}
+      \strng{authornamehash}{0e8e8df1a477254fa74567fe14d1e6ea}
+      \strng{authorfullhash}{0e8e8df1a477254fa74567fe14d1e6ea}
+      \field{sortinit}{N}
+      \field{sortinithash}{22369a73d5f88983a108b63f07f37084}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{journaltitle}{Networks}
+      \field{number}{2}
+      \field{title}{Bidirectional A* search on time-dependent road networks}
+      \field{volume}{59}
+      \field{year}{2012}
+      \field{pages}{240\bibrangedash 251}
+      \range{pages}{12}
+      \verb{doi}
+      \verb 10.1002/net.20438
+      \endverb
+    \endentry
+    \entry{PearlHeuristics}{book}{}
+      \name{author}{1}{}{%
+        {{hash=809f695b398afbb54b544c49e8d1bbbb}{%
+           family={Pearl},
+           familyi={P\bibinitperiod},
+           given={Judea},
+           giveni={J\bibinitperiod}}}%
+      }
+      \list{location}{1}{%
+        {USA}%
+      }
+      \list{publisher}{1}{%
+        {Addison-Wesley Longman Publishing Co., Inc.}%
+      }
+      \strng{namehash}{809f695b398afbb54b544c49e8d1bbbb}
+      \strng{fullhash}{809f695b398afbb54b544c49e8d1bbbb}
+      \strng{bibnamehash}{809f695b398afbb54b544c49e8d1bbbb}
+      \strng{authorbibnamehash}{809f695b398afbb54b544c49e8d1bbbb}
+      \strng{authornamehash}{809f695b398afbb54b544c49e8d1bbbb}
+      \strng{authorfullhash}{809f695b398afbb54b544c49e8d1bbbb}
+      \field{sortinit}{P}
+      \field{sortinithash}{ff3bcf24f47321b42cb156c2cc8a8422}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{isbn}{0201055945}
+      \field{title}{Heuristics: intelligent search strategies for computer problem solving}
+      \field{year}{1984}
+    \endentry
+    \entry{PYRGA2004TowardsRealistic}{article}{}
+      \name{author}{4}{}{%
+        {{hash=a5d301af240786eea4412bdd9167a006}{%
+           family={Pyrga},
+           familyi={P\bibinitperiod},
+           given={Evangelia},
+           giveni={E\bibinitperiod}}}%
+        {{hash=f106b6a69ef36e0d42b463b1f7068727}{%
+           family={Schulz},
+           familyi={S\bibinitperiod},
+           given={Frank},
+           giveni={F\bibinitperiod}}}%
+        {{hash=f2f741491852a3b5c3ad17d40825e753}{%
+           family={Wagner},
+           familyi={W\bibinitperiod},
+           given={Dorothea},
+           giveni={D\bibinitperiod}}}%
+        {{hash=7b83d261986ed90ccc7022204a460c9a}{%
+           family={Zaroliagis},
+           familyi={Z\bibinitperiod},
+           given={Christos},
+           giveni={C\bibinitperiod}}}%
+      }
+      \strng{namehash}{87e4291c96329f571a24b502ffd8efb6}
+      \strng{fullhash}{87e4291c96329f571a24b502ffd8efb6}
+      \strng{bibnamehash}{87e4291c96329f571a24b502ffd8efb6}
+      \strng{authorbibnamehash}{87e4291c96329f571a24b502ffd8efb6}
+      \strng{authornamehash}{87e4291c96329f571a24b502ffd8efb6}
+      \strng{authorfullhash}{87e4291c96329f571a24b502ffd8efb6}
+      \field{extraname}{1}
+      \field{sortinit}{P}
+      \field{sortinithash}{ff3bcf24f47321b42cb156c2cc8a8422}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{issn}{1571-0661}
+      \field{journaltitle}{Electronic Notes in Theoretical Computer Science}
+      \field{title}{Towards Realistic Modeling of Time-Table Information through the Time-Dependent Approach}
+      \field{volume}{92}
+      \field{year}{2004}
+      \field{pages}{85\bibrangedash 103}
+      \range{pages}{19}
+      \verb{doi}
+      \verb 10.1016/j.entcs.2003.12.024
+      \endverb
+    \endentry
+    \entry{pyrga2008efficient}{article}{}
+      \name{author}{4}{}{%
+        {{hash=a5d301af240786eea4412bdd9167a006}{%
+           family={Pyrga},
+           familyi={P\bibinitperiod},
+           given={Evangelia},
+           giveni={E\bibinitperiod}}}%
+        {{hash=f106b6a69ef36e0d42b463b1f7068727}{%
+           family={Schulz},
+           familyi={S\bibinitperiod},
+           given={Frank},
+           giveni={F\bibinitperiod}}}%
+        {{hash=f2f741491852a3b5c3ad17d40825e753}{%
+           family={Wagner},
+           familyi={W\bibinitperiod},
+           given={Dorothea},
+           giveni={D\bibinitperiod}}}%
+        {{hash=7b83d261986ed90ccc7022204a460c9a}{%
+           family={Zaroliagis},
+           familyi={Z\bibinitperiod},
+           given={Christos},
+           giveni={C\bibinitperiod}}}%
+      }
+      \list{publisher}{1}{%
+        {ACM New York, NY, USA}%
+      }
+      \strng{namehash}{87e4291c96329f571a24b502ffd8efb6}
+      \strng{fullhash}{87e4291c96329f571a24b502ffd8efb6}
+      \strng{bibnamehash}{87e4291c96329f571a24b502ffd8efb6}
+      \strng{authorbibnamehash}{87e4291c96329f571a24b502ffd8efb6}
+      \strng{authornamehash}{87e4291c96329f571a24b502ffd8efb6}
+      \strng{authorfullhash}{87e4291c96329f571a24b502ffd8efb6}
+      \field{extraname}{2}
+      \field{sortinit}{P}
+      \field{sortinithash}{ff3bcf24f47321b42cb156c2cc8a8422}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{journaltitle}{Journal of Experimental Algorithmics (JEA)}
+      \field{title}{Efficient models for timetable information in public transportation systems}
+      \field{volume}{12}
+      \field{year}{2008}
+      \field{pages}{1\bibrangedash 39}
+      \range{pages}{39}
+      \verb{doi}
+      \verb 10.1145/1227161.1227166
+      \endverb
+    \endentry
+    \entry{PIDoSystemu}{online}{}
+      \name{author}{1}{}{%
+        {{hash=8437551a2ef66a145b5153d6d19cadbf}{%
+           family={{Regionální organizátor Pražské integrované dopravy}},
+           familyi={R\bibinitperiod}}}%
+      }
+      \strng{namehash}{8437551a2ef66a145b5153d6d19cadbf}
+      \strng{fullhash}{8437551a2ef66a145b5153d6d19cadbf}
+      \strng{bibnamehash}{8437551a2ef66a145b5153d6d19cadbf}
+      \strng{authorbibnamehash}{8437551a2ef66a145b5153d6d19cadbf}
+      \strng{authornamehash}{8437551a2ef66a145b5153d6d19cadbf}
+      \strng{authorfullhash}{8437551a2ef66a145b5153d6d19cadbf}
+      \field{extraname}{1}
+      \field{sortinit}{R}
+      \field{sortinithash}{5e1c39a9d46ffb6bebd8f801023a9486}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{title}{O systému}
+      \field{urlday}{2}
+      \field{urlmonth}{8}
+      \field{urlyear}{2025}
+      \field{urldateera}{ce}
+      \verb{urlraw}
+      \verb https://pid.cz/o-systemu/
+      \endverb
+      \verb{url}
+      \verb https://pid.cz/o-systemu/
+      \endverb
+    \endentry
+    \entry{PIDOPENDATA}{online}{}
+      \name{author}{1}{}{%
+        {{hash=8437551a2ef66a145b5153d6d19cadbf}{%
+           family={{Regionální organizátor Pražské integrované dopravy}},
+           familyi={R\bibinitperiod}}}%
+      }
+      \strng{namehash}{8437551a2ef66a145b5153d6d19cadbf}
+      \strng{fullhash}{8437551a2ef66a145b5153d6d19cadbf}
+      \strng{bibnamehash}{8437551a2ef66a145b5153d6d19cadbf}
+      \strng{authorbibnamehash}{8437551a2ef66a145b5153d6d19cadbf}
+      \strng{authornamehash}{8437551a2ef66a145b5153d6d19cadbf}
+      \strng{authorfullhash}{8437551a2ef66a145b5153d6d19cadbf}
+      \field{extraname}{2}
+      \field{sortinit}{R}
+      \field{sortinithash}{5e1c39a9d46ffb6bebd8f801023a9486}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{title}{Otevřená data PID}
+      \field{urlday}{2}
+      \field{urlmonth}{8}
+      \field{urlyear}{2025}
+      \field{urldateera}{ce}
+      \verb{urlraw}
+      \verb https://pid.cz/o-systemu/opendata/
+      \endverb
+      \verb{url}
+      \verb https://pid.cz/o-systemu/opendata/
+      \endverb
+    \endentry
+    \entry{RezvanianSocNetworks}{article}{}
+      \name{author}{2}{}{%
+        {{hash=588a86d99f969ad3408552674542e104}{%
+           family={Rezvanian},
+           familyi={R\bibinitperiod},
+           given={Alireza},
+           giveni={A\bibinitperiod}}}%
+        {{hash=55d79b93de139aa7c8fa3728e9ce4858}{%
+           family={Meybodi},
+           familyi={M\bibinitperiod},
+           given={Mohammad\bibnamedelima Reza},
+           giveni={M\bibinitperiod\bibinitdelim R\bibinitperiod}}}%
+      }
+      \strng{namehash}{efa82930df5a6d0a9d5db4f83cc0f34c}
+      \strng{fullhash}{efa82930df5a6d0a9d5db4f83cc0f34c}
+      \strng{bibnamehash}{efa82930df5a6d0a9d5db4f83cc0f34c}
+      \strng{authorbibnamehash}{efa82930df5a6d0a9d5db4f83cc0f34c}
+      \strng{authornamehash}{efa82930df5a6d0a9d5db4f83cc0f34c}
+      \strng{authorfullhash}{efa82930df5a6d0a9d5db4f83cc0f34c}
+      \field{sortinit}{R}
+      \field{sortinithash}{5e1c39a9d46ffb6bebd8f801023a9486}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{issn}{0378-4371}
+      \field{journaltitle}{Physica A: Statistical Mechanics and its Applications}
+      \field{langid}{english}
+      \field{title}{Sampling social networks using shortest paths}
+      \field{volume}{424}
+      \field{year}{2015}
+      \field{pages}{254\bibrangedash 268}
+      \range{pages}{15}
+      \verb{doi}
+      \verb 10.1016/j.physa.2015.01.030
+      \endverb
+      \verb{urlraw}
+      \verb https://www.sciencedirect.com/science/article/pii/S0378437115000321
+      \endverb
+      \verb{url}
+      \verb https://www.sciencedirect.com/science/article/pii/S0378437115000321
+      \endverb
+    \endentry
+    \entry{sanders05HHHasten}{inproceedings}{}
+      \name{author}{2}{}{%
+        {{hash=be6c7f12620ef1a8d1d85d96d476a158}{%
+           family={Sanders},
+           familyi={S\bibinitperiod},
+           given={Peter},
+           giveni={P\bibinitperiod}}}%
+        {{hash=29b0627d9ddb65dcdfd14ddc22291e93}{%
+           family={Schultes},
+           familyi={S\bibinitperiod},
+           given={Dominik},
+           giveni={D\bibinitperiod}}}%
+      }
+      \list{publisher}{1}{%
+        {Springer Berlin Heidelberg}%
+      }
+      \strng{namehash}{55a7166509651a3a0c49518bf61710c1}
+      \strng{fullhash}{55a7166509651a3a0c49518bf61710c1}
+      \strng{bibnamehash}{55a7166509651a3a0c49518bf61710c1}
+      \strng{authorbibnamehash}{55a7166509651a3a0c49518bf61710c1}
+      \strng{authornamehash}{55a7166509651a3a0c49518bf61710c1}
+      \strng{authorfullhash}{55a7166509651a3a0c49518bf61710c1}
+      \field{extraname}{1}
+      \field{sortinit}{S}
+      \field{sortinithash}{b164b07b29984b41daf1e85279fbc5ab}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{booktitle}{Algorithms -- ESA 2005}
+      \field{isbn}{978-3-540-31951-1}
+      \field{title}{Highway Hierarchies Hasten Exact Shortest Path Queries}
+      \field{year}{2005}
+      \field{pages}{568\bibrangedash 579}
+      \range{pages}{12}
+      \verb{doi}
+      \verb 10.1007/11561071_51
+      \endverb
+    \endentry
+    \entry{sandersEnginneringHH}{inproceedings}{}
+      \name{author}{2}{}{%
+        {{hash=be6c7f12620ef1a8d1d85d96d476a158}{%
+           family={Sanders},
+           familyi={S\bibinitperiod},
+           given={Peter},
+           giveni={P\bibinitperiod}}}%
+        {{hash=29b0627d9ddb65dcdfd14ddc22291e93}{%
+           family={Schultes},
+           familyi={S\bibinitperiod},
+           given={Dominik},
+           giveni={D\bibinitperiod}}}%
+      }
+      \list{publisher}{1}{%
+        {Springer Berlin Heidelberg}%
+      }
+      \strng{namehash}{55a7166509651a3a0c49518bf61710c1}
+      \strng{fullhash}{55a7166509651a3a0c49518bf61710c1}
+      \strng{bibnamehash}{55a7166509651a3a0c49518bf61710c1}
+      \strng{authorbibnamehash}{55a7166509651a3a0c49518bf61710c1}
+      \strng{authornamehash}{55a7166509651a3a0c49518bf61710c1}
+      \strng{authorfullhash}{55a7166509651a3a0c49518bf61710c1}
+      \field{extraname}{2}
+      \field{sortinit}{S}
+      \field{sortinithash}{b164b07b29984b41daf1e85279fbc5ab}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{booktitle}{Algorithms -- ESA 2006}
+      \field{isbn}{978-3-540-38876-0}
+      \field{title}{Engineering Highway Hierarchies}
+      \field{year}{2006}
+      \field{pages}{804\bibrangedash 816}
+      \range{pages}{13}
+      \verb{doi}
+      \verb 10.1007/11841036_71
+      \endverb
+    \endentry
+    \entry{SchultesHHMaster}{thesis}{}
+      \name{author}{1}{}{%
+        {{hash=29b0627d9ddb65dcdfd14ddc22291e93}{%
+           family={Schultes},
+           familyi={S\bibinitperiod},
+           given={Dominik},
+           giveni={D\bibinitperiod}}}%
+      }
+      \list{institution}{1}{%
+        {Karlsruher Institut für Technologie}%
+      }
+      \strng{namehash}{29b0627d9ddb65dcdfd14ddc22291e93}
+      \strng{fullhash}{29b0627d9ddb65dcdfd14ddc22291e93}
+      \strng{bibnamehash}{29b0627d9ddb65dcdfd14ddc22291e93}
+      \strng{authorbibnamehash}{29b0627d9ddb65dcdfd14ddc22291e93}
+      \strng{authornamehash}{29b0627d9ddb65dcdfd14ddc22291e93}
+      \strng{authorfullhash}{29b0627d9ddb65dcdfd14ddc22291e93}
+      \field{sortinit}{S}
+      \field{sortinithash}{b164b07b29984b41daf1e85279fbc5ab}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{title}{Fast and Exact Shortest Path Queries Using Highway Hierarchies}
+      \field{type}{Diplomová práce}
+      \field{year}{2005}
+    \endentry
+    \entry{Schwartz1980}{article}{}
+      \name{author}{2}{}{%
+        {{hash=6130e34874b1960335aa37552c2c7c3f}{%
+           family={Schwartz},
+           familyi={S\bibinitperiod},
+           given={M.},
+           giveni={M\bibinitperiod}}}%
+        {{hash=b09b822fc360ef3fcc97fa1110a6b1f2}{%
+           family={Stern},
+           familyi={S\bibinitperiod},
+           given={T.},
+           giveni={T\bibinitperiod}}}%
+      }
+      \strng{namehash}{ffb3e3d0c273cf49a3d98f6a6e7133fc}
+      \strng{fullhash}{ffb3e3d0c273cf49a3d98f6a6e7133fc}
+      \strng{bibnamehash}{ffb3e3d0c273cf49a3d98f6a6e7133fc}
+      \strng{authorbibnamehash}{ffb3e3d0c273cf49a3d98f6a6e7133fc}
+      \strng{authornamehash}{ffb3e3d0c273cf49a3d98f6a6e7133fc}
+      \strng{authorfullhash}{ffb3e3d0c273cf49a3d98f6a6e7133fc}
+      \field{sortinit}{S}
+      \field{sortinithash}{b164b07b29984b41daf1e85279fbc5ab}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{journaltitle}{IEEE Transactions on Communications}
+      \field{number}{4}
+      \field{title}{Routing Techniques Used in Computer Communication Networks}
+      \field{volume}{28}
+      \field{year}{1980}
+      \field{pages}{539\bibrangedash 552}
+      \range{pages}{14}
+      \verb{doi}
+      \verb 10.1109/TCOM.1980.1094690
+      \endverb
+    \endentry
+    \entry{SunPowerGrid}{inproceedings}{}
+      \name{author}{1}{}{%
+        {{hash=7c3359ab31848716f805a5f1b8eff299}{%
+           family={Sun},
+           familyi={S\bibinitperiod},
+           given={Ke},
+           giveni={K\bibinitperiod}}}%
+      }
+      \strng{namehash}{7c3359ab31848716f805a5f1b8eff299}
+      \strng{fullhash}{7c3359ab31848716f805a5f1b8eff299}
+      \strng{bibnamehash}{7c3359ab31848716f805a5f1b8eff299}
+      \strng{authorbibnamehash}{7c3359ab31848716f805a5f1b8eff299}
+      \strng{authornamehash}{7c3359ab31848716f805a5f1b8eff299}
+      \strng{authorfullhash}{7c3359ab31848716f805a5f1b8eff299}
+      \field{sortinit}{S}
+      \field{sortinithash}{b164b07b29984b41daf1e85279fbc5ab}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{booktitle}{2005 IEEE/PES Transmission \& Distribution Conference \& Exposition: Asia and Pacific}
+      \field{isbn}{0-7803-9114-4}
+      \field{langid}{english}
+      \field{title}{Complex Networks Theory: A New Method of Research in Power Grid}
+      \field{year}{2005}
+      \field{pages}{1\bibrangedash 6}
+      \range{pages}{6}
+      \verb{doi}
+      \verb 10.1109/TDC.2005.1547099
+      \endverb
+    \endentry
+    \entry{tejaDynamic}{online}{}
+      \name{author}{1}{}{%
+        {{hash=aa156d74f24c0681c92ae34b2390b4cc}{%
+           family={Teja},
+           familyi={T\bibinitperiod},
+           given={Rohith},
+           giveni={R\bibinitperiod}}}%
+      }
+      \strng{namehash}{aa156d74f24c0681c92ae34b2390b4cc}
+      \strng{fullhash}{aa156d74f24c0681c92ae34b2390b4cc}
+      \strng{bibnamehash}{aa156d74f24c0681c92ae34b2390b4cc}
+      \strng{authorbibnamehash}{aa156d74f24c0681c92ae34b2390b4cc}
+      \strng{authornamehash}{aa156d74f24c0681c92ae34b2390b4cc}
+      \strng{authorfullhash}{aa156d74f24c0681c92ae34b2390b4cc}
+      \field{sortinit}{T}
+      \field{sortinithash}{9af77f0292593c26bde9a56e688eaee9}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{title}{What are Dynamic Graphs and Why They are Interesting?}
+      \field{urlday}{10}
+      \field{urlmonth}{7}
+      \field{urlyear}{2025}
+      \field{year}{2021}
+      \field{urldateera}{ce}
+      \verb{urlraw}
+      \verb https://towardsdatascience.com/what-are-dynamic-graphs-and-why-they-are-interesting-180b9fab9229/
+      \endverb
+      \verb{url}
+      \verb https://towardsdatascience.com/what-are-dynamic-graphs-and-why-they-are-interesting-180b9fab9229/
+      \endverb
+    \endentry
+    \entry{wirthCHDiploma}{thesis}{}
+      \name{author}{1}{}{%
+        {{hash=9d405ec01566791f9f4f2ecff76b3972}{%
+           family={Wirth},
+           familyi={W\bibinitperiod},
+           given={Alexander},
+           giveni={A\bibinitperiod}}}%
+      }
+      \list{institution}{1}{%
+        {Karlsruhe Institute of Technology}%
+      }
+      \strng{namehash}{9d405ec01566791f9f4f2ecff76b3972}
+      \strng{fullhash}{9d405ec01566791f9f4f2ecff76b3972}
+      \strng{bibnamehash}{9d405ec01566791f9f4f2ecff76b3972}
+      \strng{authorbibnamehash}{9d405ec01566791f9f4f2ecff76b3972}
+      \strng{authornamehash}{9d405ec01566791f9f4f2ecff76b3972}
+      \strng{authorfullhash}{9d405ec01566791f9f4f2ecff76b3972}
+      \field{sortinit}{W}
+      \field{sortinithash}{4315d78024d0cea9b57a0c6f0e35ed0d}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{title}{Algorithms for Contraction Hierarchies on Public Transit Networks}
+      \field{type}{Diplomová práce}
+      \field{year}{2015}
+    \endentry
+  \enddatalist
+\endrefsection
+\endinput
+

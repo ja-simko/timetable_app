@@ -1,0 +1,404 @@
+\newcommand{\trojuhelnikovaNerovnost}{
+  
+    \begin{tikzpicture}[
+        every node/.style={font=\large},
+        every path/.style={->, thick}, % default style for all edges
+        station/.style={circle, draw=black, thick, minimum size=10mm},
+        >=Stealth
+    ]
+    
+    
+    \node[station] (v) at (-2,-4) {v};
+    \node[station]  (L) at (-3,2) {L};
+    \node[station]  (w) at (1.5,-0.5) {t};
+    \node[station, dashed]  (w2) at (-2.48,-1) {\;t};
+    
+    % Edges
+    \draw[BlueViolet] (v) -- (L)
+        node[pos=0.8, above right] {9};
+    
+    \draw[BlueViolet] (w) -- (L)
+        node[pos=0.5, above right] {5};
+    
+    \draw[RedOrange] (v) -- (w)
+        node[pos=0.5, below right] {>4};
+    
+    \draw[black, dashed, opacity = 0.7, bend left = 10] (w) to 
+        node[pos=0.5] {}
+        (w2);
+    
+    \end{tikzpicture}
+    
+    }
+
+\newcommand{\FIFO}{
+
+    \begin{tikzpicture}[
+        every node/.style={font=\large},
+        station/.style={circle, draw=black, thick, minimum size=10mm},
+        >=Stealth
+    ]
+    
+    % Nodes
+    \node[station] (s) {s};
+    \node[station, right=3cm of s] (a) {a};
+    \node[station, above right=1.5cm and 2.5cm of a] (t) {t};
+    \node[station, below right=1.5cm and 2.5cm of a] (b) {b};
+    
+    % Edges
+    \draw[->, thick, BlueViolet,bend right = 15] (s) to 
+    node[pos=0.1, below] {\textcolor{BlueViolet}{10}}
+    node[pos=0.8, below] {\textcolor{BlueViolet}{12}}
+    (a);
+    \draw[->, thick, RedOrange, bend left = 15] (s) to 
+    node[pos=0.1, above] {\textcolor{RedOrange}{11}}
+    node[pos=0.8, above] {\textcolor{RedOrange}{13}}
+    (a); 
+    \draw[->, thick, RedOrange] (a) -- (t)
+    node[pos=0.2, above left] {\textcolor{RedOrange}{14}}
+    node[pos=0.8, above left] {\textcolor{RedOrange}{17}};
+    \draw[->, thick, BlueViolet] (a) -- (b)
+    node[pos=0.2, below left] {\textcolor{BlueViolet}{13}}
+    node[pos=0.8, below left] {\textcolor{BlueViolet}{16}};
+    
+    % Annotated result
+    %\node[align=left] at ($(C) + (2,-1)$) {\(\left(12, 1\right)\)};
+    
+    \end{tikzpicture}
+   
+    }
+\newcommand{\pripustnostOne}{
+    \begin{tikzpicture}[
+        every node/.style={font=\large},
+        station/.style={circle, draw=black, thick, minimum size=10mm},
+        >=Stealth, scale = 0.9, transform shape,
+        labelR/.style={rectangle, draw=gray!70, fill=gray!10, rounded corners, font=\small, inner sep=5pt},
+    ]
+    
+    % Nodes
+    \node[station] (t) {t};
+    \node[station] (a) at ($(t) + (-2.8cm,-3cm)$) {a};
+    \node[station] (b) at ($(t) + (0cm,-3cm)$)  {b};
+    \node[station] (c) at ($(t) + (2.8cm,-3cm)$) {c};
+    \node[station, ultra thick, below=5cm of t] (s) {s};
+    
+    \tikzset{labelR/.append style={draw=black}}
+    
+    
+    \node[labelR, above left=-0.1cm and 0.5cm of a] {13};
+    \node[left=0cm  of a] {(\textcolor{RedOrange}{7} + 6)};
+    
+    \node[labelR, above right=-0.1cm and 0.5cm of b] {11};
+    \node[right=0cm  of b] {(\textcolor{ForestGreen}{5} + 6)};
+    
+    \node[labelR, above right=-0.1cm and 0.5cm of c] {12};
+    \node[right=0cm  of c] {(\textcolor{BlueViolet}{3} + 9)};
+    
+    % Edges
+    \draw[-, thick] (a) -- (t)
+        node[pos=0.4, above left] {4};
+    \draw[-, thick] (b) -- (t)
+        node[pos=0.5, right] {9};
+    \draw[-, thick] (c) -- (t)
+        node[pos=0.4, above right] {9};
+    
+    \draw[-, thick] (a) -- (s)
+        node[pos=0.4, below left] {\textcolor{RedOrange}{7}};
+    \draw[-, thick] (b) -- (s)
+        node[pos=0.5, right] {\textcolor{ForestGreen}{5}};
+    \draw[-, thick] (c) -- (s)
+        node[pos=0.4,below right] {\textcolor{BlueViolet}{3}};
+    
+        
+    \end{tikzpicture}
+}
+
+\newcommand{\pripustnostTwo}{
+    
+        \begin{tikzpicture}[
+            every node/.style={font=\large},
+            station/.style={circle, draw=black, thick, minimum size=10mm},
+            >=Stealth, scale = 0.9, transform shape,
+            labelR/.style={rectangle, draw=gray!70, fill=gray!10, rounded corners, font=\footnotesize, inner sep=5pt},
+        ]
+        
+        % Nodes
+        \node[station, ultra thick] (t) {t};
+        \node[station] (a) at ($(t) + (-2.8cm,-3cm)$) {a};
+        \node[station, ultra thick] (b) at ($(t) + (0cm,-3cm)$) {b};
+        \node[station, ultra thick] (c) at ($(t) + (2.8cm,-3cm)$) {c};
+        \node[station, ultra thick,below=5cm of t] (s) {s};
+        
+        \tikzset{labelR/.append style={draw=black}}
+        \node[labelR, above left=-0.3cm and 0.3cm of a] {13};
+        
+        \node[labelR, above right=-0.3cm and 0.3cm of b] {11};
+        
+        \node[labelR, above right=-0.3cm and 0.3cm of c] {12};
+        
+        \node[labelR, above right=-0.3cm and 0.3cm of t] (old) {14};
+        \draw[red, line width=0.5pt, opacity = 0.75] 
+            ($(old.north west)+(-0.00,0.0)$) -- ($(old.south east)+(0.00,-0.00)$);
+        
+        \node[above right=-0.3cm and 0.8cm of t] {\(\rightarrow\)};
+        \node[labelR, above right=-0.3cm and 1.3cm of t] {12};
+        
+        % Edges
+        \draw[-, thick] (a) -- (t)
+            node[pos=0.4, above left] {4};
+        \draw[-, thick] (b) -- (t)
+            node[pos=0.5, right] {9};
+        \draw[-, thick] (c) -- (t)
+            node[pos=0.4, above right] {9};
+        
+        \draw[-, thick] (a) -- (s)
+            node[pos=0.4, below left] {7};
+        \draw[-, thick] (b) -- (s)
+            node[pos=0.5, right] {5};
+        \draw[-, thick] (c) -- (s)
+            node[pos=0.4, below right] {3};
+        \end{tikzpicture}
+    }
+    
+  
+\newcommand{\contractionOne}{
+
+        \begin{tikzpicture}[
+            every node/.style={font=\large},
+            station/.style={circle, draw=black, thick, minimum size=10mm},
+            >=Stealth
+        ]
+        
+        % Left graph
+        \node[station] (r1) at (0,0) {r};
+        \node[station]  (p1) at (1.5,-2) {p};
+        \node[station]  (v1) at (2.5,0) {v};
+        \node[station]  (u1) at (1.5,2) {u};
+        \node[station]  (w1) at (4.5,1) {w};
+        
+        % Edges (black)
+        \draw[black, thick] (r1) -- (u1) node[midway, left] {2};
+        \draw[black, thick] (u1) -- (w1) 
+        node[midway, above right] {7};
+        \draw[black, thick] (w1) -- (v1) node[midway, below] {3};
+        \draw[black, thick] (v1) -- (u1) node[midway, right] {2};
+        \draw[black, thick] (r1) -- (v1) node[midway, below] {8};
+        \draw[black, thick] (r1) -- (p1) node[midway, left] {4};
+        \draw[black, thick] (v1) -- (p1) node[midway, right] {4};
+        
+        \end{tikzpicture}
+
+    }
+
+\newcommand{\contractionTwo}{% Right graph (shifted right by 7cm)
+\begin{tikzpicture}[
+    every node/.style={font=\large},
+    station/.style={circle, draw=black, thick, minimum size=10mm},
+    >=Stealth
+]
+
+    
+\tikzset{op_contraction/.style={thick, dashed, opacity=0.7}}
+\node[station]  (r2) at (7,0) {r};
+\node[station]  (p2) at (8.5,-2) {p};
+\node[station, op_contraction, dashed]  (v2) at (9.5,0) {v};
+\node[station]  (u2) at (8.5,2) {u};
+\node[station]  (w2) at (11.5,1) {w};
+
+% Edges (black and orange)
+
+\draw[black, thick] (r2) -- (u2)
+node[midway, left] {2};
+\draw[black, thick] (u2) -- (w2) 
+node[midway, above right] {7};
+\draw[black, thick] (r2) -- (p2)
+node[midway, left] {4};
+
+\draw[black, op_contraction] (r2) -- (v2)
+node[pos=0.8, below, op_contraction] {8};
+
+\draw[black, op_contraction] (v2) -- (p2)
+node[midway, right, op_contraction] {4};
+
+\draw[black, op_contraction] (w2) -- (v2)
+node[midway, below] {3};
+
+\draw[black, op_contraction] (v2) -- (u2)
+node[midway, right] {2};
+
+
+\draw[RedOrange, thick, bend left = 30] (u2) to
+node[midway, above right] {5}
+(w2);
+
+\draw[RedOrange, thick, bend right = 15] (p2) to
+node[midway, above] {7}
+(w2);
+
+%\draw[green!70!black, thick] (u2) to[out=-20, in=110] (p2)
+    node[midway, left] {5};
+%\draw[green!70!black, thick] (v2) to[out=160, in=-60] (u2)
+    node[midway, right] {5};
+%\draw[green!70!black, thick] (v2) to[out=-50, in=40] (p2)
+    node[midway, right] {6};
+
+
+\end{tikzpicture}
+
+}
+
+\newcommand{\csaDelLabel}{
+
+    \begin{tikzpicture}[
+        every node/.style={font=\large},
+        every path/.style={->, thick}, % default style for all edges
+        station/.style={circle, draw=black, thick, minimum size=10mm},
+        >=Stealth
+    ]
+    
+    \node[station] (t) {t};
+    \node[station] (c) at ($(t) + (-3cm,0cm)$) {c};
+    \node[station] (b) at ($(t) + (-5cm,-2cm)$) {b};
+    \node[station] (a) at ($(t) + (-5cm,-5cm)$) {a};
+    \node[station, below=5cm of t] (s) {s};
+
+     % Edges
+    \draw[Brown] (s) -- (a)
+    node[pos=0.1, above left] {1};
+    \draw[Brown] (s) -- (a)
+    node[pos=0.8, above left] {3};
+
+    \draw[ForestGreen] (a) -- (b)
+    node[pos=0.1,left] {5};
+    \draw[ForestGreen] (a) -- (b)
+    node[pos=0.8, left] {8};
+
+    \draw[RedOrange] (b) -- (c)
+    node[pos=0.1, above left] {10};
+    \draw[RedOrange] (b) -- (c)
+    node[pos=0.8, above left] {14};
+
+    \draw[BlueViolet] (s) -- (c)
+    node[pos=0.1, above right ] {2};
+    \draw[BlueViolet] (s) -- (c)
+    node[pos=0.8, above right ] {10};
+
+    \draw[RedOrange] (c) -- (t)
+    node[pos=0.1, above] {15};
+    \draw[RedOrange] (c) -- (t)
+    node[pos=0.8, above] {17};
+
+
+    
+    \end{tikzpicture}
+
+
+    }
+
+\newcommand{\csaKeepLabel}{
+
+        \begin{tikzpicture}[
+            every node/.style={font=\large},
+            every path/.style={->, thick}, % default style for all edges
+            station/.style={circle, draw=black, thick, minimum size=10mm},
+            >=Stealth
+        ]
+        
+        
+        \node[station] (t) {t};
+        \node[station] (c) at ($(t) + (-3cm,0cm)$) {c};
+        \node[station] (b) at ($(t) + (-5cm,-2cm)$) {b};
+        \node[station] (a) at ($(t) + (-5cm,-5cm)$) {a};
+        \node[station, below=5cm of t] (s) {s};
+        
+        % Edges
+        \draw[RedOrange] (s) -- (a)
+            node[pos=0.1, above left] {1};
+        \draw[RedOrange] (s) -- (a)
+            node[pos=0.8, above left] {3};
+        
+        \draw[RedOrange] (a) -- (b)
+            node[pos=0.1,left] {5};
+        \draw[RedOrange] (a) -- (b)
+            node[pos=0.8, left] {8};
+        
+        \draw[RedOrange] (b) -- (c)
+            node[pos=0.1, above left] {10};
+        \draw[RedOrange] (b) -- (c)
+            node[pos=0.8, above left] {14};
+        
+        \draw[BlueViolet] (s) -- (c)
+            node[pos=0.1, above right ] {2};
+        \draw[BlueViolet] (s) -- (c)
+            node[pos=0.8, above right ] {10};
+        
+        \draw[RedOrange] (c) -- (t)
+            node[pos=0.1, above] {15};
+        \draw[RedOrange] (c) -- (t)
+            node[pos=0.8, above] {17};
+            
+        
+        \end{tikzpicture}
+    }
+
+
+\newcommand{\paretoOptimal}{
+        \begin{tikzpicture}[
+            every node/.style={font=\small},
+            station/.style={circle, draw=black, thick, minimum size=10mm},
+            labelbox/.style={rectangle, draw=gray!70, fill=gray!10, rounded corners, font=\footnotesize, inner sep=4pt},
+            dom/.style={text=blue!80!black},
+            domd/.style={text=red, opacity=0.6},
+            >=Stealth, ->, thick
+        ]
+        
+        % Nodes
+        \node[station] (a) {s};
+        \node[station] (b) at ($(a) + (3cm,-3cm)$) {a};
+        \node[station] (c) at ($(a) + (5cm,0cm)$) {c};
+        \node[station] (d) at ($(a) + (8cm, 0cm)$) {d};
+        \node[station] (e) at ($(a) + (3cm, 0cm)$) {b};
+        \node[station] (f) at ($(a) + (8cm, -3cm)$) {t};
+        
+        
+        % Edges
+        \draw[RedOrange] (e) -- node[above] {1} (c);
+        \draw[RedOrange] (a) -- node[above] {4} (e);
+        \draw[BlueViolet] (a) -- node[above right] {3} (b);
+        \draw[ForestGreen] (b) -- node[above left] {2} (c);
+        \draw[BlueViolet] (b) -- node[above left] {6} (d);
+        \draw[ForestGreen] (c) -- node[above left] {2} (d);
+        \draw[BlueViolet] (d) -- node[above right] {4} (f);
+        
+        % Labels at each node
+        \node[labelbox, above=0.2cm of a] {(0, 0)};
+        \node[labelbox, below = 0.2cm of b] {
+           (3, 0)
+        
+        };
+        \node[labelbox, above = 0.9cm of c] {
+         (5, 0)
+        };
+        
+        \node[labelbox, below = 0.2cm of f] {
+            \shortstack{(13, 0)\\(11, 2)}
+         };
+        
+        \node[labelbox, above = 0.2cm of e] {
+         (4, 0)
+         };
+        
+        \node[labelbox, above = 0.2cm of c] (old) {
+         (5, 1)
+        };
+        \draw[-,red, line width=0.5pt, opacity = 0.75] 
+                    ($(old.north west)+(-0.00,0.00)$) -- ($(old.south east)+(0.00,-0.00)$);
+        
+        \node[labelbox, above=0.2cm of d] {
+            \shortstack{(9, 0)\\(7, 1)}
+        };
+        
+        
+        \end{tikzpicture}
+    }
+

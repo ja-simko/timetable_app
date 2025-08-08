@@ -1,0 +1,242 @@
+---
+Created: 8th April 2025
+Modified: 16th June 2025
+---
+# Text Bachelor Thesis
+## Úvod
+### Popis problému
+Nalezení nejkratší, potažmo nejrychlejší, cesty v síti je jedním z typických problémů, který se vyskytuje na dopravních sítích. Ať už se jedná o ranní dojížďku do zaměstnání vlastním automobilem nebo o lodní přepravu počítačových čipů napříč kontinenty, délka jízdní doby je jedním z klíčových faktorů, který se snaží jednotlivec nebo firma optimalizovat. Úspěšná optimalizace vede k ušetřeným finančním prostředkům a času, a je tedy cestou k nižším nákladům a efektivnějšímu řízení omezených zdrojů. 
+
+V sítích veřejné dopravy hraje optimalizace tras spojů neopomenutelnou roli. Na jedné straně je cestující, pro kterého je očekávaná délka cestovní doby při volbě dopravního prostředku nebo trasy zásadní rozhodovací faktor. Dalším zásadním faktorem je cena dopravy. Vedlejší faktory jako přímé spojení, pohodlí nebo bezpečnost také ovlivňují volby cestujícího, avšak v menší míře. Na druhé straně je dopravce, jehož úloha je značně komplikovanější, jelikož krátká jízdní doba nezaručuje optimální řešení. Kratší jízdní doba může učinit řidiče efektivnější a snížit počet potřebných vozidel pro uspokojení poptávky, ale také může způsobit větší opotřebení vozového parku nebo drahé investice do moderních vozidel. 
+
+Tato práce se však soustředí na ten první problém, tedy problém nalezení nejrychlejší cesty v rámci sítě veřejné hromadné dopravy (VHD). Problém nejkratší cesty se vyskytuje v mnoha odvětvích, a to také svědčí o spoustě algoritmů, které se používají pro každý specifický problém. Společné ale mají to, že se fyzická síť převede na abstraktní graf s vrcholy spojené hranami, nad nimiž algoritmus provádí operace.
+
+Příklady, v nichž jsou algoritmy využity, je např. efektivní řízení toku elektřiny po elektrické rozvodné síti [^11], pro nalezení spojení dvou lidí v sociálních sítích [^12] nebo pro nalezení cesty pro charaktery v počítačových hrách. [^13] Největší využití však algoritmy mají na dopravních sítích, ať už v navigacích řidičů osobní a nákladní přepravy, nebo diktující pohyb robotů v logistických centrech,  či jako pomocník vyhledávače spojení pro cestující v městských megalopolích. 
+
+Mezi nalezením nejrychlejší cesty na silniční síti pro automobil a nalezením optimálního spojení ve veřejné hromadné dopravě je kritický rozdíl. Oba problémy mohou být převedeny do diskrétního grafu, avšak tradiční silniční síť je časově nezávislá, pokud není brána v potaz intenzita dopravy, a lze ji tak převést do statického grafu, kde každá hrana má fixní ohodnocení. Naopak spoje ve veřejné dopravě se řídí specifickým jízdním řádem, takže den a čas ovlivňuje ohodnocení hran; takovýto graf je dynamický. A právě vytvoření a implementace algoritmu nejkratší cesty v diskrétním dynamickém grafu je obsahem této bakalářské práce.
+
+### Aktuální situace
+
+
+## Algoritmy nalezení nejkratší cesty
+### Dijkstrův algoritmus
+Tento algoritmus pro nalezení nejkratší cesty byl poprvé popsán v odborném článku z roku 1959 nizozemským informatikem Edsgerem. W. Dijkstrou. [^9] Dijkstrův algoritmus slouží pro nalezení nejkratší cesty z výchozího vrcholu do všech ostatních vrcholů v nezáporně hranově ohodnoceném grafu.
+
+Nechť je dán orientovaný graf $G = (V, E)$, kde $V$ je množina všech vrcholů grafu $G$ a $E$ je množina všech hran grafu $G$. Každá hrana $(u,v) \in E$ je má nezápornou délku $L(u,v)$. Cílem algoritmu je nalézt nejkratší cestu z počátečního vrcholu $s$ do ostatních vrcholů v grafu. Typicky je však potřeba zjistit nejkratší cestu pouze do jednoho konkrétního vrcholu $t$.  Nejkratší cesta mezi vrcholem $v$ a $w$ je dána $d(v,w)$.
+
+Pro postup algoritmem je potřeba vytvořit tři podmnožiny vrcholů: *navštívené*, *nenavštívené* a *objevené*. 
+- *Navštívený* vrchol je takový vrchol, jehož ohodnocení $E(v)$ udává definitivní (nejkratší možnou) cestu z počátku do tohoto vrcholu. 
+- *Nenavštívený* vrchol u nějž není zatím známa žádná nejkratší cesta a jeho ohodnocení $E(v) = \infty$. 
+- *Objevený* vrchol je vrchol, který byl v průběhu algoritmu prozkoumám a jehož ohodnocení je reálné číslo, nicméně ale ještě nebyl definitivně ohodnocen. 
+
+Pro navštívené vrcholy $w$ kromě počátku $s$ je navíc dán vrchol $P(w)$, pomocí něhož bude možné dohledat nejkratší cestu. [Vrchol?]
+
+Popis algoritmus je dán následujícími kroky [^10]:
+1. pro všechna $v \in V$ označ $E(v) := \infty$, $P(v) := \text{není definováno}$ 
+2. počátek $s$ označ jako *objevený* a $E(s) = 0$
+3. dokud existují *objevené* vrcholy, opakuj:
+	1. zvol *objevený* vrchol $u$ takový, kde $E(u) <= E(w)$ pro každý *objevený* vrchol $w$
+	2. označ $u$ jako *navštívený*
+	3. pro každý vrchol $w$, pro který existuje hrana  $(u,w) \in E$ a platí $E(u) + L(u,w) < E(w)$
+		1. pokud je vrchol $w$ *nenavštívený*, označ jej jako *objevený*
+		2. označ $E(w) = E(u) + L(u,w)$, $P(w) = u$
+4. ukonči algoritmus
+
+Pokud je cílový vrchol $v_c$ *navštívený*, $E(v_c)$ je délka nejkratší cesty. Jinak nejkratší cesta v grafu mezi  $s$  a $v_c$ neexistuje. Pro nalezení konkrétní cesty včetně všech mezilehlých vrcholů je nutno postupovat od $v_c$  do $s$  podle hodnot $P(w)$. $P(w)$ udává předchůdce vrcholu $w$ na nejkratší cestě. Při zpětném průchodu se jedná o následovníka. 
+
+Popis algoritmu pro nalezení seznamu vrcholů:
+1. vytvoř prázdný seznam $S$
+2. nastav $w := v_c$ a vlož $v_c$ na začátek seznamu $S$
+3. dokud $P(w) \neq \text{není definováno}$:
+	1. vlož $P(w)$ na začátek seznamu $S$
+	2. $w := P(w)$
+4. ukonči algoritmus
+
+Neprázdný seznam $S$ obsahuje výčet navštívených vrcholu nejkratší cesty, včetně počátku $s$ a cíle $v_c$. 
+
+### A*
+https://web.archive.org/web/20160322055823/http://ai.stanford.edu/~nilsson/OnlinePubs-Nils/PublishedPapers/astar.pdf
+A* (A star) algoritmus je nástavba Dijkstrova algoritmu. Liší se tím, že při procházení vrcholů v grafu je ohodnocení uzlů určeno funkcí $f(v) = g(v) + h(v)$. Jako u Dijkstrova algoritmu, $g(v)$ udává vzdálenost vrcholu $v$ od počátečního uzlu, navíc zde však figuruje heuristická funkce $h(v)$, která udává dolní odhad nejkratší cesty z vrcholu $v$ do cíle. Obecně platí, že čím je heuristika přesnější, tj. že dolní odhad je blízko skutečné vzdálenosti, je algoritmus efektivnější. Je zřejmé, že pokud dolní odhad $h(v) = 0$, tak ekvivalentní zápis ohodnocení vrcholů by byl $f(v) = g(v)$ a jednalo by se tak o standardní Dijkstrův algoritmus. Cílem využití A* je však prohledávání zrychlit, nicméně pro nalezení optimální cesty je nutné zajistit, aby funkce $h(v)$ byla přípustná. Funkce $h(v)$ se nazývá přípustná, právě tehdy když $h(v) \leq d(v, t)$ pro každý vrchol grafu. [^14]
+
+Přípustná funkce nikdy nepřeceňuje opravdovou vzdálenost od daného vrcholu do cíle, a proto algoritmus A* zaručeně nalezne optimální cestu. [^7] Intuitivní nástin důkazu: Pokud v grafu existuje unikátní $d(s,t)$, na které neleží vrchol $v$ a $v \neq t$, znamená to, že $d(s,t)$ < $g(v) + h(v)$. Vrchol $v$ tak není navštívený, protože algoritmus byl ukončen dříve. Pokud by $d(s,t)$ měla $v$ procházet, muselo by platit $d(s,t) > d(s, v) +d (v,t)$. Vyřešením soustavy nerovnic a $g(v) = d(s,v)$ plyne, že  $h(v) > d(v,t)$, tedy že dolní odhad je větší než skutečná vzdálenost a vrchol $v$ nebyl navštíven. Ovšem platí-li $\forall v \in V, h(v) \leq d(v,t)$, pak dolní odhad je přípustný a každá optimální cesta bude prozkoumána. Formálně dokázáno např. zde [^15].
+
+*Obrázek, proč musí být přípusné, by se hodil*
+
+Dále je heuristické funkce $h(v)$ monotónní nebo též konzistentní, pokud pro každý pár vrcholů grafu $v$ a $w$ platí:
+$$
+h(v) \leq d(v,w) + h(w).
+$$
+Tato vlastnost říká, že odhad délky nejkratší cesty z vrcholu $v$ nesmí být větší než délka hrany $(v,w)$ a odhadu ve vrcholu $w$. Intuitivně to znamená, že odhad nejkratší cesty z $v$ do cíle za podmínky, že cesta prochází $w$, nesmí být menší než bez této podmínky. [^16] Jedná se tak o trojúhelníková nerovnost, která zajištuje, že jakmile je vrchol navštívený, není potřeba jej znova navštěvovat a algoritmus se tak stává efektivnějším. Monotónnost implikuje přípustnost. [ibid]
+
+#### Konkrétní heuristiky
+Typická přípustná i monotónní heuristická funkce je Eukleidovská metrika, která udává přímou vzdálenost mezi dvěma body (tj. vzdálenost vzdušnou čarou).
+$$d(P_1, P_2) = \sqrt{(x_2 - x_1)^2 + (y_2 - y_1)^2}$$
+
+V určitých situacích, kde je pohyb dovolen pouze čtyřmi směry (např. labyrint ve čtvercové síti nebo síť pravoúhlých ulic), je však výhodnější použít Manhattanskou metriku. Ta měří vzdálenost mezi dvěma body jako součet absolutních rozdílu hodnot jejich souřadnic. V porovnání s Eukleidovskou metrikou bude v mřížkové síti Manhattanská metrika přesnější, protože její odhad skutečné vzdálenosti je stejný nebo vyšší, aniž by byla porušena podmínka o přípustnosti. 
+
+Je-li zvolená heuristická funkce přípustná a konzistentní (pro každý navštívený uzel platí, že jeho ohodnocení je nejmenší možné), tak A* potřebuje pro nalezení nejkratší cesty objevit méně vrcholů (až 6x méně u 17km cesty v reálné dopravní síti). [^8]
+
+A* je tedy rychlejší a efektivnější algoritmus pro nalezení *nejkratší* cesty, ovšem není ihned zřejmé, jestli tomu tak je i u *nejrychlejší* cesty, která v modelování grafu jízdního řádu hraje zásadní roli. 
+
+Nelze rovnou použít např. Eukleidovskou metriku, jelikož vrcholy jsou ohodnoceny v jednotkách veličiny času ($\tau$), zatímco odhad metriky je v jednotkách veličiny délky ($d$}. Nabízí se možnost podělit délku rychlostí ($v$), jelikož platí $t = \frac{d}{v}$. Rychlost ale musí být zvolena tak, aby odhady doby jízdy mezi dvěma body byly přípustné. To však v dopravním systému s mnoha různými dopravními prostředky znamená, že musí být zvolena maximální rychlost prostředku v daném systému, typicky vlaku nebo metra. Jelikož mnoho hran a spojů dosahuje mnohem nižších průměrných rychlostí, je tak dolní odhad velmi konzervativní. Naštěstí existují alternativní možnosti, jak se s tímto problémem vypořádat.
+
+#### Heuristika s landmarky
+Zajímavou alternativou ke standardním metrikám výše je využití tzv. landmarků (z angličtiny význačný nebo orientační bod).  Heuristika byla v této formě poprvé popsána zde [^17]. Nechť existuje landmark L, k němuž je nejkratší cesta $d(v,L)$ z vrcholu $v$. Poté z trojúhelníkové nerovnosti plyne, že $d(v,L) +d(v,w) \geq d(L, w)$. Úpravou $d(v,w) \geq d(L, w) - d(v, L)$. Pokud $w = s$, je  dolní odhad $h(v)$  $= |d(L, s) - d(v, L)|$. 
+
+Jinými slovy rovnice říká, že dolní odhad vzdálenosti mezi aktuálním vrcholem a cílem je absolutní hodnota rozdílu nejkratší cesty z cíle do landmarku a z aktuálního vrcholu do landmarku. Například je-li to z cíle do landmarku 30km a z vrcholu $v$ do landmarku  50km, nejkratší cesta z $v$ do cíle je nejméně 20km. Pokud je landmarků více, existuje několik takových dolních odhadů. To maximální z nich je nejpřesnější a v konečném důsledku učiní algoritmus efektivnějším. Tato skupina algoritmů se nazývá ALT, jelikož vychází z A* algoritmu a pro výpočet využívá landmarky a trojúhelníkovou nerovnost.
+
+Nevýhoda tohoto přístupu vězí v tom, že je nutno předem spočítat pro každý prvek z množiny vrcholů nejkratší cestu ke všem prvkům v množině landmarků. Je nutné tedy nutné zahrnout fázi předzpracování ("preprocessing"), která může být na velkých grafech několikahodinová. Na druhou stranu nejkratší cesta mezi dvěma body na silniční sítí se jen zřídkakdy mění, proto je věrohodnost předzpracovaných landmarků věrohodná po poměrně dlouhou dobu.
+
+Důležitým aspektem pro tuto heuristiku je výběr landmarků. V původním článku byly navrhnuty metody "random", "planar" a "farthest". [^18] K nim se pak přidaly metody "avoid" a "maxCover". [^19] Náhodný výběr je nejrychlejší metoda, ale není vůbec efektivní. Planar využívá znalosti, že silniční síť je geometrický graf, ve kterém délky hran silně korelují se vzdáleností. K nalezení landmarků se graf rozdělí na několik stejně velkých výseku kružnice se středem v centrálním uzlu sítě. Poté je iterativně v každém výseku nalezen takový uzel, který je od centrální nejvzdálenější; je-li blízko hranice s jiným výsekem, je uzel přeskočen. U metody farthest je rovněž snaha nalézt co nejvíce vzdálené uzly. První landmark je zvolen náhodně, zatímco každý další je pak zvolen tak, aby od všech ostatních landmarků byl co nejdále. Několik optimalizací výběru je blíže popsáno zde, jako například opětovné odstranění již vybraných landmarků pro maximalizaci vzájemných vzdáleností.[^20] 
+
+Metoda avoid funguje na té bázi, že se landmark vloží na místo, které aktuálně není dobře pokryto landmarky. U takového místa platí, že dolní odhad je oproti skutečné vzdálenosti příliš malý, a je tam tedy vhodné landmark umístit.
+
+(alt je rychly [^25])
+
+#### Arc-Flags
+Další metoda vyvinuta Lautherem [^26] je rovněž náročná na předzpracování, nicméně jednotlivá vyhledávání jsou velmi rychlá. [^27] Princip Arc-Flags nebo česky "označení hran" vychází z předpokladu, že je možné vyřadit hrany během vyhledávání, pokud hrana nenáleží nejkratší cestě. Tento přístup využívá graf $G$ rozdělený na několik regionů $R_1$… $R_k$, kde každý vrchol náleží právě jednomu regionu. Každá hrana nese $k$ označení. Označení hrany nabývá hodnoty $TRUE$ pro $R_i$, pokud hrana náleží nejkratší cestě alespoň do jednoho uzlu v $R_i$ anebo pokud hrana leží v $R_i$; jinak nabývá $FALSE$. [^28]
+
+![[Pasted image 20250616223251.png]] 
+
+Pro každou hranu, která je na hranici 
+
+## Typy grafu
+Existují dva základní modely, které se používají pro převedení dat o jízdních řádech do grafu. První z těchto modelů je tzv. "time-dependent" a druhý je "time-expanded".[^5] U obou grafů je možno nalézt nejkratší, tj. nejrychlejší, cestu pomocí modifikovaného Dijkstrova algoritmu, nicméně struktura a velikost grafů je odlišná.
+
+### Time-expanded model
+Time-expanded model je založen na bázi digrafu, ve kterém každá časová událost (příjezd nebo odjezd) je reprezentována jako vrchol, který náleží právě jedné stanici nebo zastávce. [Asi tomu rikat jenom stanice nebo jenom zastavka] Existují dva typy hran. Zaprvé jsou to hrany přejezdové, které spojují odjezdový vrchol $v_i$ ve stanici $S_i$ s příjezdovým vrcholem $v_j$ ve stanici $S_j$. Tyto dvě události náleží dvou po sobě jdoucím stanicím v právě jedné jízdě spoje. Dále je pak každý odjezd i příjezd časově ohodnocen. Zadruhé se jedná o hrany pobytové. Tyto hrany se vytvoří tak, že se nejprve seřadí všechny vrcholy náležící právě jedné stanici vzestupně dle časového ohodnocení. Poté jsou spojeny pobytovou hranou vždy dva po sobě jdoucí vrcholy. Z posledního vrcholu téhle množiny je vedena hrana do prvního vrcholu, které kompletuje cyklus pobytových hran ve stanici. Zdaleka nemusí platit, že jsou propojeny vždy odjezdové a příjezdové vrcholy stejné jízdy, především tehdy, je-li pobytová doba ve stanici relativně dlouhá. Ohodnocení hrany je možno najít pouhým rozdílem času po sobě jdoucích událostí (konkrétně událost příjezdu a odjezdu u přejezdových hran).
+
+### Time-dependent model
+Time-dependent model je také digraf, avšak oproti předchozímu modelu obsahuje podstatně méně vrcholů. Každá stanice totiž obsahuje pouze jeden vrchol, který je spojen hranou s vrcholy ostatních stanic právě tehdy, existuje-li mezi stanicemi elementární spojení. Elementárním spojením mezi stanicemi A a B se myslí to, že existuje jízda spoje v jízdním řádu, ve které stanice A bezprostředně předchází stanici B. Jedna hrana tak obsahuje informace o všech elementárních spojeních, tedy o všech časech odjezdu a příjezdu mezi dvěma stanicemi. Z toho vyplývá, že ohodnocení hrany není pevně stanoveno tak jako u time-expanded modelu. Časové ohodnocení je totiž přímo závislé na čase, v jakém algoritmus hranu používá. Používá-li algoritmus hranu mezi stanicemi A a B v čase $t$, je nalezeno takové spojení mezi těmito stanicemi, kde čas odjezdu $t_o$ je nejnižší a zároveň $t_o \geq t$. Ohodnocení je pak čas příjezdu $t_p$ - $t$.
+
+Aby tohle platilo, je nutné zavést předpoklad, který tvrdí, že neexistují dva spoje, kde by jeden z nich odjel ze stanice A jako první a zároveň přijel do stanice B jako druhý. Jinými slovy není povoleno předjíždění spojů.
+
+### Srovnání modelů
+Time-expanded model vyžaduje mnohem více vrcholů a je tak paměťově náročnější, zato ale jeho struktura dovoluje jednodušší implementaci algoritmů pro nalezení nejkratší cesty, protože je ohodnocení hran pevně stanoveno. Naopak paměťově méně složitý time-dependent model vyžaduje dodatečnou modifikaci algoritmu pro výběr hranového spojení. 
+
+V experimentech nad různě velkými reálnými daty bylo vypozorováno, že time-dependent model je časově rychlejší než jeho protějšek, a to jak u zjednodušených, tak i u realistických úloh. Právě tato časová efektivita time-dependent modelu je hlavním důvodem, proč je v implementační části preferován tento model grafu jízdních řádů nad time-expanded modelem. Jak je však detailně popsáno v další části, pro správné fungování time-dependent modelu v reálném dopravní síti je nutné přistoupit k několika úpravám, které si vypůjčují prvky time-expanded modelu. Nicméně primární rozličnost v přejezdových hranách zůstává zachována. [^22] [^23]
+
+### Modifikace modelu 
+#### Přestupy
+Je-li dán základní time-dependent model grafu jízdních řádů, je nutné zkontrolovat, jestli vyhovují požadavkům dopravní sítě. Její zásadní faktor je možnost přestupu mezi různými linkami, který trvá nenulovou dobu. V aktuálním modelu je každá stanice reprezentována pouze jedním vrcholem a odjezd do následujících stanic je možný i v čase příjezdu do výchozí stanice. Nabízí se řešení nastavit minimální délku čekací doby ve stanici, je-li přestup mezi dvěma různými linkami. Pokud hranové spojení je součástí předchozí jízdy (to znamená cestující nemusí vozidlo opustit), minimální doba přestupu je nulová. 
+
+Toto řešení je však po důkladné inspekci nevyhovující kvůli tomu, jakým způsobem Dijkstrův algoritmus ohodnocuje vrcholy. Jako na obrázku XY, nechť ze stanice A odjíždí modrý spoj v čase 10 a přijíždí do stanice B v čase 12, kde také trasu ukončuje. Ve stejném směru odjíždí červený spoj v čase 11 a přijíždí v čase 13, který pak pokračuje do stanice C, která je zároveň cílovou stanicí zvolené cesty. Pokud je počátek cesty v čase 10 ve stanici A, algoritmus si nejprve vybere hranu mezi A a B a zvolí si nejdříve jedoucí spoj, tedy ten modrý, a dočasně ohodnotí vrchol B časem 12. 
+
+![[Pasted image 20250414211508.png]]
+
+Problém však nastává, je-li nejmenší doba přestupu mezi různými linkami tři minuty. Ačkoliv z obrázku je patrné, že nejkratší cesta mezi stanicemi A a C existuje bez přestupu, algoritmus není schopen tuto cestu najít, protože si nezvolí jízdu po hraně červeným spojem, když to nesníží ohodnocení vrcholu ve stanici B.
+
+Elegantním řešením, které se inspiruje time-expanded modelem, je zavedení linkových vrcholů ke stávajícím staničním vrcholům. Každý linkový vrchol náleží právě jedné stanici. Ve zjednodušené verzi této úpravy se dá říci, že podle toho kolik linek zastavuje v dané stanici, tolik linkových vrcholů stanice obsahuje. [^6] Toto řešení dovoluje ohodnocení více linkových vrcholů než předchozí verze a algoritmus tak může využít spojení, která sice do stanice B přijíždí později, ale kvůli absenci minimální doby přestupu je možné využít následující spojení, které by po přestupu z modré linky nebylo časové přístupné.
+
+Linkový vrchol a staniční vrchol je spojen dvěma orientovanými hranami, jedna v každém směru. Ohodnocení hrany vycházející z linkového vrcholu je nulové; značí to, že jakmile je v algoritmu dosažen jakýkoliv linkový vrchol, je to jako kdyby byl dosažen staniční vrchol. Ohodnocení hrany vycházející ze staničního vrcholu je rovno fixní hodnotě minimální doby přestupu. 
+
+Pro každý linkový vrchol $p_i^u$, kde $i$ je linka a $u$ je vrchol stanice, 
+
+![[Pasted image 20250504135048.png|475]]
+
+#### Trasa místo linky
+Použití linky však také není zcela korektní, protože na běžné dopravní síti často spoje jedné linky obsluhují navzájem odlišné stanice během dne nebo v rámci týdne. Z tohoto důvodu je nutné zavést trasy a k nim příslušící trasové vrcholy namísto linkových, kde každá trasa je definována jako unikátní sled zastavení, ve kterém se mohou stanice opakovat. K trase mohou být přiřazeny spoje jedné či více linek a zároveň spoje jedné linky mohou být přiřazeny k jedné nebo více trasám. Každý spoj je však přiřazen pouze k právě jedné trase a žádná trasa není prázdná.
+
+#### Hrana čí [nevim co jsem mel na mysli]
+
+
+## Výstup modelu
+### Kritéria
+U algoritmu jízdního řádu se nabízí, aby hodnotící kritérium optimální cesty byla nejkratší jízdní doba. Kvůli konstrukce modelu je však vhodnější zvolit podobné kritérium, a to nalezení spojení s *nejdřívějším* příjezdem do cílové stanice s výjezdem v nebo po čase $t_0$. V dopravních sítích však není rychlost jediným důležitým kritériem. Rozhodujícím faktorem je totiž i počet přestupů, a to do té míry, že cestující je ochoten strávit delší čas na cestě, pokud si ušetří alespoň jeden přestup. Empiricky bylo zjištěno, že jeden přestup je v městské dopravě
+
+Cestovní doba a počet přestupů jsou tak hlavní kritéria, podle kterých je určena optimální cesta. [^21]
+### Paretovo optimum
+Aplikace jízdního řádu však tradičně nezobrazuje pouze jednu možnou trasu, nýbrž několik variant. Proto je vhodné kritéria výše kombinovat a zobrazit pouze pareto-optimální cesty, tedy takové cesty, kde žádná z nich není dominována ve všech kritériích. 
+
+V tabulce lze vidět příklad tří pareto-optimálních cest (1, 2 a 3), a jedné cesty, která je dominována jinou cestou (4), tj. je striktně horší. Cesta 2 je nejrychlejší, avšak se třemi přestupy. Cesta 1 je o čtyři minuty pomalejší, ale protože vyžaduje o jeden přestup méně, není vůči předchozí cestě dominována. Podobně je na tom cesta 3. Avšak cesta 4 je o tři minuty delší než trasa 2 a vyžaduje stejný počet přestupů, proto je cesta 4 suboptimální volba.
+
+| index | Jízdní doba | Počet přestupů | Pareto-optimální |
+| ----- | ----------- | -------------- | ---------------- |
+| 1     | 25 min      | 2 přestupy     | Ano              |
+| 2     | 21 min      | 3 přestupy     | Ano              |
+| 3     | 26 min      | 1 přestup      | Ano              |
+| 4     | 24 min      | 3 přestupy     | Ne               |
+
+## GTFS
+Nejběžnějším formátem pro ukládání dat typu jízdních řádů je General Transit Feed Specification (GTFS). [^1] Jedná se standardizovaný a celosvětově využívaný formát, který umožňuje konzistentní manipulaci dat napříč různými regiony a dopravními systémy. Jelikož jsou data otevřená a transparentní, jsou běžně využívána softwarovými aplikacemi pro plánování a vizualizaci tras nebo zobrazení informací v reálném čase.
+
+GTFS se skládá ze dvou hlavních částí: GTFS Schedule (nebo též GTFS Static) a GTFS Realtime. GTFS Realtime využívá dynamická data a zobrazuje cestujícím aktuální informace o tom, jaké stanice a linky jsou aktuálně v provozu, a také informuje o poloze a plánovaném nebo aktuálním zpoždění spojů. [^2] Aktualizace dat probíhá každých pár sekund.
+
+U GTFS Schedule k aktualizaci dat naopak dochází periodicky, typicky denně nebo týdně. Tato data obsahují mimo jiné informace o zastávkách, linkách a jednotlivých jízdách. Tato práce využívá pouze statická data GTFS, proto následující sekce popisuje jejich strukturu detailněji. Jako příklad jsou uváděna GTFS data od Pražské integrované dopravy (PID), jelikož v implementační části [kapitole XY] algoritmu budou využívána právě ona.
+
+#### GTFS Schedule
+Každý dataset z GTFS Schedule (dále jen GTFS) je složen z několika CSV souborů s příponou názvu souboru ".txt". Těchto souborů může být několik desítek, ale pouze několik málo z nich je povinných.[^3][^4] Tyto povinné soubory jsou zároveň ty, které tvoří kostru celého datasetu a poskytují nejdůležitější informace. Jedná se o soubory: agency, stops, routes, trips, stop_times, a calendar.
+
+- Agency –  Obsahuje informace o dopravcích. V případě dat PIDu je však uveden pouze dopravce "PID" kvůli jednotnosti tarifu. Konkrétní smluvní dopravce jsou v jiném souboru.
+- Stops – Obsahuje popis aktuálně provozovaných zastávek a stanic.
+- Routes – Obsahuje informace o aktuálně provozovaných linkách.
+- Trips – Obsahuje soupis jednotlivých jízd. Každá jízda unikátně reprezentuje jeden spoj.
+- Stop_times – Obsahuje informace o právě jednom zastavení právě jednoho spoje.
+- Calendar – Udává platnost jízdních řádů. Každá jízda se odkazuje na právě jeden záznam, který zahrnuje rozmezí dnů, kdy jízdní řád platí, a zároveň vymezuje dny v týdnu.
+
+
+
+
+## Implementace
+
+## Bibliografie
+
+[^1]: https://gtfs.org/getting-started/why-use-GTFS/
+
+[^2]: https://gtfs.org/documentation/realtime/reference/
+
+[^3]: Některé z nich jsou povinné jen za určitých podmínek, ale podstata zůstává stejná.
+
+[^4]: https://gtfs.org/documentation/schedule/reference/
+
+[^5]: Tyto názvy jsou ponechány v angličtině, jelikož nemají české ekvivalenty. Ale daly by se přeložit, po řadě, jako "časově závislý" model  a  model grafu "rozvitého v čase".
+
+[^6]: Později bude vysvětleno, proč to neplatí obecně pro reálnou dopravní síť.
+
+[^7]: https://cdn.aaai.org/AAAI/2005/AAAI05-216.pdf
+
+[^8]: https://medium.com/@miguell.m/dijkstras-and-a-search-algorithm-2e67029d7749
+
+[^9]: https://ir.cwi.nl/pub/9256/9256D.pdf
+
+[^10]: https://kam.mff.cuni.cz/~ludek/NTIN060texty/
+
+[^11]:  https://ieeexplore.ieee.org/abstract/document/1547099
+
+[^12]: https://www.sciencedirect.com/science/article/abs/pii/S0378437115000321
+
+[^13]: https://www.researchgate.net/profile/Xiao-Cui-12/publication/267809499_A-based_Pathfinding_in_Modern_Computer_Games/links/54fd73740cf270426d125adc/A-based-Pathfinding-in-Modern-Computer-Games.pdf
+
+[^14]: https://dl.acm.org/doi/pdf/10.1145/3828.3830
+
+[^15]: https://mat.uab.cat/~alseda/MasterOpt/Judea_Pearl-Heuristics_Intelligent_Search_Strategies_for_Computer_Problem_Solving.pdf
+
+[^16]: https://mat.uab.cat/~alseda/MasterOpt/Judea_Pearl-Heuristics_Intelligent_Search_Strategies_for_Computer_Problem_Solving.pdf
+
+[^17]: https://www.cs.princeton.edu/courses/archive/spr06/cos423/Handouts/GH05.pdf
+
+[^18]: https://www.cs.princeton.edu/courses/archive/spr06/cos423/Handouts/GH05.pdf
+
+[^19]: https://scispace.com/pdf/computing-point-to-point-shortest-paths-from-external-memory-3kxae564p7.pdf
+
+[^20]: [^18]: https://www.cs.princeton.edu/courses/archive/spr06/cos423/Handouts/GH05.pdf
+
+[^21]: Intraplan – Standardisierte Bewertung von Verkehrswegeinvestitionen
+	des öffentlichen Personennahverkehrs, Nahverkehr 2001
+
+[^22]: https://drops.dagstuhl.de/storage/01oasics/oasics-vol007-atmos2007/OASIcs.ATMOS.2007.1169/OASIcs.ATMOS.2007.1169.pdf
+
+[^23]: fficient models for timetable information in public transportation systems
+
+[^24]: fficient models for timetable information in public transportation systems
+
+[^25]: https://drops.dagstuhl.de/storage/01oasics/oasics-vol007-atmos2007/OASIcs.ATMOS.2007.1169/OASIcs.ATMOS.2007.1169.pdf*
+	
+	
+
+[^26]: https://www.researchgate.net/publication/230595684_An_Extremely_Fast_Exact_Algorithm_for_Finding_Shortest_Paths_in_Static_Networks_with_Geographical_Background
+
+[^27]: Experimental results…
+	
+
+[^28]: file:///C:/Users/Jachym/Downloads/Acceleration_of_Shortest_Path_and_Constrained_Shor.pdf

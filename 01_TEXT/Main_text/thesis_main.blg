@@ -1,0 +1,14 @@
+[0] Config.pm:307> INFO - This is Biber 2.19
+[1] Config.pm:310> INFO - Logfile is 'thesis_main.blg'
+[210] biber-MSWIN64:340> INFO - === 
+[302] Biber.pm:419> INFO - Reading 'thesis_main.bcf'
+[496] Biber.pm:979> INFO - Found 44 citekeys in bib section 0
+[521] Biber.pm:4419> INFO - Processing section 0
+[547] Biber.pm:4610> INFO - Looking for bibtex file 'thesis_main.bib' for section 0
+[710] bibtex.pm:1713> INFO - LaTeX decoding ...
+[800] bibtex.pm:1519> INFO - Found BibTeX data source 'thesis_main.bib'
+[1211] UCollate.pm:68> INFO - Overriding locale 'cs_CZ' defaults 'variable = shifted' with 'variable = non-ignorable'
+[1212] UCollate.pm:68> INFO - Overriding locale 'cs_CZ' defaults 'normalization = NFD' with 'normalization = prenormalized'
+[1212] Biber.pm:4239> INFO - Sorting list 'nyt/global//global/global' of type 'entry' with template 'nyt' and locale 'cs_CZ'
+[1298] bbl.pm:660> INFO - Writing 'thesis_main.bbl' with encoding 'UTF-8'
+[1328] bbl.pm:763> INFO - Output to thesis_main.bbl

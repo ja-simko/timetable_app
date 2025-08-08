@@ -1,0 +1,231 @@
+% arara: pdflatex: { synctex: yes }
+% arara: makeindex: { style: ctuthesis }
+% arara: bibtex
+
+% The class takes all the key=value arguments that \ctusetup does,
+% and a~couple more: draft and oneside
+\documentclass[twoside]{ctuthesis}
+
+
+\ctusetup{
+	preprint = \ctuverlog,
+	%	mainlanguage = english,
+	titlelanguage = czech,
+	mainlanguage = czech,
+	otherlanguages = {slovak,english},
+	title-czech = {Návrh a~implementace metody pro vyhledávání nejkratších cest v~jízdních řádech},
+	title-english = {Design and Implementation of a~Method for Shortest Path Search in Timetables},
+	%subtitle-czech = {Cesta do tajů kdovíčeho},
+	%subtitle-english = {Journey to the who-knows-what wondeland},
+	doctype = B,
+	faculty = F6,
+	department-czech = {Katedra chytrých měst a~regionů},
+	department-english = {Department of Smart Cities and Regions},
+	author = {Jáchym Šimko},
+	supervisor = {Ing.~Alena Rybičková,~Ph.D.},
+	supervisor-address = {Katedra chytrých měst a~regionů, \\ Horská 3, \\ Praha 2},
+	supervisor-specialist = {},
+	%fieldofstudy-english = {Matematcké inženýrství},
+	%subfieldofstudy-english = {Matematické modelování},
+	fieldofstudy-czech = {Logistika a~řízení dopravních procesů},
+	subfieldofstudy-czech = {Technika a~technologie v~dopravě a~spojích},
+	keywords-czech = {nejkratší cesta, dynamický graf, Dijkstrův algoritmus, ALT algoritmus, Connection Scan Algorithm, jízdní řády},
+	keywords-english = {shortest path, time-dependent graph, Dijkstra algorithm, ALT algorithm, Connection Scan Algorithm, public transport timetable},
+	day = 5,
+	month = 8,
+	year = 2025,
+	specification-file = {zadani/zadani_plus_prohlaseni.pdf},
+	front-specification = true,
+	%	front-list-of-figures = false,
+	%	front-list-of-tables = false,
+	%	monochrome = true,
+	%	layout-short = true,
+	}
+	
+	\ctuprocess
+	
+	\addto\ctucaptionsczech{%
+	\def\supervisorname{Vedoucí}%
+	\def\subfieldofstudyname{Studijní program}%
+	}
+	
+	\ctutemplateset{maketitle twocolumn default}{
+		\begin{twocolumnfrontmatterpage}
+			\ctutemplate{twocolumn.thanks}
+			\ctutemplate{twocolumn.declaration}
+			\ctutemplate{twocolumn.abstract.in.titlelanguage}
+			\ctutemplate{twocolumn.abstract.in.secondlanguage}
+			\ctutemplate{twocolumn.tableofcontents}
+			\ctutemplate{twocolumn.listoffigures}
+		\end{twocolumnfrontmatterpage}
+		}
+		
+% Theorem declarations, this is the reasonable default, anybody can do what they wish.
+% If you prefer theorems in italics rather than slanted, use \theoremstyle{plainit}
+\theoremstyle{plain}
+\newtheorem{theorem}{Theorem}[chapter]
+\newtheorem{corollary}[theorem]{Corollary}
+\newtheorem{lemma}[theorem]{Lemma}
+\newtheorem{proposition}[theorem]{Proposition}
+
+\theoremstyle{definition}
+\newtheorem{definition}[theorem]{Definition}
+\newtheorem{example}[theorem]{Example}
+\newtheorem{conjecture}[theorem]{Conjecture}
+
+\theoremstyle{note}
+\newtheorem*{remark*}{Remark}
+\newtheorem{remark}[theorem]{Remark}
+
+\setlength{\parskip}{3ex plus 0.2ex minus 0.2ex}
+
+% Abstract in Czech
+\begin{abstract-czech}
+Tato práce se zabývá algoritmickými přístupy k nalezení nejkratší cesty v~jízdních řádech veřejné hromadné dopravy. Porovnává klasické grafové metody, zejména úpravy Dijkstrova algoritmu (včetně heuristických rozšíření A* a~ALT), s~moderními negrafovými přístupy, jako je Connection Scan Algorithm. Uvedené metody jsou implementovány v~jazyce Python a~aplikovány na reálná data Pražské integrované dopravy (PID). Řešené úlohy zahrnují problém nejdřívějšího příjezdu i jeho vícekriteriální variantu, která zároveň minimalizuje počet přestupů. Výsledky testů ukazují, že algoritmus ALT dokáže nalézt cestu s nejdřívějším příjezdem až dvakrát rychleji než základní Dijkstrův algoritmus.
+
+\end{abstract-czech}
+
+% Abstract in English
+\begin{abstract-english}
+This thesis explores algorithmic approaches to shortest path search in public transport timetables. It compares classical graph-based algorithms---such as the basic time-dependent Dijkstra algorithm and its extensions, including A* and the ALT algorithm---with modern non-graph-based algorithms like the Connection Scan Algorithm. These algorithms are implemented in Python and evaluated using real-world timetable data from Prague Integrated Transport. The study addresses both the Earliest Arrival Problem and its multi-criteria variant, which also seeks to minimize the number of transfers. Experimental results demonstrate that the ALT algorithm can solve the Earliest Arrival Problem up to twice as fast as the basic Dijkstra algorithm.
+
+\end{abstract-english}
+
+% Acknowledgements / Podekovani
+\begin{thanks}
+Mé poděkování patří Ing.~Aleně Rybičkové,~Ph.D. za odborné vedení a~cenné rady v~průběhu zpracování bakalářské práce. Rovněž vděčím rodině, která mě při psaní práce podporovala. 
+\end{thanks}
+
+% Declaration / Prohlaseni
+\begin{declaration}
+Nemám závažný důvod proti užívání tohoto školního díla ve smyslu §~60 Zákona č. 121/2000~Sb., o~právu autorském, o~právech souvisejících s~právem autorským a~o změně některých zákonů (autorský zákon).
+
+Prohlašuji, že jsem předloženou práci vypracoval samostatně a~uvedl veškeré použité informační zdroje v~souladu s~Metodickým pokynem o~dodržování etických principů při přípravě vysokoškolských závěrečných prací a~Rámcovými pravidly používání umělé inteligence na ČVUT pro studijní a~pedagogické účely v~Bc. a~NM studiu.
+
+V Praze, \ctufield{day}.~\monthinlanguage{title}~\ctufield{year}
+\vspace{-1.5em} % Reduce space above signature block
+
+\begin{center}
+	\includegraphics[scale=1]{zadani/signature.png}\\[-2.6em]
+	\makebox[4cm]{\dotfill} \\[0.3em]
+	podpis studenta
+\end{center}
+
+\end{declaration}
+
+% Only for testing purposes
+\listfiles
+\usepackage[english, czech]{babel}
+\usepackage[
+    backend=biber,
+    style=iso-numeric,  % or try csn-iso for Czech ISO style
+    language=czech,
+	sortlocale = cs_CZ,
+    sorting=nyt,
+	autolang=other,
+	]{biblatex}
+\DefineBibliographyStrings{czech}{%
+	urlfrom = {\kern-0.3em},
+  }
+
+\usepackage{fancyvrb}
+\usepackage{soul}
+\usepackage{array}
+\usepackage{tikz}
+\usepackage[inline]{enumitem}
+\usepackage{cancel} % in preamble
+\usepackage{subcaption}
+\usepackage[most]{tcolorbox}
+\usepackage{csquotes}
+\usepackage{silence}
+\usepackage{placeins}
+\usepackage{pmboxdraw}
+\usepackage[utf8]{inputenc}
+
+\tracinglostchars=1
+
+\usetikzlibrary{positioning, arrows.meta, calc}
+\graphicspath{{ext_pics}}
+\setlist[description]{topsep=0cm, partopsep=0pt, itemsep = 0pt, parsep = 4pt}  %
+
+
+% \usepackage[
+%   backend=biber,
+%   style=iso-authoryear,  % or iso-numeric, iso-authortitle, iso-alphabetic
+%   citestyle=iso-authoryear,
+%   doi=true,
+%   url=true,
+%   language=czech,
+%   isbn=false % toggle as desired
+% ]{biblatex}
+
+% \DefineBibliographyStrings{czech}{
+%     in = {v},
+%     edition = {vydání},
+%     %volume = {ročník},
+%     number = {číslo},
+%     pages = {s\adddot}
+% }
+
+\addbibresource{thesis_main.bib}
+
+\begin{document}
+
+\maketitle
+
+\input{pictures.tex}
+\input{all_text.tex}
+
+
+\printindex
+
+%\appendix
+
+\newpage
+
+%\bibliographystyle{amsalpha}
+
+\sloppy
+\printbibliography
+
+\appendix
+\chapter{Zdrojový kód, data a výsledky testů}
+
+\label{appendix_main}
+\section{Struktura přiložených souborů}
+\label{appendix_org}
+
+{\small
+\begin{verbatim}
+supplementary_files/
+└─ implementation/
+    ├─ main/
+    │   ├─ cache/ ................... uložená data (nepovinné)
+    │   │   ├─ stops_df.joblib ...... upravený seznam zastávek
+    │   │   ├─ timetable.joblib ..... upravený seznam spojení
+    │   │   └─ zones.joblib ......... slovník zón a zastávek
+    │   ├─ preprocessed_landmarks/ .. předzpracované vzdálenosti 
+    │   │                             landmarků pro variace ALT 
+    │   ├─ main_pareto_paths.py ..... skript s nejdřívějším příjezdem
+    │   │                             a pareto cestami (TD-Dijkstra)
+    │   ├─ profile_paths.py ......... skript s profilovým
+    │   │                             hledáním (TD-Dijkstra)
+    │   ├─ csa.py ................... skript s CSA algoritmem
+    │   ├─ gui.py ................... skript graf. uživ. rozhraní
+    │   └─ gtfs_pandas.py ........... pomocné funkce zprac. GTFS dat
+    │
+    ├─ PID_GTFS_20250731/ ........... GTFS Schedule data od PID
+    │   ├─ list_of_stops_20250731.json ............................
+    │   │  .......................... "Seznam_zastávek.json" od PID
+    │   └─ (všechny .txt soubory v původním GTFS Schedule souboru)
+    │
+    └─ results/
+        └─ experimental_results.txt.. výstupy testů všech algoritmů
+\end{verbatim}
+}
+
+
+
+%\ctutemplate{specification.as.chapter}
+
+\end{document}
